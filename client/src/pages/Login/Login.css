@@ -216,8 +216,78 @@ input[type="password"]::-ms-clear { display: none !important; }
 
 /* Mobile Responsive */
 @media (max-width: 960px) {
-  .login-page { flex-direction: column; height: auto; overflow: auto; } /* Mobile thì cho cuộn bình thường */
+  .login-page { flex-direction: column; height: auto; overflow: auto; } 
   .left-panel { height: 280px; padding: 30px; }
   .right-panel { height: auto; padding: 30px 20px; }
   .panel-content h1 { font-size: 28px; }
+}
+/* --- Popup OTP Styles --- */
+.otp-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Màu đen mờ che nền sau */
+  display: flex;
+  align-items: center; justify-content: center;
+  z-index: 1000; /* Nổi lên trên cùng */
+  backdrop-filter: blur(4px); /* Làm mờ nền sau cho đẹp */
+}
+
+.otp-box {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  animation: popupFadeIn 0.3s ease-out;
+}
+
+.otp-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 8px; /* Giãn cách các số cho dễ nhìn */
+  font-weight: bold;
+  color: var(--green-dark);
+  margin: 20px 0;
+}
+
+.otp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+}
+
+.btn-confirm {
+  flex: 1;
+  padding: 12px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }

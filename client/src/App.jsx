@@ -1,9 +1,14 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Login from "./pages/Login/Login";
 import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
-
+import Homeseller from "./pages/Home/Home-Seller/Homeseller";
 function App() {
   return (
     <Router>
@@ -13,10 +18,10 @@ function App() {
         <Route path="/homeguest" element={<Homeguest />} />
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/seller" element={<Homeseller />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-

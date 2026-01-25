@@ -1,6 +1,7 @@
 // ...existing code...
 import React, { useState } from "react";
-import "./Login.css"; // File CSS đã tạo
+import { useNavigate } from "react-router-dom";
+import "./Login.css"; 
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 const RoleSelector = ({ role, setRole }) => {
@@ -36,8 +37,9 @@ const RoleSelector = ({ role, setRole }) => {
   );
 };
 
-/* --- BẮT ĐẦU ĐOẠN CODE THAY THẾ CHO LoginForm --- */
-const LoginForm = ({ role, tab }) => {
+
+const LoginForm = ({ role, tab, setTab }) => {
+  const navigate = useNavigate();
   // State chung
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,14 +52,24 @@ const LoginForm = ({ role, tab }) => {
   const [confirmPwd, setConfirmPwd] = useState("");
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
-  // State cho Popup OTP (Mới thêm)
+  // State cho Popup OTP
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
 
   // 1. Xử lý khi bấm nút Đăng Nhập
   const handleLoginSubmit = (e) => {
     e.preventDefault();
+    if (email === "admin@gmail.com" && password === "123456") {
+      // Lưu giả token
+      localStorage.setItem("token", "fake-admin-token");
+      localStorage.setItem("user", JSON.stringify({ name: "Super Admin", role: "admin" }));
+      
+      alert("Đăng nhập Admin thành công!");
+      navigate("/admin/dashboard"); 
+      return; 
+    }
     // Call API Login ở đây
+
     console.log("LOGIN:", { email, password, remember, role });
     alert("Đã gửi yêu cầu Đăng nhập!");
   };
@@ -173,10 +185,11 @@ const LoginForm = ({ role, tab }) => {
           <button type="button" className="google-btn">
             <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google
           </button>
-          <div className="footer-text">Đã có tài khoản? <strong style={{color:"var(--green)", cursor:"pointer"}}>Đăng nhập</strong></div>
+          <div className="footer-text">Đã có tài khoản? <strong style={{color:"var(--green)", cursor:"pointer"}}
+          onClick={() => setTab("login")}>Đăng nhập</strong></div>
         </form>
 
-        {/* --- PHẦN POPUP OTP (Chỉ hiện khi showOtpModal = true) --- */}
+        {/* --- PHẦN POPUP OTP --- */}
         {showOtpModal && (
           <div className="otp-overlay">
             <div className="otp-box">
@@ -213,7 +226,7 @@ const LoginForm = ({ role, tab }) => {
     );
   }
 
-  // --- GIAO DIỆN ĐĂNG NHẬP (Giữ nguyên) ---
+  // --- GIAO DIỆN ĐĂNG NHẬP  ---
   return (
     <form onSubmit={handleLoginSubmit}>
       <div className="form-group">
@@ -251,11 +264,20 @@ const LoginForm = ({ role, tab }) => {
         <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google
       </button>
 
-      <div className="footer-text">Chưa có tài khoản? <a href="#" onClick={(e)=>e.preventDefault()} style={{color:"var(--green)"}}>Đăng ký ngay</a></div>
+      <div className="footer-text">Chưa có tài khoản? <a 
+            href="#" 
+            onClick={(e) => {
+                e.preventDefault();
+                setTab("register");
+            }} 
+            style={{color:"var(--green)"}}
+        >
+            Đăng ký ngay
+        </a>
+      </div>
     </form>
   );
 };
-/* --- KẾT THÚC ĐOẠN CODE THAY THẾ --- */
 
 const Login = () => {
   const [role, setRole] = useState("buyer");
@@ -295,7 +317,7 @@ const Login = () => {
             <div className={`tab ${tab === "register" ? "active" : ""}`} onClick={() => setTab("register")}>Đăng ký</div>
           </div>
 
-          <LoginForm role={role} tab={tab} />
+          <LoginForm role={role} tab={tab} setTab={setTab} />
         </div>
       </div>
     </div>
@@ -303,4 +325,3 @@ const Login = () => {
 };
 
 export default Login;
-// ...existing code...

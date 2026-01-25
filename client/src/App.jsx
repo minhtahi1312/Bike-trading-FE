@@ -1,30 +1,33 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/Admin/Dashboard';
-import Login from './pages/Login/Login';
 import Listings from './pages/Admin/Listings';
+import Login from './pages/Login/Login';
+import Homebuyer from './pages/Home/Home-Buyer/Homebuyer';
+import Homeguest from './pages/Home/Home-guest/Homeguest';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 1. Route cho trang Login */}
+        <Route path="/" element={<Homeguest />} />
+        <Route path="/homeguest" element={<Homeguest />} />
+        <Route path="/homebuyer" element={<Homebuyer />} />
+        
         <Route path="/login" element={<Login />} />
         
-        {/* 2. Route cho khu vực Admin (Có Sidebar & Header bao quanh) */}
         <Route path="/admin" element={<AdminLayout />}>
-          {/* Khi vào /admin thì tự động nhảy sang /admin/dashboard */}
+          {/* Vào /admin tự nhảy sang dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
           
-          {/* Trang Dashboard chính */}
           <Route path="dashboard" element={<Dashboard />} />
-          
           <Route path="listings" element={<Listings />} />
         </Route>
 
-        {/* 3. Mặc định: Nếu gõ linh tinh thì chuyển về trang Login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

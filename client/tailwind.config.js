@@ -16,6 +16,7 @@ export default {
         "surface-dark": "#1c2e24",
       },
       fontFamily: {
+        "sans": ["Inter", "sans-serif"],
         "display": ["Inter", "sans-serif"]
       },
     },

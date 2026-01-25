@@ -181,7 +181,38 @@ const LoginForm = ({ role, tab, setTab }) => {
           {/* Nút bấm Đăng ký -> Sẽ mở Popup */}
           <button type="submit" className="submit-btn" style={{marginTop:20}}>Đăng ký ngay &rarr;</button>
 
-          <div className="divider"><span>HOẶC ĐĂNG KÝ BẰNG</span></div>
+<div style={{
+    display: "flex",            /* Xếp hàng ngang */
+    alignItems: "center",       /* Căn giữa dọc */
+    width: "100%",              /* Chiếm hết chiều ngang */
+    margin: "24px 0"            /* Cách trên dưới */
+}}>
+    {/* 1. Kẻ trái */}
+    <div style={{
+        flex: 1,                /* Tự động giãn ra */
+        height: "1px",          /* Cao 1px */
+        backgroundColor: "#e5e7eb" /* Màu xám nhạt */
+    }}></div>
+
+    {/* 2. Chữ ở giữa */}
+    <span style={{
+        padding: "0 15px",      /* Khoảng cách 2 bên */
+        color: "#9ca3af",       /* Màu chữ xám */
+        fontSize: "13px",
+        fontWeight: 500,
+        whiteSpace: "nowrap"    /* Cấm xuống dòng */
+    }}>
+        Hoặc đăng ký bằng
+    </span>
+
+    {/* 3. Kẻ phải */}
+    <div style={{
+        flex: 1,
+        height: "1px",
+        backgroundColor: "#e5e7eb"
+    }}></div>
+</div>
+{/* --- KẾT THÚC --- */}
           <button type="button" className="google-btn">
             <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google
           </button>
@@ -258,7 +289,38 @@ const LoginForm = ({ role, tab, setTab }) => {
 
       <button type="submit" className="submit-btn">Đăng nhập →</button>
 
-      <div className="divider"><span>Hoặc đăng nhập với</span></div>
+<div style={{
+    display: "flex",            /* Xếp hàng ngang */
+    alignItems: "center",       /* Căn giữa dọc */
+    width: "100%",              /* Chiếm hết chiều ngang */
+    margin: "24px 0"            /* Cách trên dưới */
+}}>
+    {/* 1. Kẻ trái (Vẽ bằng div thật) */}
+    <div style={{
+        flex: 1,                /* Tự động giãn ra */
+        height: "1px",          /* Cao 1px */
+        backgroundColor: "#e5e7eb" /* Màu xám */
+    }}></div>
+
+    {/* 2. Chữ ở giữa */}
+    <span style={{
+        padding: "0 15px",      /* Khoảng cách 2 bên */
+        color: "#9ca3af",       /* Màu chữ xám */
+        fontSize: "13px",
+        fontWeight: 500,
+        whiteSpace: "nowrap"    /* Cấm xuống dòng */
+    }}>
+        Hoặc đăng nhập với
+    </span>
+
+    {/* 3. Kẻ phải (Vẽ bằng div thật) */}
+    <div style={{
+        flex: 1,
+        height: "1px",
+        backgroundColor: "#e5e7eb"
+    }}></div>
+</div>
+{/* --- KẾT THÚC --- */}
 
       <button type="button" className="google-btn">
         <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google

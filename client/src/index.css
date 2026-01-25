@@ -14,8 +14,8 @@ body {
   padding: 0;
   width: 100vw;
   min-height: 100vh;
-  /* overflow: auto;  */
-  overflow: hidden;
+  overflow: auto; 
+  /* overflow: hidden; */
   background-color: #f6f8f6; 
   color: #111813;
   -webkit-font-smoothing: antialiased;

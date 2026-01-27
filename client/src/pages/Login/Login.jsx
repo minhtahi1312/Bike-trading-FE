@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css"; 
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import axiosClient from '../../services/axiosClient';
+import { toast } from 'react-toastify';
 import { FcGoogle } from "react-icons/fc";
 const RoleSelector = ({ role, setRole }) => {
   return (
@@ -40,11 +42,13 @@ const RoleSelector = ({ role, setRole }) => {
 
 const LoginForm = ({ role, tab, setTab }) => {
   const navigate = useNavigate();
-  // State chung
+  
+  // --- STATE ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false); // Thêm state Loading
 
   // State riêng cho form Đăng Ký
   const [fullName, setFullName] = useState("");
@@ -55,73 +59,274 @@ const LoginForm = ({ role, tab, setTab }) => {
   // State cho Popup OTP
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-
-  // 1. Xử lý khi bấm nút Đăng Nhập
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    if (email === "admin@gmail.com" && password === "123456") {
-      // Lưu giả token
-      localStorage.setItem("token", "fake-admin-token");
-      localStorage.setItem("user", JSON.stringify({ name: "Super Admin", role: "admin" }));
+  
+  const handleResendOtp = async () => {
+      if (!email) { 
+          toast.warning("Vui lòng nhập email để gửi lại mã!"); 
+          return; 
+      }
       
-      alert("Đăng nhập Admin thành công!");
-      navigate("/admin/dashboard"); 
-      return; 
-    }
-    // Call API Login ở đây
+      try {
+        setLoading(true);
+        const response = await axiosClient.post('/api/Auth/resend-otp', { 
+            email: email 
+        }); 
+        
+        if (response.data && response.data.success === true) {
+            toast.success(response.data.message || "Mã OTP mới đã được gửi lại!");
+        } else {
+            toast.error(response.data.message || "Không thể gửi lại mã, vui lòng thử lại!");
+        }
 
-    console.log("LOGIN:", { email, password, remember, role });
-    alert("Đã gửi yêu cầu Đăng nhập!");
-  };
-
-  // 2. Xử lý khi bấm nút Đăng Ký (Hiện Popup OTP chứ chưa gửi ngay)
-  const handleRegisterClick = (e) => {
+      } catch (error) {
+        console.error("Resend OTP Error:", error);
+        toast.error("Lỗi hệ thống khi gửi lại OTP!");
+      } finally {
+        setLoading(false);
+      }
+    };
+// --- 1. XỬ LÝ ĐĂNG NHẬP (CÓ CHỖ CHỜ SẴN CHO SELLER & INSPECTOR) ---
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    // Validate sơ bộ
-    if (!email || !password || !fullName) {
-      alert("Vui lòng nhập đầy đủ thông tin trước khi đăng ký!");
+
+    if (!email || !password) {
+      toast.error("Vui lòng nhập email và mật khẩu!");
       return;
     }
-    // Mở popup OTP
-    setShowOtpModal(true);
-    console.log(`OTP sent to ${email}`);
+
+    try {
+      setLoading(true);
+      const response = await axiosClient.post('/api/Auth/signin', {
+        email: email,
+        password: password
+      });
+
+      if (response.data && response.data.success === true) {
+        
+        // --- BƯỚC 1: CHUẨN HÓA ROLE (SỐ -> CHỮ) ---
+        const rawRole = response.data.role || response.data.Role; 
+        let serverRoleStr = "UNKNOWN";
+
+        // Nếu Server trả về Số (1, 2, 3...)
+        if (!isNaN(rawRole) && Number(rawRole) > 0) {
+             const roleId = Number(rawRole);
+             switch (roleId) {
+                case 1: serverRoleStr = "ADMIN"; break;
+                case 2: serverRoleStr = "BUYER"; break;
+                case 3: serverRoleStr = "SELLER"; break;
+                case 4: serverRoleStr = "INSPECTOR"; break;
+             }
+        } 
+        // Nếu Server trả về Chữ ("Admin", "Buyer"...)
+        else if (typeof rawRole === 'string') {
+             serverRoleStr = rawRole.toUpperCase();
+        }
+
+        console.log("Role chuẩn hóa:", serverRoleStr);
+
+        // --- BƯỚC 2: LƯU TOKEN ---
+        localStorage.setItem('accessToken', response.data.token);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('role', serverRoleStr);
+        localStorage.setItem('user', JSON.stringify({ email: email, role: serverRoleStr }));
+
+        // --- BƯỚC 3: ĐIỀU HƯỚNG THEO ROLE ---
+
+        // === NHÓM QUẢN TRỊ (ADMIN & INSPECTOR) ===
+        if (serverRoleStr === 'ADMIN' || serverRoleStr === 'INSPECTOR') {
+             toast.success(`Xin chào ${serverRoleStr === 'ADMIN' ? 'Quản trị viên' : 'Kiểm duyệt viên'}!`);
+             
+             if (serverRoleStr === 'ADMIN') {
+                 navigate("/admin/dashboard");
+             } else {
+                 // [TODO]: SAU NÀY CÓ TRANG INSPECTOR THÌ SỬA DÒNG DƯỚI
+                 // Ví dụ: navigate("/admin/listings");
+                 navigate("/admin/dashboard"); 
+             }
+             return; 
+        }
+
+        // === NHÓM NGƯỜI DÙNG (BUYER & SELLER) ===
+        const uiRoleUpper = role.toUpperCase(); // Role đang chọn trên UI
+
+        if (serverRoleStr === uiRoleUpper) {
+             toast.success("Đăng nhập thành công!");
+
+             if (serverRoleStr === 'BUYER') {
+                 navigate("/homebuyer");
+             } else {
+                 // [TODO]: SAU NÀY CÓ TRANG SELLER THÌ SỬA DÒNG DƯỚI
+                 // Ví dụ: navigate("/homeseller");
+                 navigate("/"); 
+             }
+
+        } else {
+             // Báo lỗi nếu chọn sai tab
+             let roleNameTV = serverRoleStr;
+             if (serverRoleStr === 'ADMIN') roleNameTV = "Quản trị viên";
+             if (serverRoleStr === 'BUYER') roleNameTV = "Người mua";
+             if (serverRoleStr === 'SELLER') roleNameTV = "Người bán";
+             if (serverRoleStr === 'INSPECTOR') roleNameTV = "Người kiểm duyệt";
+             
+             toast.error(`Tài khoản này là ${roleNameTV}. Vui lòng chọn đúng vai trò phía trên!`);
+        }
+
+      } else {
+        toast.error(response.data.message || "Đăng nhập thất bại!");
+      }
+
+} catch (error) {
+      console.error("Login Error:", error);
+ const resData = error.response?.data;
+      
+      // Lấy tất cả thông báo lỗi có thể có gộp lại thành 1 chuỗi chữ thường
+      const errorMsg = (
+          (resData?.message || "") + 
+          (resData?.title || "") + 
+          (typeof resData === 'string' ? resData : "")
+      ).toLowerCase();
+
+      // Kiểm tra từ khóa: "chưa xác minh", "not verified", "inactive", "otp"
+      if (errorMsg.includes("chưa xác minh") || 
+          errorMsg.includes("not verified") || 
+          errorMsg.includes("inactive") || 
+          errorMsg.includes("kích hoạt")) {
+          
+          toast.info("Tài khoản chưa kích hoạt. Hệ thống đang gửi lại mã OTP...", { autoClose: 3000 });
+          
+          // 1. Mở Modal OTP ngay
+          setShowOtpModal(true);
+          
+          // 2. Tự động gửi lại mã OTP luôn (UX mượt hơn)
+          await handleResendOtp(email);
+          
+      } else {
+          // Các lỗi khác (sai pass, không tồn tại...)
+          toast.error(resData?.message || "Sai tài khoản hoặc mật khẩu!");
+      }
+      // -------------------------------
+      
+    } finally {
+      setLoading(false);
+    }
   };
+// 2. XỬ LÝ NÚT ĐĂNG KÝ
+  const handleRegisterClick = async (e) => {
+    e.preventDefault();
 
+    // Validate dữ liệu
+    if (!email || !password || !fullName || !phone) {
+      toast.warning("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+    if (password !== confirmPwd) {
+      toast.error("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Quy đổi Role: Buyer = 2, Seller = 3
+      const roleId = role === "seller" ? 3 : 2; 
+
+      // --- GỌI API TẠO TÀI KHOẢN ---
+      // Hệ thống sẽ tạo User và tự gửi OTP về mail
+      const response = await axiosClient.post('/api/Auth/signup', {
+        fullName: fullName,
+        phoneNumber: phone,
+        email: email,
+        password: password,
+        role: roleId 
+      });
+
+      if (response.data && response.data.success === true) {
+        toast.success("Đăng ký thành công! Vui lòng kiểm tra Email để lấy mã OTP.");
+        
+        // Mở Popup để nhập mã vừa được gửi
+        setShowOtpModal(true);
+      } else {
+        toast.error(response.data.message || "Đăng ký thất bại!");
+      }
+
+} catch (error) {
+      console.error("Register Error:", error);
+      const resData = error.response?.data;
+      
+      // Gộp lỗi để check cho chắc
+      const errorMsg = (
+          (resData?.message || "") + 
+          (resData?.title || "") + 
+          (JSON.stringify(resData?.errors || ""))
+      ).toLowerCase();
+
+      // --- LOGIC XỬ LÝ LỖI "ĐÃ TỒN TẠI" ---
+      if (errorMsg.includes("tồn tại") || 
+          errorMsg.includes("exists") || 
+          errorMsg.includes("duplicate") ||
+          errorMsg.includes("đã được sử dụng")) {
+          
+          toast.warning("Email/SĐT này đã đăng ký! Vui lòng Đăng Nhập để xác thực.", { autoClose: 4000 });
+          
+          // CHUYỂN NGAY SANG TAB ĐĂNG NHẬP
+          setTab("login"); 
+          
+          // Mẹo: Lúc này Email và Pass người dùng vừa nhập vẫn còn trong State
+          // Họ chỉ cần bấm nút "Đăng nhập" bên tab kia là sẽ kích hoạt luồng gửi OTP
+          
+      } else {
+          toast.error(resData?.message || "Đăng ký thất bại!");
+      }
+
+    } finally {
+      setLoading(false);
+    }
+  };
   
- // 3. Xử lý xác thực OTP
-  const handleVerifyOtp = () => {
-    // --- GIẢ LẬP GỌI API ---
-    // Sau này call API sau
-    // Ví dụ: const res = await api.checkOtp(email, otpCode);
-    const isOtpValid = otpCode === "123456"; 
-    // -----------------------
+const handleVerifyOtp = async () => {
+    if (!otpCode) {
+        toast.warning("Vui lòng nhập mã OTP!");
+        return;
+    }
 
-    if (isOtpValid) {
-      // TRƯỜNG HỢP THÀNH CÔNG
-      setShowOtpModal(false);
-      console.log("Đăng ký thành công:", { role, fullName, email, phone, password });
-      
-      // Thông báo chuẩn
-      alert("Đăng ký tài khoản thành công!");
-      
-      // TODO: Chuyển hướng người dùng (Navigate)
-    } else {
-      // TRƯỜNG HỢP THẤT BẠI
-      // Hiển thị message lỗi như bạn yêu cầu
-      alert("Mã OTP không hợp lệ. Vui lòng kiểm tra lại!");
-      
-      // Xóa mã cũ để người dùng nhập lại cho nhanh
-      setOtpCode(""); 
+    try {
+      setLoading(true);
+
+      // Gọi API Verify chuẩn
+      const response = await axiosClient.post('/api/Auth/verify-otp', {
+          email: email,
+          otp: otpCode
+      });
+
+      if (response.data && response.data.success === true) {
+          toast.success("Xác thực thành công! Bạn có thể đăng nhập ngay.");
+          
+          // Đóng popup và chuyển về tab Login
+          setShowOtpModal(false);
+          setTab("login");
+          
+          // Reset form cho sạch sẽ
+          setEmail(""); setPassword(""); setFullName(""); setPhone(""); setConfirmPwd(""); setOtpCode("");
+      } else {
+          toast.error(response.data.message || "Mã OTP không đúng hoặc đã hết hạn!");
+      }
+
+    } catch (error) {
+      console.error("Verify Error:", error);
+      const message = error.response?.data?.message || "Lỗi xác thực!";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // --- GIAO DIỆN ĐĂNG KÝ (Có kèm Popup OTP) ---
-  if (tab === "register") {
-    return (
-      <>
-        <form onSubmit={handleRegisterClick}>
-          {/* Hàng 1: Họ tên */}
-          <div className="form-group">
+// --- SỬA LẠI PHẦN RETURN CUỐI CÙNG NHƯ SAU ---
+return (
+  <>
+    {/* 1. NẾU LÀ TAB ĐĂNG KÝ THÌ HIỆN FORM ĐĂNG KÝ */}
+    {tab === "register" && (
+      <form onSubmit={handleRegisterClick}>
+                  <div className="form-group">
             <label style={{marginBottom:8, display:'block'}}>Họ và tên</label>
             <input type="text" placeholder="Nguyễn Văn A" value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </div>
@@ -178,91 +383,36 @@ const LoginForm = ({ role, tab, setTab }) => {
             </label>
           </div>
 
-          {/* Nút bấm Đăng ký -> Sẽ mở Popup */}
           <button type="submit" className="submit-btn" style={{marginTop:20}}>Đăng ký ngay &rarr;</button>
 
-<div style={{
-    display: "flex",            /* Xếp hàng ngang */
-    alignItems: "center",       /* Căn giữa dọc */
-    width: "100%",              /* Chiếm hết chiều ngang */
-    margin: "24px 0"            /* Cách trên dưới */
-}}>
-    {/* 1. Kẻ trái */}
-    <div style={{
-        flex: 1,                /* Tự động giãn ra */
-        height: "1px",          /* Cao 1px */
-        backgroundColor: "#e5e7eb" /* Màu xám nhạt */
-    }}></div>
+          {/* CODE PHÂN CÁCH (DIVIDER) BẠN ĐÃ LÀM */}
+          <div style={{ display: "flex", alignItems: "center", width: "100%", margin: "24px 0" }}>
+            <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }}></div>
+            <span style={{ padding: "0 15px", color: "#9ca3af", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap" }}>Hoặc đăng ký bằng</span>
+            <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }}></div>
+          </div>
 
-    {/* 2. Chữ ở giữa */}
-    <span style={{
-        padding: "0 15px",      /* Khoảng cách 2 bên */
-        color: "#9ca3af",       /* Màu chữ xám */
-        fontSize: "13px",
-        fontWeight: 500,
-        whiteSpace: "nowrap"    /* Cấm xuống dòng */
-    }}>
-        Hoặc đăng ký bằng
-    </span>
-
-    {/* 3. Kẻ phải */}
-    <div style={{
-        flex: 1,
-        height: "1px",
-        backgroundColor: "#e5e7eb"
-    }}></div>
-</div>
-{/* --- KẾT THÚC --- */}
           <button type="button" className="google-btn">
             <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google
           </button>
           <div className="footer-text">Đã có tài khoản? <strong style={{color:"var(--green)", cursor:"pointer"}}
           onClick={() => setTab("login")}>Đăng nhập</strong></div>
-        </form>
+        
 
-        {/* --- PHẦN POPUP OTP --- */}
-        {showOtpModal && (
-          <div className="otp-overlay">
-            <div className="otp-box">
-              <span className="otp-icon">📩</span>
-              <h3 style={{margin:0, color:'#0c3b2e'}}>Xác thực OTP</h3>
-              <p style={{color:'#666', fontSize:'14px', marginTop:'8px'}}>
-                Mã xác thực đã được gửi đến email <br/> <strong>{email || "email của bạn"}</strong>
-              </p>
-              
-              <input 
-                type="text" 
-                className="otp-input form-control" 
-                maxLength="6" 
-                placeholder="000000"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))} // Chỉ nhập số
-                style={{
-                  width: '100%', padding: '10px', fontSize: '24px', letterSpacing: '8px', 
-                  textAlign: 'center', margin: '20px 0', border: '1px solid #ddd', borderRadius: '8px'
-                }}
-                autoFocus
-              />
+      </form>
+    )}
 
-              <div className="otp-actions" style={{display:'flex', gap:'10px'}}>
-                <button type="button" className="btn-cancel" onClick={() => setShowOtpModal(false)} style={{flex:1, padding:'12px', border:'1px solid #ddd', background:'#f8f9fa', borderRadius:'8px', cursor:'pointer'}}>Hủy bỏ</button>
-                <button type="button" className="btn-confirm" onClick={handleVerifyOtp} style={{flex:1, padding:'12px', background:'#10b981', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}}>Xác nhận</button>
-              </div>
-              
-              <p style={{fontSize:'12px', marginTop:'15px', color:'#888', cursor:'pointer'}}>Chưa nhận được mã? <u style={{color:'var(--green)'}}>Gửi lại</u></p>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // --- GIAO DIỆN ĐĂNG NHẬP  ---
-  return (
-    <form onSubmit={handleLoginSubmit}>
-      <div className="form-group">
+    {/* 2. NẾU LÀ TAB ĐĂNG NHẬP THÌ HIỆN FORM ĐĂNG NHẬP */}
+    {tab === "login" && (
+      <form onSubmit={handleLoginSubmit}>
+          <div className="form-group">
         <label style={{marginBottom:8, display:'block'}}>Email hoặc số điện thoại</label>
-        <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@email.com" />
+        <input 
+          type="text" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          placeholder="example@email.com" 
+        />
       </div>
 
       <div className="form-group">
@@ -271,7 +421,7 @@ const LoginForm = ({ role, tab, setTab }) => {
           <input 
              type={showPwd ? "text" : "password"} 
              value={password} onChange={(e) => setPassword(e.target.value)}
-             placeholder="Tạo mật khẩu" 
+             placeholder="Nhập mật khẩu" 
              style={{ width: "100%", paddingRight: "40px" }} 
           />
           <span onClick={() => setShowPwd(!showPwd)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", zIndex: 10, color: "#666", display: "flex" }}>
@@ -287,40 +437,22 @@ const LoginForm = ({ role, tab, setTab }) => {
         <a href="#" onClick={(e)=>e.preventDefault()}>Quên mật khẩu?</a>
       </div>
 
-      <button type="submit" className="submit-btn">Đăng nhập →</button>
+      {/* Cập nhật nút bấm để hiện Loading */}
+      <button 
+        type="submit" 
+        className="submit-btn" 
+        disabled={loading}
+        style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+      >
+        {loading ? "Đang xử lý..." : "Đăng nhập →"}
+      </button>
 
-<div style={{
-    display: "flex",            /* Xếp hàng ngang */
-    alignItems: "center",       /* Căn giữa dọc */
-    width: "100%",              /* Chiếm hết chiều ngang */
-    margin: "24px 0"            /* Cách trên dưới */
-}}>
-    {/* 1. Kẻ trái (Vẽ bằng div thật) */}
-    <div style={{
-        flex: 1,                /* Tự động giãn ra */
-        height: "1px",          /* Cao 1px */
-        backgroundColor: "#e5e7eb" /* Màu xám */
-    }}></div>
-
-    {/* 2. Chữ ở giữa */}
-    <span style={{
-        padding: "0 15px",      /* Khoảng cách 2 bên */
-        color: "#9ca3af",       /* Màu chữ xám */
-        fontSize: "13px",
-        fontWeight: 500,
-        whiteSpace: "nowrap"    /* Cấm xuống dòng */
-    }}>
-        Hoặc đăng nhập với
-    </span>
-
-    {/* 3. Kẻ phải (Vẽ bằng div thật) */}
-    <div style={{
-        flex: 1,
-        height: "1px",
-        backgroundColor: "#e5e7eb"
-    }}></div>
-</div>
-{/* --- KẾT THÚC --- */}
+      {/* CODE PHÂN CÁCH (DIVIDER) */}
+      <div style={{ display: "flex", alignItems: "center", width: "100%", margin: "24px 0" }}>
+        <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }}></div>
+        <span style={{ padding: "0 15px", color: "#9ca3af", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap" }}>Hoặc đăng nhập với</span>
+        <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }}></div>
+      </div>
 
       <button type="button" className="google-btn">
         <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với Google
@@ -337,10 +469,47 @@ const LoginForm = ({ role, tab, setTab }) => {
             Đăng ký ngay
         </a>
       </div>
-    </form>
-  );
-};
 
+      </form>
+    )}
+
+    {/* 3. POPUP OTP (ĐỂ RA NGOÀI CÙNG ĐỂ NÓ HIỆN ĐƯỢC Ở CẢ 2 TAB) */}
+    {showOtpModal && (
+      <div className="otp-overlay">
+          <div className="otp-box">
+              <span className="otp-icon">📩</span>
+              <h3 style={{margin:0, color:'#0c3b2e'}}>Xác thực OTP</h3>
+              <p style={{color:'#666', fontSize:'14px', marginTop:'8px'}}>
+                Mã xác thực đã được gửi đến email <br/> <strong>{email || "email của bạn"}</strong>
+              </p>
+              
+              <input 
+                type="text" 
+                className="otp-input form-control" 
+                maxLength="6" 
+                placeholder="000000"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                style={{
+                  width: '100%', padding: '10px', fontSize: '24px', letterSpacing: '8px', 
+                  textAlign: 'center', margin: '20px 0', border: '1px solid #ddd', borderRadius: '8px'
+                }}
+                autoFocus
+              />
+
+              <div className="otp-actions" style={{display:'flex', gap:'10px'}}>
+                <button type="button" className="btn-cancel" onClick={() => setShowOtpModal(false)} style={{flex:1, padding:'12px', border:'1px solid #ddd', background:'#f8f9fa', borderRadius:'8px', cursor:'pointer'}}>Hủy bỏ</button>
+                <button type="button" className="btn-confirm" onClick={handleVerifyOtp} style={{flex:1, padding:'12px', background:'#10b981', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}}>Xác nhận</button>
+              </div>
+              
+              
+              <p style={{fontSize:'12px', marginTop:'15px', color:'#888', cursor:'pointer'}}>Chưa nhận được mã? <u style={{color:'var(--green)', cursor: 'pointer'}} onClick={handleResendOtp}>Gửi lại</u></p>
+            </div>
+      </div>
+    )}
+  </>
+);
+};
 const Login = () => {
   const [role, setRole] = useState("buyer");
   const [tab, setTab] = useState("login"); // 'login' | 'register'

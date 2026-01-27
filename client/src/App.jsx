@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// 1. IMPORT CẦN THIẾT 
+// --- 1. IMPORT CẦN THIẾT (Phải cài npm install react-toastify trước nhé) ---
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 // -------------------------------------------------------------------------
@@ -32,7 +32,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* --- 2. THÊM KHUNG HIỂN THỊ VÀO CUỐI --- */}
+      {/* --- 2. THÊM CÁI KHUNG HIỂN THỊ NÀY VÀO CUỐI --- */}
       <ToastContainer 
         position="top-right"
         autoClose={3000}

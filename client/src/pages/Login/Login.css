@@ -1,7 +1,7 @@
-/* src/pages/Login/Login.css - PHIÊN BẢN HOÀN CHỈNH */
+/* src/pages/Login/Login.css - PHIÊN BẢN ĐÃ FIX LỖI NHẢY GIAO DIỆN */
 
 /* Import font & biến màu */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root{
   --green: #10b981;
   --green-dark: #0f8a63;
@@ -12,7 +12,12 @@
 /* Reset */
 *{box-sizing:border-box}
 body, html, #root { height: 100%; margin: 0; }
-body { font-family: 'Poppins', "Segoe UI", sans-serif; background: #f6f8fa; color: #072034; }
+body { 
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+  background: #f6f8fa; 
+  color: #072034; 
+}
 
 /* --- LAYOUT CHÍNH */
 .login-page {
@@ -107,13 +112,53 @@ body { font-family: 'Poppins', "Segoe UI", sans-serif; background: #f6f8fa; colo
   margin: auto; 
 }
 
-/* --- CÁC COMPONENT BÊN TRONG --- */
-.header { text-align: center; margin-bottom: 25px; }
-.header h2 { margin: 0; font-size: 28px; color: var(--green-dark); }
-.header p { margin: 8px 0 0 0; color: var(--muted); font-size: 14px; }
+/* --- CÁC COMPONENT BÊN TRONG (ĐÃ SỬA: Sticky Header + Xóa gạch ngang) --- */
+.header { 
+  display: flex;
+  flex-direction: column;  /* Xếp dọc */
+  align-items: center;     /* Căn giữa */
+  text-align: center; 
+  margin-bottom: 20px; 
 
-/* Role Buttons */
-.section-label { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+  /* QUAN TRỌNG: Giúp tiêu đề dính lại khi cuộn */
+  position: sticky;
+  top: 0;
+  background-color: #ffffff; /* Nền trắng che nội dung trôi bên dưới */
+  z-index: 50;               /* Nổi lên trên cùng */
+  padding-top: 30px;         /* Khoảng cách trên */
+  padding-bottom: 15px;      /* Khoảng cách dưới */
+  width: 100%;
+  border-bottom: none !important; /* Xóa triệt để đường kẻ ngang thừa */
+}
+
+.header h2 { 
+  margin: 0; 
+  font-size: 30px;        /* Giảm nhẹ size từ 32 xuống 30 cho tinh tế */
+  font-weight: 700;       /* Hoặc thử giảm xuống 600 nếu muốn thanh mảnh hơn */
+  color: var(--green-dark); 
+  width: 100%;
+  line-height: 1.2;
+  letter-spacing: -0.5px; /* Thu hẹp khoảng cách chữ 1 chút cho giống mẫu */
+}
+
+.header p { 
+  margin: 4px 0 0 0; 
+  color: var(--muted); 
+  font-size: 15px; 
+  width: 100%;
+  font-weight: 400;
+}
+
+/* Chỉnh sửa dòng "BẠN LÀ AI?" để không bị dính đường kẻ */
+.section-label { 
+  text-align: center; 
+  font-size: 12px; 
+  color: var(--muted); 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  margin-bottom: 12px;
+  border: none !important; /* Đảm bảo không có viền thừa */
+}
 .role-buttons { display: flex; gap: 14px; margin: 14px 0 22px; justify-content: center; }
 
 .role-btn {
@@ -122,20 +167,39 @@ body { font-family: 'Poppins', "Segoe UI", sans-serif; background: #f6f8fa; colo
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px;
+  
+  /* FIX 1: Dùng height cố định và bỏ padding dọc */
+  height: 76px; 
+  padding: 0 16px; 
+
   border-radius: 12px;
-  border: 1px solid #eef2f4;
+  
+  /* FIX 2: Set viền 2px ngay từ đầu (màu nhạt) để khớp với active */
+  border: 2px solid #eef2f4; 
+  
   background: #fff;
   cursor: pointer;
   transition: all .15s;
   color: #334155;
 }
 
-.role-btn .icon-box { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; background: transparent; color: var(--muted); font-size: 1.2rem;}
+.role-btn .icon-box { 
+  width: 36px; height: 36px; 
+  display: grid; place-items: center; 
+  border-radius: 8px; 
+  background: transparent; 
+  color: var(--muted); 
+  font-size: 1.2rem;
+  /* FIX 3: Ngăn icon bị co lại */
+  flex-shrink: 0; 
+}
 
 .role-btn.active {
   background: rgba(16,185,129,0.08);
-  border: 2px solid var(--green);
+  
+  /* FIX 4: Active chỉ đổi màu, giữ nguyên độ dày 2px */
+  border-color: var(--green); 
+  
   color: var(--green-dark);
   box-shadow: 0 8px 28px rgba(16,185,129,0.08);
 }
@@ -190,10 +254,34 @@ input[type="password"]::-ms-clear { display: none !important; }
 }
 .submit-btn:hover { background: #0fb172; transform: translateY(-1px); }
 
-.divider { text-align: center; margin: 25px 0; color: var(--muted); position: relative; font-size: 13px; }
-.divider::before { content: ""; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: #eee; z-index: 0; }
-.divider span { background: #fff; padding: 0 15px; display: inline-block; position: relative; z-index: 1; }
+/* --- SỬA LỖI CĂN GIỮA (CSS THUẦN) --- */
+.divider {
+  display: flex;            /* 1. Kích hoạt Flexbox */
+  align-items: center;      /* 2. Căn giữa theo trục dọc (trên dưới) */
+  justify-content: center;  /* 3. Căn giữa theo trục ngang */
+  width: 100%;              /* 4. Ép chiều rộng bung hết cỡ */
+  margin: 24px 0;           /* Khoảng cách trên dưới */
+  position: relative;
+}
 
+/* Tạo 2 đường kẻ 2 bên */
+.divider::before,
+.divider::after {
+  content: "";              /* Bắt buộc phải có */
+  flex: 1;                  /* QUAN TRỌNG: Lệnh này bảo đường kẻ tự giãn ra lấp đầy khoảng trống */
+  height: 1px;              /* Độ dày đường kẻ */
+  background-color: #e0e0e0; /* Màu đường kẻ (Xám nhạt) */
+}
+
+/* Chỉnh phần chữ ở giữa */
+.divider span {
+  padding: 0 15px;          /* Khoảng cách giữa chữ và 2 đường kẻ */
+  color: #667085;           /* Màu chữ (var(--muted) nếu bạn có biến này) */
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;      /* Chống vỡ dòng */
+  background-color: #fff;   /* Nền trắng (an toàn nếu đường kẻ bị xuyên qua) */
+}
 .google-btn {
   width: 100%;
   padding: 12px;
@@ -290,4 +378,35 @@ input[type="password"]::-ms-clear { display: none !important; }
 @keyframes popupFadeIn {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+/* --- SỬA LỖI MÀU NỀN DIVIDER --- */
+.divider {
+  position: relative;      /* Làm mốc cho đường kẻ */
+  text-align: center;      /* Căn giữa chữ */
+  width: 100%;
+  margin: 25px 0;
+  color: var(--muted);
+  font-size: 13px;
+  background: transparent; /* Đảm bảo không có màu nền lạ */
+}
+
+/* Vẽ đường kẻ ngang mờ */
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;                /* Đặt giữa theo chiều dọc */
+  left: 0;
+  width: 100%;             /* Kéo dài hết chiều ngang */
+  height: 1px;             /* Độ dày đường kẻ */
+  background-color: #eee;  /* Màu xám nhạt cho đường kẻ */
+  z-index: 0;              /* Nằm phía sau chữ */
+}
+
+/* Chỉnh phần chữ để che đường kẻ */
+.divider span {
+  position: relative;
+  background-color: #fff;  /* QUAN TRỌNG: Nền trắng để che đoạn kẻ đi qua */
+  padding: 0 15px;         /* Tạo khoảng cách giữa chữ và đường kẻ */
+  z-index: 1;              /* Nổi lên trên đường kẻ */
+  font-weight: 500;
 }

@@ -1,6 +1,6 @@
 // ...existing code...
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css"; 
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import axiosClient from '../../services/axiosClient';
@@ -513,6 +513,17 @@ return (
 const Login = () => {
   const [role, setRole] = useState("buyer");
   const [tab, setTab] = useState("login"); // 'login' | 'register'
+  const location = useLocation();
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    const t = q.get('tab') || q.get('mode');
+    if (t && (t.toLowerCase() === 'register' || t.toLowerCase() === 'signup')) {
+      setTab('register');
+    } else if (t && t.toLowerCase() === 'login') {
+      setTab('login');
+    }
+  }, [location.search]);
 
   return (
     <div className="login-page">

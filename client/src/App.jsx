@@ -16,6 +16,8 @@ import InspectionDetail from './pages/Inspector/InspectionDetail';
 import InspectionChecklist from './pages/Inspector/InspectionChecklist';
 import InspectionResult from './pages/Inspector/InspectionResult';
 import InspectionFinalConfirmation from './pages/Inspector/InspectionFinalConfirmation';
+import SellerLayout from './layouts/SellerLayout';
+import SellerDashboard from "./pages/Seller/Dashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -23,7 +25,7 @@ function App() {
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />
         <Route path="/homebuyer" element={<Homebuyer />} />
-        
+
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
   <Route index element={<Navigate to="dashboard" replace />} />
@@ -40,10 +42,15 @@ function App() {
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/seller" element={<SellerLayout />}>
+          <Route index element={<SellerDashboard />} />
+          <Route path="dashboard" element={<SellerDashboard />} />
+        </Route>
       </Routes>
 
       {/* --- 2. THÊM CÁI KHUNG HIỂN THỊ NÀY VÀO CUỐI --- */}
-      <ToastContainer 
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -56,7 +63,6 @@ function App() {
         theme="light"
       />
       {/* ------------------------------------------------ */}
-
     </BrowserRouter>
   );
 }

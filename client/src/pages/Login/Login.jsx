@@ -1,6 +1,5 @@
-// ...existing code...
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css"; 
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import axiosClient from '../../services/axiosClient';
@@ -60,10 +59,13 @@ const LoginForm = ({ role, tab, setTab }) => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   
-  const handleResendOtp = async () => {
-      if (!email) { 
-          toast.warning("Vui lòng nhập email để gửi lại mã!"); 
-          return; 
+  const handleResendOtp = async (e) => {
+      // Thêm dòng này để nếu gọi tự động từ code (không có e) thì không bị lỗi
+    if (e && e.preventDefault) e.preventDefault(); 
+    
+    if (!email) { 
+        toast.warning("Không tìm thấy email để gửi lại mã!"); 
+        return;
       }
       
       try {
@@ -141,7 +143,7 @@ const LoginForm = ({ role, tab, setTab }) => {
              } else {
                  // [TODO]: SAU NÀY CÓ TRANG INSPECTOR THÌ SỬA DÒNG DƯỚI
                  // Ví dụ: navigate("/admin/listings");
-                 navigate("/admin/dashboard"); 
+                 navigate("/inspector/dashboard");
              }
              return; 
         }
@@ -176,37 +178,27 @@ const LoginForm = ({ role, tab, setTab }) => {
       }
 
 } catch (error) {
-      console.error("Login Error:", error);
- const resData = error.response?.data;
-      
-      // Lấy tất cả thông báo lỗi có thể có gộp lại thành 1 chuỗi chữ thường
-      const errorMsg = (
-          (resData?.message || "") + 
-          (resData?.title || "") + 
-          (typeof resData === 'string' ? resData : "")
-      ).toLowerCase();
+    console.error("Login Error:", error);
+    const resData = error.response?.data;
+    const serverMsg = resData?.message || "";
+    const errorMsgLow = serverMsg.toLowerCase();
 
-      // Kiểm tra từ khóa: "chưa xác minh", "not verified", "inactive", "otp"
-      if (errorMsg.includes("chưa xác minh") || 
-          errorMsg.includes("not verified") || 
-          errorMsg.includes("inactive") || 
-          errorMsg.includes("kích hoạt")) {
-          
-          toast.info("Tài khoản chưa kích hoạt. Hệ thống đang gửi lại mã OTP...", { autoClose: 3000 });
-          
-          // 1. Mở Modal OTP ngay
-          setShowOtpModal(true);
-          
-          // 2. Tự động gửi lại mã OTP luôn (UX mượt hơn)
-          await handleResendOtp(email);
-          
-      } else {
-          // Các lỗi khác (sai pass, không tồn tại...)
-          toast.error(resData?.message || "Sai tài khoản hoặc mật khẩu!");
-      }
-      // -------------------------------
-      
-    } finally {
+    // Kiểm tra message từ BE
+    if (errorMsgLow.includes("chưa xác minh email") || errorMsgLow.includes("kích hoạt")) {
+        
+        // 1. Bật Modal OTP lên ngay lập tức
+        setShowOtpModal(true); 
+
+        // 2. Thông báo cho người dùng
+        toast.info("Tài khoản chưa xác thực. Hệ thống đang gửi lại mã OTP...");
+
+        // 3. Tự động chạy API gửi lại mã (Gọi sau cùng)
+        handleResendOtp(); 
+        
+    } else {
+        toast.error(serverMsg || "Sai tài khoản hoặc mật khẩu!");
+    }
+} finally {
       setLoading(false);
     }
   };
@@ -511,9 +503,14 @@ return (
 );
 };
 const Login = () => {
+  const location = useLocation();
   const [role, setRole] = useState("buyer");
-  const [tab, setTab] = useState("login"); // 'login' | 'register'
-
+  const [tab, setTab] = useState(location.state?.activeTab === "register" ? "register" : "login");
+useEffect(() => {
+    if (location.state?.activeTab) {
+      setTab(location.state.activeTab);
+    }
+  }, [location.state]);
   return (
     <div className="login-page">
       {/* CỘT TRÁI */}

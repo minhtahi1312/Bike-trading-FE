@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Homeguest.css';
 
 export default function Homeguest() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBikeType, setSelectedBikeType] = useState('all');
@@ -80,7 +82,13 @@ export default function Homeguest() {
       description: 'So sánh giá dễ dàng và không có phí ẩn. Giao dịch trực tiếp, không qua trung gian.',
     },
   ];
-
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+  const handleSignupClick = () => {
+    // Chuyển sang đường dẫn /login nhưng gửi kèm dữ liệu { tab: 'register' }
+    navigate('/login', { state: { activeTab: 'register' } });
+  };
   const handleSearch = (e) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
@@ -111,8 +119,8 @@ export default function Homeguest() {
           </nav>
 
           <div className="header-buttons">
-            <button className="btn-login">Đăng nhập</button>
-            <button className="btn-signup">Đăng ký</button>
+            <button className="btn-login" onClick={handleLoginClick}>Đăng nhập</button>
+            <button className="btn-signup" onClick={handleSignupClick}>Đăng ký</button>
           </div>
 </div>
 

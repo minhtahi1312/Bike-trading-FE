@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { Bell, Bike, ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
 export default function Homebuyer() {
   const [sortBy, setSortBy] = useState("Mới nhất");
   const [verifiedOnly, setVerifiedOnly] = useState(true);
@@ -86,22 +86,22 @@ export default function Homebuyer() {
     <div className="bg-background-light dark:bg-background-dark text-[#111813] overflow-x-hidden">
       {/* Header */}
       <div className="w-full bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
-        <div className="max-w-[1440px] mx-auto">
+        <div className="w-full ">
           <header className="flex items-center justify-between whitespace-nowrap px-4 lg:px-10 py-3">
             <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2 text-[#111813]">
-                <div className="size-8 text-primary">
-                  <span className="material-symbols-outlined filled" style={{ fontSize: "32px" }}>
-                    pedal_bike
-                  </span>
-                </div>
-                <h2 className="text-[#111813] text-xl font-bold leading-tight tracking-[-0.015em]">BikeSafe</h2>
-              </div>
+             <div className="p-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
+              <Bike size={20} />
+            </div>
+            <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
+          </div>
+        </div>
               <label className="hidden md:flex flex-col min-w-40 !h-10 w-96">
                 <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
                   <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-r-0">
                     <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
-                      search
+                      <Search strokeWidth={1.25} />
                     </span>
                   </div>
                   <input
@@ -132,7 +132,7 @@ export default function Homebuyer() {
                   title="Thông báo"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
-                    notifications
+                    <Bell strokeWidth={3} />
                   </span>
                   <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full"></span>
                 </button>
@@ -141,7 +141,7 @@ export default function Homebuyer() {
                   title="Xe yêu thích"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
-                    favorite
+                    <Heart strokeWidth={3} />
                   </span>
                 </button>
                 <div
@@ -159,7 +159,7 @@ export default function Homebuyer() {
 
       {/* Main Layout Container */}
       <div className="layout-container flex h-full grow flex-col">
-        <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-10 py-6 flex flex-col gap-8">
+        <div className="w-full  px-4 lg:px-10 py-6 flex flex-col gap-8">
           {/* Hero Section */}
           <div className="@container">
             <div
@@ -287,7 +287,7 @@ export default function Homebuyer() {
                 <div className="flex flex-wrap gap-2 items-center">
                   <button className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f4f2] hover:bg-primary/20 rounded-lg text-sm font-medium text-[#111813] border border-transparent hover:border-primary transition-all">
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
-                      tune
+                      <SlidersHorizontal strokeWidth={3} />
                     </span>
                     Bộ lọc
                   </button>
@@ -304,7 +304,7 @@ export default function Homebuyer() {
                     </div>
                     <span className="text-sm font-medium text-[#111813] flex items-center gap-1">
                       <span className="material-symbols-outlined text-primary filled" style={{ fontSize: "16px" }}>
-                        verified_user
+                        <ShieldCheck strokeWidth={3} />
                       </span>
                       Đã kiểm định
                     </span>
@@ -343,7 +343,7 @@ export default function Homebuyer() {
                       {bike.verified && (
                         <div className="absolute top-3 left-3 z-10 bg-primary text-[#111813] text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
                           <span className="material-symbols-outlined filled" style={{ fontSize: "14px" }}>
-                            verified_user
+                            <ShieldCheck strokeWidth={3} />
                           </span>
                           ĐÃ KIỂM ĐỊNH
                         </div>
@@ -355,7 +355,7 @@ export default function Homebuyer() {
                       )}
                       <button className="absolute top-3 right-3 z-10 bg-white/80 p-1.5 rounded-full hover:bg-white text-gray-500 hover:text-red-500 transition-colors">
                         <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                          favorite
+                          <Heart strokeWidth={3} />
                         </span>
                       </button>
                       <div
@@ -369,13 +369,13 @@ export default function Homebuyer() {
                       <div className="flex items-center gap-4 text-xs text-[#61896f] mt-auto pt-2 border-t border-gray-100">
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                            straighten
+                            <RulerDimensionLine strokeWidth={1.25} />
                           </span>
                           Size {bike.size}
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                            location_on
+                            <MapPinCheckInside strokeWidth={1.25} />
                           </span>
                           {bike.location}
                         </div>
@@ -390,7 +390,7 @@ export default function Homebuyer() {
                 <nav className="flex items-center gap-2">
                   <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-gray-50 text-gray-500 disabled:opacity-50">
                     <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                      chevron_left
+                     <ChevronLeft strokeWidth={3} />
                     </span>
                   </button>
                   <button className="w-10 h-10 rounded-lg bg-primary text-[#111813] font-bold text-sm">1</button>
@@ -406,7 +406,7 @@ export default function Homebuyer() {
                   </button>
                   <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-gray-50 text-gray-500">
                     <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                      chevron_right
+                      <ChevronRight strokeWidth={3} />
                     </span>
                   </button>
                 </nav>

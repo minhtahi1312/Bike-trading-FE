@@ -1,11 +1,7 @@
 import React from "react";
-import { Calendar, Eye, Heart } from "lucide-react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-// --- 1. IMPORT CẦN THIẾT (Phải cài npm install react-toastify trước nhé) ---
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// -------------------------------------------------------------------------
 
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Admin/Dashboard";
@@ -13,6 +9,12 @@ import Listings from "./pages/Admin/Listings";
 import Login from "./pages/Login/Login";
 import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
+import HomeInspector from "./pages/Inspector/HomeInspector";
+import InspectorLayout from "./layouts/InspectorLayout";
+import InspectionDetail from "./pages/Inspector/InspectionDetail";
+import InspectionChecklist from "./pages/Inspector/InspectionChecklist";
+import InspectionResult from "./pages/Inspector/InspectionResult";
+import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerListings from "./pages/Seller/Listing";
@@ -27,7 +29,14 @@ function App() {
         <Route path="/homebuyer" element={<Homebuyer />} />
 
         <Route path="/login" element={<Login />} />
-
+        <Route path="/inspector" element={<InspectorLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<HomeInspector />} />
+          <Route path="inspection/:id" element={<InspectionDetail />} />
+          <Route path="checklist/:id" element={<InspectionChecklist />} />
+          <Route path="result/:id" element={<InspectionResult />} />
+          <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
+        </Route>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />

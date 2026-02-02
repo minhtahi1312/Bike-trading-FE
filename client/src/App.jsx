@@ -1,4 +1,5 @@
 import React from "react";
+import { Calendar, Eye, Heart } from "lucide-react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // --- 1. IMPORT CẦN THIẾT (Phải cài npm install react-toastify trước nhé) ---
@@ -14,6 +15,8 @@ import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
+import SellerListings from "./pages/Seller/Listing";
+import SellerOrders from "./pages/Seller/Orders";
 
 function App() {
   return (
@@ -36,6 +39,8 @@ function App() {
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
           <Route path="dashboard" element={<SellerDashboard />} />
+          <Route path="listings" element={<SellerListings />} />
+          <Route path="orders" element={<SellerOrders />} />
         </Route>
       </Routes>
 

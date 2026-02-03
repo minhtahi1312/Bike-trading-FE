@@ -9,6 +9,7 @@ import Dashboard from './pages/Admin/Dashboard';
 import Listings from './pages/Admin/Listings';
 import Login from './pages/Login/Login';
 import Homebuyer from './pages/Home/Home-Buyer/Homebuyer';
+import Wishlistbuyer from './pages/Home/Home-Buyer/Wishlistbuyer';
 import Homeguest from './pages/Home/Home-guest/Homeguest';
 import HomeInspector from './pages/Inspector/HomeInspector';
 import InspectorLayout from './layouts/InspectorLayout'; 
@@ -18,14 +19,18 @@ import InspectionResult from './pages/Inspector/InspectionResult';
 import InspectionFinalConfirmation from './pages/Inspector/InspectionFinalConfirmation';
 import SellerLayout from './layouts/SellerLayout';
 import SellerDashboard from "./pages/Seller/Dashboard";
+import BuyerLayout from './layouts/BuyerLayout';
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />
-        <Route path="/homebuyer" element={<Homebuyer />} />
-
+        
+       <Route path="/homebuyer" element={<BuyerLayout />}>
+          <Route index element={<Homebuyer />} />
+          <Route path="wishlist" element={<Wishlistbuyer />} />
+        </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
   <Route index element={<Navigate to="dashboard" replace />} />

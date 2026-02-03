@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Bell, Bike, ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 export default function Homebuyer() {
   const [sortBy, setSortBy] = useState("Mới nhất");
   const [verifiedOnly, setVerifiedOnly] = useState(true);
@@ -81,22 +82,26 @@ export default function Homebuyer() {
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDLxhusgdDVG80WQ34iY3MPMrM9HkoTYHEk4BScilLSHY863_bhfE-n6MESa9yl6yV7hUExIqGevk8UgZ1TxvPLxP8wbWOGa2W5mSbaclVgJRKsw1DWIetmZW-ZqRfqSVHMx92AEfgTSwxYabTr853W6Yv1jFAEPH6G7MfjddHtV0Lpqizg7S0zmdmuCsNp7h4CkJIrIHe5jNw0JMgccIynMTrdxZT0Tptk9riJQ0wvOZ_4g_ZKTviFt0LGLTY9C39uYJCfBpBvsfjA",
     },
   ];
+  const navigate = useNavigate();
 
+  const handleWishlistClick = () => {
+    navigate('/homebuyer/Wishlist');
+  };
   return (
     <div className="bg-background-light dark:bg-background-dark text-[#111813] overflow-x-hidden">
       {/* Header */}
-      <div className="w-full bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
+      {/* <div className="w-full bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
         <div className="w-full ">
           <header className="flex items-center justify-between whitespace-nowrap px-4 lg:px-10 py-3">
             <div className="flex items-center gap-8">
-             <div className="p-6 pb-2">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
-              <Bike size={20} />
-            </div>
-            <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
-          </div>
-        </div>
+              <div className="p-6 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
+                    <Bike size={20} />
+                  </div>
+                  <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
+                </div>
+              </div>
               <label className="hidden md:flex flex-col min-w-40 !h-10 w-96">
                 <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
                   <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-r-0">
@@ -126,7 +131,12 @@ export default function Homebuyer() {
                   Đơn hàng của tôi
                 </a>
               </div>
+
               <div className="flex gap-3 items-center">
+                <button>
+                  <span className="material-symbols-outlined">shopping_cart</span>
+                  <span className="absolute top-1 right-1 size-2 bg-red-500 rounded-full border-2 border-surface-light dark:border-surface-dark"></span>
+                </button>
                 <button
                   className="flex size-10 items-center justify-center rounded-lg bg-[#f0f4f2] hover:bg-[#e2e8e5] text-[#111813] relative"
                   title="Thông báo"
@@ -137,6 +147,7 @@ export default function Homebuyer() {
                   <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full"></span>
                 </button>
                 <button
+                  onClick={handleWishlistClick}
                   className="flex size-10 items-center justify-center rounded-lg bg-[#f0f4f2] hover:bg-[#e2e8e5] text-[#111813]"
                   title="Xe yêu thích"
                 >
@@ -155,8 +166,8 @@ export default function Homebuyer() {
             </div>
           </header>
         </div>
-      </div>
-
+      </div> */}
+      
       {/* Main Layout Container */}
       <div className="layout-container flex h-full grow flex-col">
         <div className="w-full  px-4 lg:px-10 py-6 flex flex-col gap-8">
@@ -283,7 +294,7 @@ export default function Homebuyer() {
             {/* Main Area */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               {/* Filters Bar */}
-              <div className="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between sticky top-[72px] z-30">
+              <div className="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between  z-30">
                 <div className="flex flex-wrap gap-2 items-center">
                   <button className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f4f2] hover:bg-primary/20 rounded-lg text-sm font-medium text-[#111813] border border-transparent hover:border-primary transition-all">
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
@@ -390,7 +401,7 @@ export default function Homebuyer() {
                 <nav className="flex items-center gap-2">
                   <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-gray-50 text-gray-500 disabled:opacity-50">
                     <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                     <ChevronLeft strokeWidth={3} />
+                      <ChevronLeft strokeWidth={3} />
                     </span>
                   </button>
                   <button className="w-10 h-10 rounded-lg bg-primary text-[#111813] font-bold text-sm">1</button>

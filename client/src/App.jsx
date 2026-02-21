@@ -10,9 +10,10 @@ import Listings from './pages/Admin/Listings';
 import Login from './pages/Login/Login';
 import Homebuyer from './pages/Home/Home-Buyer/Homebuyer';
 import Wishlistbuyer from './pages/Home/Home-Buyer/Wishlistbuyer';
+import CartBuyer from './pages/Home/Home-Buyer/CartBuyer';
 import Homeguest from './pages/Home/Home-guest/Homeguest';
 import HomeInspector from './pages/Inspector/HomeInspector';
-import InspectorLayout from './layouts/InspectorLayout'; 
+import InspectorLayout from './layouts/InspectorLayout';
 import InspectionDetail from './pages/Inspector/InspectionDetail';
 import InspectionChecklist from './pages/Inspector/InspectionChecklist';
 import InspectionResult from './pages/Inspector/InspectionResult';
@@ -20,26 +21,29 @@ import InspectionFinalConfirmation from './pages/Inspector/InspectionFinalConfir
 import SellerLayout from './layouts/SellerLayout';
 import SellerDashboard from "./pages/Seller/Dashboard";
 import BuyerLayout from './layouts/BuyerLayout';
+import PaymentBuyer from './pages/Home/Home-Buyer/PaymentBuyer';
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />
-        
-       <Route path="/homebuyer" element={<BuyerLayout />}>
+
+        <Route path="/homebuyer" element={<BuyerLayout />}>
           <Route index element={<Homebuyer />} />
           <Route path="wishlist" element={<Wishlistbuyer />} />
+          <Route path="cart" element={<CartBuyer />} />
+          <Route path="payment" element={<PaymentBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
-  <Route index element={<Navigate to="dashboard" replace />} />
-  <Route path="dashboard" element={<HomeInspector />} />
-  <Route path="inspection/:id" element={<InspectionDetail />} />
-  <Route path="checklist/:id" element={<InspectionChecklist />} />
-  <Route path="result/:id" element={<InspectionResult />} />
-  <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
-</Route>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<HomeInspector />} />
+          <Route path="inspection/:id" element={<InspectionDetail />} />
+          <Route path="checklist/:id" element={<InspectionChecklist />} />
+          <Route path="result/:id" element={<InspectionResult />} />
+          <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
+        </Route>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />

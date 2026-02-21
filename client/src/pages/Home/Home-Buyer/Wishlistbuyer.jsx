@@ -95,7 +95,7 @@ const handleHomebuyerClick = () => {
      
 
       <main className="flex-grow w-full  px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <nav aria-label="Breadcrumb" className="flex mb-6">
+        {/* <nav aria-label="Breadcrumb" className="flex mb-6">
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
             <li className="inline-flex items-center">
              <button onClick={handleHomebuyerClick}>
@@ -113,7 +113,7 @@ const handleHomebuyerClick = () => {
               </div>
             </li>
           </ol>
-        </nav>
+        </nav> */}
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>

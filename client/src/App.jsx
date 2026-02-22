@@ -23,6 +23,7 @@ import SellerDashboard from "./pages/Seller/Dashboard";
 import BuyerLayout from './layouts/BuyerLayout';
 import PaymentBuyer from './pages/Home/Home-Buyer/PaymentBuyer';
 import CarDetail from './pages/Home/Home-Buyer/Details/CarDetail';
+import OderBuyer from './pages/Home/Home-Buyer/OderBuyer';
 function App() {
   return (
     <BrowserRouter>
@@ -36,6 +37,7 @@ function App() {
           <Route path="cart" element={<CartBuyer />} />
           <Route path="payment" element={<PaymentBuyer />} />
           <Route path="details/:id" element={<CarDetail />} />
+          <Route path="oder" element={<OderBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>

@@ -22,6 +22,7 @@ import SellerLayout from './layouts/SellerLayout';
 import SellerDashboard from "./pages/Seller/Dashboard";
 import BuyerLayout from './layouts/BuyerLayout';
 import PaymentBuyer from './pages/Home/Home-Buyer/PaymentBuyer';
+import CarDetail from './pages/Home/Home-Buyer/Details/CarDetail';
 function App() {
   return (
     <BrowserRouter>
@@ -34,6 +35,7 @@ function App() {
           <Route path="wishlist" element={<Wishlistbuyer />} />
           <Route path="cart" element={<CartBuyer />} />
           <Route path="payment" element={<PaymentBuyer />} />
+          <Route path="details/:id" element={<CarDetail />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>

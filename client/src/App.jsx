@@ -24,6 +24,7 @@ import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
+import CreateListing from "./pages/Seller/CreateListing";
 
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
@@ -69,6 +70,7 @@ function App() {
           <Route path="orders" element={<SellerOrders />} />
           <Route path="listings/:id" element={<SellerListingDetail />} />
           <Route path="orders/:id" element={<SellerOrderDetail />} />
+          <Route path="create-listing" element={<CreateListing />} />
         </Route>
       </Routes>
 

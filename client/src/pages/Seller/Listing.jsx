@@ -2,6 +2,7 @@
 import React from "react";
 import { Search, Pencil, Eye, Calendar, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function SellerListings() {
   const navigate = useNavigate();

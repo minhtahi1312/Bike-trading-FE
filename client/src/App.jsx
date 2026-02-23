@@ -19,6 +19,7 @@ import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
+import SellerListingDetail from "./pages/Seller/ListingDetail";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="dashboard" element={<SellerDashboard />} />
           <Route path="listings" element={<SellerListings />} />
           <Route path="orders" element={<SellerOrders />} />
+          <Route path="listings/:id" element={<SellerListingDetail />} />
         </Route>
       </Routes>
 

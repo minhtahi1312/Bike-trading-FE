@@ -735,21 +735,7 @@ const LoginForm = ({ role, tab, setTab }) => {
 const Login = () => {
   const location = useLocation();
   const [role, setRole] = useState("buyer");
-// <<<<<<< HEAD
-//   const [tab, setTab] = useState("login"); // 'login' | 'register'
-  
 
-//   useEffect(() => {
-//     const q = new URLSearchParams(location.search);
-//     const t = q.get('tab') || q.get('mode');
-//     if (t && (t.toLowerCase() === 'register' || t.toLowerCase() === 'signup')) {
-//       setTab('register');
-//     } else if (t && t.toLowerCase() === 'login') {
-//       setTab('login');
-//     }
-//   }, [location.search]);
-
-// =======
   const [tab, setTab] = useState(location.state?.activeTab === "register" ? "register" : "login");
 useEffect(() => {
     if (location.state?.activeTab) {

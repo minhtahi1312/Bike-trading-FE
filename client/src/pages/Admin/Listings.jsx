@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Calendar, Filter, Eye, Check, X,
   MoreVertical, Star, AlertCircle, Clock
@@ -6,7 +7,10 @@ import {
 
 const Listings = () => {
   const [activeTab, setActiveTab] = useState('pending');
-
+  const navigate = useNavigate();
+  const handleViewDetail = (id) => {
+    navigate(`/admin/listings/${id}`);
+  };
   // Dữ liệu giả lập (Mock Data)
   const listings = [
     {
@@ -272,7 +276,7 @@ const Listings = () => {
                           <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors" title="Duyệt ngay">
                             <Check size={16} />
                           </button>
-                          <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-200 transition-colors" title="Xem chi tiết">
+                          <button onClick={() => handleViewDetail(item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-200 transition-colors" title="Xem chi tiết">
                             <Eye size={16} />
                           </button>
                         </div>

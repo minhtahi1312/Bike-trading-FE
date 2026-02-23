@@ -19,6 +19,11 @@ import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
+import Users from './pages/Admin/Users';
+import Transactions from './pages/Admin/Transactions';
+import Categories from './pages/Admin/Categories';
+import ListingDetail from './pages/Admin/ListingDetail';
+import TransactionDetail from './pages/Admin/TransactionDetail';
 
 function App() {
   return (
@@ -41,6 +46,11 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="listings" element={<Listings />} />
+          <Route path="users" element={<Users />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="listings/:id" element={<ListingDetail />} />
+          <Route path="transactions/:id" element={<TransactionDetail />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

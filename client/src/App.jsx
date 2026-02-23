@@ -8,6 +8,8 @@ import Dashboard from "./pages/Admin/Dashboard";
 import Listings from "./pages/Admin/Listings";
 import Login from "./pages/Login/Login";
 import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
+import Wishlistbuyer from "./pages/Home/Home-Buyer/Wishlistbuyer";
+import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import HomeInspector from "./pages/Inspector/HomeInspector";
 import InspectorLayout from "./layouts/InspectorLayout";
@@ -17,9 +19,15 @@ import InspectionResult from "./pages/Inspector/InspectionResult";
 import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
+
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
+
+import BuyerLayout from "./layouts/BuyerLayout";
+import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
+import CarDetail from "./pages/Home/Home-Buyer/Details/CarDetail";
+import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
 
 function App() {
   return (
@@ -27,8 +35,15 @@ function App() {
       <Routes>
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />
-        <Route path="/homebuyer" element={<Homebuyer />} />
 
+        <Route path="/homebuyer" element={<BuyerLayout />}>
+          <Route index element={<Homebuyer />} />
+          <Route path="wishlist" element={<Wishlistbuyer />} />
+          <Route path="cart" element={<CartBuyer />} />
+          <Route path="payment" element={<PaymentBuyer />} />
+          <Route path="details/:id" element={<CarDetail />} />
+          <Route path="oder" element={<OderBuyer />} />
+        </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />

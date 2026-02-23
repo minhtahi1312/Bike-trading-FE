@@ -1,8 +1,11 @@
 /* eslint-disable */
 import React from "react";
 import { Search, Pencil, Eye, Calendar, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function SellerListings() {
+  const navigate = useNavigate();
   const listings = [
     {
       id: 1,
@@ -149,8 +152,11 @@ export default function SellerListings() {
                 <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
                   <Pencil size={14} /> Chỉnh sửa
                 </button>
-                <button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1 text-sm flex items-center gap-1">
-                  <Eye size={14} /> Xem chi tiết
+                <button
+                  onClick={() => navigate(`/seller/listings/${item.id}`)}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Xem chi tiết
                 </button>
               </div>
             </div>

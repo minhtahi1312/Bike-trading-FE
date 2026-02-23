@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useMemo, useState } from "react";
 import { Search, Filter, FileDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const PAGE_SIZE = 5;
 
@@ -8,7 +9,7 @@ export default function SellerOrders() {
   // ===== MOCK DATA =====
   const orders = [
     {
-      id: "#DH-2024",
+      id: "DH-2024",
       product: "Trek Marlin 7 - 2022",
       image:
         "https://lh3.googleusercontent.com/aida-public/AB6AXuBYHKUb-OXY4LhuARv-D80YSszSzvNiTBpQuWHwV-gRzqpjWM-RxrxGvBn7v9zVwwXeKTuXWKRI7vcrF0Nvo75yMf-v4Qw4EZxoRP5keZ5YTumzmsOQyrp-C247lRr7DERCyY7NLVkXtQq08xDcsJorx6204U3Fk_5bf-aJ5lh0xWFGuESUg3lPCH9KXrFCl3kBq68n7BgLTqDqAOtUrHQNiKFTg1MtPnHZPzWWdDOMEsafN8wF4TBMerT50D6PnKWQ-9pPYkkNur2Q",
@@ -18,7 +19,7 @@ export default function SellerOrders() {
       price: "12.500.000đ",
     },
     {
-      id: "#DH-2023",
+      id: "DH-2023",
       product: "Giant Escape 2 City",
       image:
         "https://lh3.googleusercontent.com/aida-public/AB6AXuDoM2K0wCx3F8R5JWqaK0D4PF0-hgb5rJY-zKMqxsdZcHKnxu185GbgBw1del6odzPk1oIU12y1Ew8d0TFqfTD1GdUOgf2UJCFlLGgekWtN3FACvPmvNd0JMaoNk7IurHdgxp5wlRNfQmrogJHlD8_gNTi9_NN2RkmF4OWbH-e1kYm60usKQJEqivl7KyqzngDoHVsXA0XkM-DkDsHDptx9jobn-wy3M94-LNBPoB8EZn3oWYEU3x90Fk2t96shdfc15eiD8k71Eggc",
@@ -28,7 +29,7 @@ export default function SellerOrders() {
       price: "8.200.000đ",
     },
     {
-      id: "#DH-2022",
+      id: "DH-2022",
       product: "Asama Solano",
       image:
         "https://lh3.googleusercontent.com/aida-public/AB6AXuDWpGkVnTEPfv8gdWtc9TJaCylIYisxHbAwLbRtYl51H4NEdTH6E3L0W4sQ-kI1Ye1HAaCnV4vZI3ZeWhTaNA9GNGbrq--I3Dkj9Qf0DuKafAk98sYnI8wyLGCSA0Q3OmHDRHZxPa2JFijEeBsSXH55lMzaZOqRDJdjaqCsEo3fxb-JNFYS7J-ywLYryRsbL7s4I0KNB5Ow04ALBtlVjo7b5N3l-yL5F12ehMeDJjryfGdCopCgSbCYjXvgm8hpL2phwnySpeK6fZ_O",
@@ -185,9 +186,12 @@ export default function SellerOrders() {
                 </td>
 
                 <td className="px-6 py-4 text-right">
-                  <button className="text-emerald-600 hover:underline text-sm font-medium">
+                  <Link
+                    to={`/seller/orders/${o.id}`}
+                    className="text-emerald-600 hover:underline text-sm font-medium"
+                  >
                     Xem chi tiết
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -17,6 +17,7 @@ import InspectionDetail from "./pages/Inspector/InspectionDetail";
 import InspectionChecklist from "./pages/Inspector/InspectionChecklist";
 import InspectionResult from "./pages/Inspector/InspectionResult";
 import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
+import HistoryInspector from "./pages/Inspector/HistoryInspector";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 
@@ -59,6 +60,7 @@ function App() {
           <Route path="checklist/:id" element={<InspectionChecklist />} />
           <Route path="result/:id" element={<InspectionResult />} />
           <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
+          <Route path="history" element={<HistoryInspector />} />
         </Route>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />

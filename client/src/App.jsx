@@ -50,7 +50,7 @@ function App() {
           <Route path="cart" element={<CartBuyer />} />
           <Route path="payment" element={<PaymentBuyer />} />
           <Route path="details/:id" element={<CarDetail />} />
-          <Route path="oder" element={<OderBuyer />} />
+          <Route path="order" element={<OderBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>

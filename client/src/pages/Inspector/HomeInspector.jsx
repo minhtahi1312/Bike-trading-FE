@@ -144,11 +144,27 @@ export default function HomeInspector() {
                       {bike.statusText}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    {bike.status === 'pending' && <button onClick={() => navigate(`/inspector/inspection/${bike.id}`)} className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-500/30">Kiểm định</button>}
-                    {bike.status === 'processing' && <button className="bg-white border border-[#e5e7eb] hover:bg-gray-50 text-[#111813] text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">Tiếp tục</button>}
-                    {bike.status === 'done' && <button className="text-[#9ca3af] hover:text-emerald-600 p-1.5 rounded-lg transition-colors"><MoreVertical size={18} /></button>}
-                  </td>
+<td className="px-6 py-4 text-right">
+  {bike.status === 'pending' && (
+    <button 
+      onClick={() => navigate(`/inspector/inspect/${bike.id}`)} 
+      className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-500/30">
+      Kiểm định
+    </button>
+  )}
+  {bike.status === 'processing' && (
+    <button 
+      onClick={() => navigate(`/inspector/inspect/${bike.id}`)} 
+      className="bg-white border border-[#e5e7eb] hover:bg-gray-50 text-[#111813] text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+      Tiếp tục
+    </button>
+  )}
+  {bike.status === 'done' && (
+    <button className="text-[#9ca3af] hover:text-emerald-600 p-1.5 rounded-lg transition-colors">
+      <MoreVertical size={18} />
+    </button>
+  )}
+</td>
                 </tr>
               ))}
             </tbody>

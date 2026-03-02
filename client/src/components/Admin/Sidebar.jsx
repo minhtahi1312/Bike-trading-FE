@@ -13,7 +13,7 @@ const Sidebar = () => {
     { icon: Users, label: 'Người dùng', path: '/admin/users' },
     { icon: Receipt, label: 'Giao dịch', path: '/admin/transactions' },
     { icon: List, label: 'Danh mục', path: '/admin/categories' },
-    { icon: AlertTriangle, label: 'Khiếu nại', path: '/admin/reports' },
+    { icon: AlertTriangle, label: 'Khiếu nại', path: '/admin/complaints' },
     { icon: Settings, label: 'Cấu hình hệ thống', path: '/admin/settings' },
   ];
 

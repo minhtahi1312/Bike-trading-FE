@@ -1,7 +1,9 @@
 import { RulerDimensionLine, ShieldCheck, Trash } from 'lucide-react';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CartBuyer = () => {
+  const navigate = useNavigate();
   const images = {
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
     // 2 Sản phẩm chính trong giỏ
@@ -14,7 +16,9 @@ const CartBuyer = () => {
     suggested_3: "https://fujiko.vn/wp-content/uploads/2023/06/z4388767909178_8568076a3ad3923efe926730de040784.jpg",
     suggested_4: "https://th.bing.com/th/id/R.d0add4abcb66439cbddd14ba513bbd47?rik=BYdFe%2fiDBurONQ&riu=http%3a%2f%2ffujiko.vn%2fwp-content%2fuploads%2f2023%2f06%2fz5508139247481_f7cc67795189e220332933eae1d988f8.jpg&ehk=4S2sOLEXCJ6Bu1ObdKuLJSqtzcr1WbFyB6eQ5rJUcBg%3d&risl=&pid=ImgRaw&r=0"
   };
-
+   const PaymentClick = () => {
+    navigate('/homebuyer/payment');
+  };
   return (
     <div className="bg-[#f6f8f6] text-[#111813] font-['Lexend',sans-serif] min-h-screen overflow-x-hidden">
       {/* Header (Giữ nguyên như cũ) */}
@@ -129,7 +133,7 @@ const CartBuyer = () => {
                 <div className="flex justify-between text-gray-600"><span>Phí vận chuyển dự kiến</span><span className="font-medium text-[#111813]">500.000 đ</span></div>
                 <div className="border-t border-dashed border-gray-200 pt-4 flex justify-between items-center"><span className="text-lg font-bold">Tổng cộng</span><span className="text-2xl font-black text-[#2bee6c]">128.000.000 đ</span></div>
               </div>
-              <button className="w-full bg-[#2bee6c] hover:bg-[#1fb350] text-[#111813] py-4 rounded-xl font-black text-lg shadow-lg shadow-[#2bee6c]/20 transition-all">THANH TOÁN NGAY</button>
+              <button onClick={PaymentClick} className="w-full bg-[#2bee6c] hover:bg-[#1fb350] text-[#111813] py-4 rounded-xl font-black text-lg shadow-lg shadow-[#2bee6c]/20 transition-all">THANH TOÁN NGAY</button>
             </div>
           </div>
         </div>

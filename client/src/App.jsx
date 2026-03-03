@@ -14,15 +14,24 @@ import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import HomeInspector from "./pages/Inspector/HomeInspector";
 import InspectorLayout from "./layouts/InspectorLayout";
-import InspectionDetail from "./pages/Inspector/InspectionDetail";
-import InspectionChecklist from "./pages/Inspector/InspectionChecklist";
+import InspectionPage from './pages/Inspector/InspectionPage';
 import InspectionResult from "./pages/Inspector/InspectionResult";
 import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
+import HistoryInspector from "./pages/Inspector/HistoryInspector";
+import InspectionHistoryDetail from './pages/Inspector/InspectionHistoryDetail';
+import InspectorProfile from './pages/Inspector/InspectorProfile';
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
+import Users from './pages/Admin/Users';
+import Transactions from './pages/Admin/Transactions';
+import Categories from './pages/Admin/Categories';
+import ListingDetail from './pages/Admin/ListingDetail';
+import TransactionDetail from './pages/Admin/TransactionDetail';
+import Complaints from './pages/Admin/Complaints';
+import ComplaintDetail from './pages/Admin/ComplaintDetail';
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
@@ -47,21 +56,30 @@ function App() {
           <Route path="cart" element={<CartBuyer />} />
           <Route path="payment" element={<PaymentBuyer />} />
           <Route path="details/:id" element={<CarDetail />} />
-          <Route path="oder" element={<OderBuyer />} />
+          <Route path="order" element={<OderBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<HomeInspector />} />
-          <Route path="inspection/:id" element={<InspectionDetail />} />
-          <Route path="checklist/:id" element={<InspectionChecklist />} />
+          <Route path="inspect/:id" element={<InspectionPage />} />
           <Route path="result/:id" element={<InspectionResult />} />
           <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
+          <Route path="history" element={<HistoryInspector />} />
+          <Route path="history/:id" element={<InspectionHistoryDetail />} />
+          <Route path="profile" element={<InspectorProfile />} />
         </Route>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="listings" element={<Listings />} />
+          <Route path="users" element={<Users />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="listings/:id" element={<ListingDetail />} />
+          <Route path="transactions/:id" element={<TransactionDetail />} />
+          <Route path="complaints" element={<Complaints />} />
+          <Route path="reports/:id" element={<ComplaintDetail />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

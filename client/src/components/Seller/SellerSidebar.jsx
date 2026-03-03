@@ -11,7 +11,7 @@ import {
 
 const menu = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/seller/dashboard" },
-  { icon: FileText, label: "Tin đăng", path: "/seller/posts" },
+  { icon: FileText, label: "Tin đăng", path: "/seller/listings" },
   { icon: ShoppingCart, label: "Đơn hàng", path: "/seller/orders" },
   { icon: MessageCircle, label: "Tin nhắn", path: "/seller/messages" },
   { icon: Wallet, label: "Ví tiền", path: "/seller/wallet" },

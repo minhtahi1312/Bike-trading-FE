@@ -1,4 +1,5 @@
 import { Search, Bell, Plus, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function SellerHeader() {
   return (
@@ -16,10 +17,18 @@ export default function SellerHeader() {
       {/* RIGHT – ACTIONS */}
       <div className="flex items-center gap-4">
         {/* Create post */}
-        <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm shadow-emerald-500/30 transition">
+        {/* <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm shadow-emerald-500/30 transition">
           <Plus size={18} />
           Đăng tin mới
-        </button>
+        </button> */}
+
+        <Link
+          to="/seller/create-listing"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm shadow-emerald-500/30 transition"
+        >
+          <Plus size={18} />
+          Đăng tin mới
+        </Link>
 
         {/* Notification */}
         <button className="relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition">

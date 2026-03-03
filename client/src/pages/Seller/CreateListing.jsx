@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   Bike,
   Ruler,
@@ -11,22 +13,35 @@ import {
   ThumbsUp,
   ImagePlus,
   Camera,
+  DollarSign,
+  ImageIcon,
+  Video,
+  X,
 } from "lucide-react";
 
 export default function CreateListing() {
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const handleSubmit = () => {
-    // Fake validate
-    if (!title || !price || images.length === 0) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
-      return;
-    }
+  const navigate = useNavigate();
+  const handleSubmit = async () => {
+    if (loading) return;
 
-    // Fake API call
-    setTimeout(() => {
-      alert("Đăng tin thành công!");
-      navigate("/seller"); // chuyển về dashboard
-    }, 800);
+    try {
+      setLoading(true);
+      toast.loading("Đang đăng tin...");
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      toast.dismiss();
+      toast.success("Tin đăng đã được tạo và đang chờ duyệt.");
+
+      navigate("/seller/listings");
+    } catch (error) {
+      toast.dismiss();
+      toast.error("Đăng tin thất bại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,9 +96,16 @@ export default function CreateListing() {
         ) : (
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-emerald-600 text-white rounded-lg"
+            disabled={loading}
+            className={`px-8 py-3 text-white rounded-lg transition
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-emerald-600 hover:bg-emerald-700"
+    }
+  `}
           >
-            Đăng tin ngay
+            {loading ? "Đang xử lý..." : "Đăng tin ngay"}
           </button>
         )}
       </div>
@@ -177,23 +199,6 @@ function StepBasic() {
             />
           </div>
 
-          {/* Price */}
-          <div>
-            <label className="block text-sm font-semibold uppercase tracking-wide text-gray-600 mb-2">
-              Mức giá mong muốn *
-            </label>
-            <div className="flex">
-              <input
-                type="number"
-                placeholder="0"
-                className="w-full border rounded-l-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
-              />
-              <span className="px-6 flex items-center bg-gray-100 border border-l-0 rounded-r-xl text-sm font-medium text-gray-600">
-                VND
-              </span>
-            </div>
-          </div>
-
           {/* Description */}
           <div>
             <label className="block text-sm font-semibold uppercase tracking-wide text-gray-600 mb-2">
@@ -249,6 +254,18 @@ function StepBasic() {
 function StepTechnical() {
   const [selectedSize, setSelectedSize] = useState("M");
   const [condition, setCondition] = useState("good");
+  const [price, setPrice] = useState("");
+  const handlePriceChange = (e) => {
+    const rawValue = e.target.value.replace(/\D/g, ""); // chỉ giữ số
+
+    if (!rawValue) {
+      setPrice("");
+      return;
+    }
+
+    const formatted = Number(rawValue).toLocaleString("vi-VN");
+    setPrice(formatted);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
@@ -436,7 +453,31 @@ function StepTechnical() {
               />
             </div>
           </div>
+
+          {/* 7️⃣ GIÁ MONG MUỐN */}
+          <div className="bg-white border rounded-xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-semibold text-lg">
+                Mức giá mong muốn <span className="text-red-500">*</span>
+              </h3>
+            </div>
+
+            <div className="flex">
+              <input
+                type="text"
+                value={price}
+                onChange={handlePriceChange}
+                placeholder="0"
+                className="w-full border rounded-l-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
+              />
+              <span className="px-6 flex items-center bg-gray-100 border border-l-0 rounded-r-xl text-sm font-medium text-gray-600">
+                VND
+              </span>
+            </div>
+          </div>
         </div>
+        {/* Price */}
 
         {/* ================= RIGHT ================= */}
         <div className="space-y-6">
@@ -492,8 +533,10 @@ function StepTechnical() {
 
 function StepImages() {
   const [images, setImages] = useState([]);
+  const [video, setVideo] = useState(null);
 
-  const handleUpload = (e) => {
+  /* ================= IMAGE ================= */
+  const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
 
     const preview = files.map((file) => ({
@@ -502,6 +545,25 @@ function StepImages() {
     }));
 
     setImages((prev) => [...prev, ...preview]);
+  };
+
+  const removeImage = (indexToRemove) => {
+    setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  /* ================= VIDEO ================= */
+  const handleVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setVideo({
+      file,
+      url: URL.createObjectURL(file),
+    });
+  };
+
+  const removeVideo = () => {
+    setVideo(null);
   };
 
   return (
@@ -519,75 +581,115 @@ function StepImages() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* ================= LEFT ================= */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Upload Box */}
-          <div className="bg-white border rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-lg">Thư viện tổng hợp</h3>
-              <span className="text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                Ảnh đầu tiên là ảnh đại diện chính
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ================= IMAGE ================= */}
+            <div className="bg-white border rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold mb-4">Hình ảnh</h3>
+
+              <label className="border-2 border-dashed rounded-xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
+                <Camera className="w-10 h-10 text-emerald-500 mb-3" />
+                <p className="font-medium">Tải hình ảnh</p>
+                <p className="text-sm text-gray-500">JPG, PNG</p>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </label>
+
+              {/* ===== THUMBNAILS ===== */}
+              {images.length > 0 && (
+                <div className="flex gap-4 mt-6 flex-wrap">
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative w-28 h-24 rounded-lg overflow-hidden border border-emerald-400 group"
+                    >
+                      {/* Badge đại diện */}
+                      {index === 0 && (
+                        <span className="absolute top-1 left-1 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded">
+                          Ảnh đại diện
+                        </span>
+                      )}
+
+                      {/* Nút xoá */}
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X size={14} />
+                      </button>
+
+                      <img
+                        src={img.url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Ô thêm ảnh */}
+                  <label className="w-28 h-24 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                    <ImagePlus className="w-6 h-6 text-gray-400" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
 
-            <label className="border-2 border-dashed rounded-xl h-60 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
-              <Camera className="w-12 h-12 text-emerald-500 mb-4" />
-              <p className="font-medium">Kéo thả hình ảnh hoặc video</p>
-              <p className="text-sm text-gray-500">
-                JPG, PNG, MP4. Tối đa 20MB.
-              </p>
+            {/* ================= VIDEO ================= */}
+            <div className="bg-white border rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold mb-4">Video</h3>
 
-              <span className="mt-4 px-6 py-2 bg-gray-100 rounded-lg text-sm">
-                Chọn tệp tin
-              </span>
+              <label className="border-2 border-dashed rounded-xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
+                <Video className="w-10 h-10 text-blue-500 mb-3" />
+                <p className="font-medium">Tải video</p>
+                <p className="text-sm text-gray-500">MP4</p>
 
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleUpload}
-              />
-            </label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                />
+              </label>
 
-            {/* Preview thumbnails */}
-            {images.length > 0 && (
-              <div className="flex gap-4 mt-6">
-                {images.map((img, index) => (
-                  <div
-                    key={index}
-                    className="relative w-32 h-24 rounded-lg overflow-hidden border"
+              {video && (
+                <div className="mt-6 relative">
+                  {/* Nút X */}
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-black text-white p-1.5 rounded-full transition"
                   >
-                    {index === 0 && (
-                      <span className="absolute top-1 left-1 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded">
-                        Ảnh đại diện
-                      </span>
-                    )}
-                    <img
-                      src={img.url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
+                    <X size={14} />
+                  </button>
 
-                <label className="w-32 h-24 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer">
-                  <ImagePlus className="w-6 h-6 text-gray-400" />
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={handleUpload}
+                  <video
+                    src={video.url}
+                    controls
+                    className="w-full rounded-lg border"
                   />
-                </label>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* ================= RIGHT ================= */}
         <div className="space-y-6">
-          {/* Preview Card */}
           <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
             <div className="h-40 bg-gray-100 flex items-center justify-center">
-              {images[0] ? (
+              {images.length > 0 ? (
                 <img
                   src={images[0].url}
                   alt=""
@@ -613,29 +715,6 @@ function StepImages() {
                 Quận 7, TP. Hồ Chí Minh
               </div>
             </div>
-          </div>
-
-          {/* Tips Card */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Camera className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-semibold text-emerald-700">Mẹo chụp ảnh</h3>
-            </div>
-
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li className="flex gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500 mt-1" />
-                Chụp dưới ánh sáng tự nhiên, tránh ngược sáng.
-              </li>
-              <li className="flex gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500 mt-1" />
-                Chụp ngang thân xe, phía trước và sau.
-              </li>
-              <li className="flex gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500 mt-1" />
-                Đừng quên chụp các vết xước (nếu có).
-              </li>
-            </ul>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "react-hot-toast";
 
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Admin/Dashboard";
@@ -25,6 +26,8 @@ import SellerOrders from "./pages/Seller/Orders";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
+import Wallet from "./pages/Seller/Wallet";
+import Withdraw from "./pages/Seller/Withdraw";
 
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
@@ -71,6 +74,8 @@ function App() {
           <Route path="listings/:id" element={<SellerListingDetail />} />
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="withdraw" element={<Withdraw />} />
         </Route>
       </Routes>
 
@@ -88,6 +93,18 @@ function App() {
         theme="light"
       />
       {/* ------------------------------------------------ */}
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          success: {
+            iconTheme: {
+              primary: "#059669", // màu dấu tích
+              secondary: "#ffffff", // emerald-600
+            },
+          },
+        }}
+      />
     </BrowserRouter>
   );
 }

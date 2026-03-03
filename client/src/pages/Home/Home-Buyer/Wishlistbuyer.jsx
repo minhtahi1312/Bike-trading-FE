@@ -16,62 +16,33 @@ export default function Wishlist() {
     document.title = "Danh sách yêu thích - BikeMarket";
     loadWishlist();
   }, []);
-
+  //Get wishlist
   const loadWishlist = async () => {
     setLoading(true);
     try {
-      // BƯỚC 1: Lấy dữ liệu (Hiện tại đang dùng Mock Data để bạn test giao diện)
-      // Khi API đã sẵn sàng, hãy đổi dòng dưới thành: const response = await getWishlist();
-      const response = [
-        {
-          "id": "d4a5b3f2-7c31-4b1d-9f89-1234567890ab", // Wishlist ID
-          "userId": "a12b3c4d-5e6f-7890-ab12-cd34567890ef",
-          "bike": {
-            "id": "b98c7d6e-5f4a-3b2c-1d0e-9f87654321ab",
-            "name": "Test Bike – Giant TCR 0",
-            "price": 45000000,
-            "imageUrl": "https://images.giant-bicycles.com/b_white,c_pad,h_650,q_80/no68p9p9p9p9p9p9p9p9/TCR_Advanced_Pro_0.jpg",
-            "size": "M",
-            "year": 2024,
-            "category": "Road Bike",
-            "material": "Carbon",
-            "groupset": "Shimano Ultegra",
-            "location": "TP. Hồ Chí Minh",
-            "seller": "Nguyễn Văn A",
-            "sellerAvatar": "https://i.pravatar.cc/150?u=a",
-            "freeship": true,
-            "sold": false
-          }
-        },
-        {
-          "id": "e5f6g7h8-90ab-cdef-1234-567890abcdef",
-          "bike": {
-            "id": "c1d2e3f4-5678-90ab-cdef-1234567890gh",
-            "name": "Trek Emonda SL 6",
-            "price": 35000000,
-            "imageUrl": "https://trek.scene7.com/is/image/TrekBicycleProducts/EmondaSL6_21_32561_A_Primary",
-            "size": "S",
-            "year": 2023,
-            "category": "Road Bike",
-            "material": "Carbon",
-            "groupset": "Shimano 105",
-            "location": "Hà Nội",
-            "seller": "Bike Store HN",
-            "sellerAvatar": "https://i.pravatar.cc/150?u=b",
-            "freeship": false,
-            "sold": true
-          }
-        }
-      ];
-
-      // BƯỚC 2: Mapping dữ liệu để khớp với các biến trong JSX của bạn
-      const formattedData = response.map(item => ({
-        ...item.bike,             // Lấy các thuộc tính từ object bike
-        wishlistId: item.id,      // Lưu ID của wishlist để dùng cho hàm xóa
-        title: item.bike.name,    // Chuyển 'name' thành 'title'
-        image: item.bike.imageUrl // Chuyển 'imageUrl' thành 'image'
-      }));
-
+      // Gọi API để lấy dữ liệu wishlist từ server
+      const response = await getWishlist();
+      // Mapping dữ liệu với null checking
+      const formattedData = (response || []).map(item => {
+        const bike = item || {};
+        return {
+          ...bike,
+          id: bike.id || item.bikeId,        // Fallback to bikeId if bike.id missing
+          wishlistId: item.id,               // ID của wishlist để dùng cho xóa
+          title: bike.title || 'Chưa có tên xe',
+          image: bike.imageUrl || 'https://via.placeholder.com/400x300',
+          seller: bike.seller || 'Người bán ẩn danh',
+          sellerAvatar: bike.sellerAvatar || 'https://via.placeholder.com/40x40',
+          price: bike.price || 0,
+          size: bike.size || 'N/A',
+          material: bike.material || 'N/A',
+          year: bike.year || new Date().getFullYear(),
+          category: bike.category || 'Khác',
+          groupset: bike.groupset || '',
+          location: bike.location || 'Chưa xác định'
+        };
+      });
+      console.log("✅ Wishlist loaded:", formattedData);
       setBikes(formattedData);
     } catch (e) {
       console.error('failed to load wishlist', e);
@@ -79,8 +50,8 @@ export default function Wishlist() {
       setLoading(false);
     }
   };
-
- const handleDelete = async (wishlistId) => {
+  //Xóa sản phẩm khỏi wishlist
+  const handleDelete = async (wishlistId) => {
     // 1. Hỏi xác nhận để tránh bấm nhầm
     if (!window.confirm("Bạn có muốn xóa xe này khỏi danh sách yêu thích?")) return;
 
@@ -92,17 +63,35 @@ export default function Wishlist() {
       // 3. CẬP NHẬT STATE TẠI CHỖ: 
       // Lọc bỏ sản phẩm có wishlistId vừa xóa ra khỏi danh sách đang hiển thị
       setBikes((prevBikes) => prevBikes.filter((b) => b.wishlistId !== wishlistId));
-      
+
       console.log("Xóa thành công ID:", wishlistId);
     } catch (e) {
       console.error('Lỗi khi xóa:', e);
       alert("Không thể xóa sản phẩm. Vui lòng kiểm tra lại kết nối hoặc Token.");
-      
+
       // Nếu lỗi, có thể gọi lại loadWishlist() để đồng bộ lại dữ liệu chuẩn từ Server
-      loadWishlist(); 
+      loadWishlist();
     }
   };
-
+  const handleAddToWishlist = async (bikeId) => {
+  try {
+    await addToWishlist(bikeId);
+    
+    // Thông báo cho người dùng
+    alert("Đã thêm vào danh sách yêu thích!"); 
+    // Nếu dùng toast: toast.success("Đã thêm vào danh sách yêu thích!");
+    
+  } catch (error) {
+    console.error("Lỗi khi thêm vào wishlist:", error);
+    
+    // Xử lý các trường hợp lỗi thường gặp
+    if (error.response?.status === 401) {
+      alert("Vui lòng đăng nhập để thực hiện tính năng này.");
+    } else {
+      alert("Không thể thêm vào yêu thích. Có thể xe này đã có trong danh sách.");
+    }
+  }
+};
   const handleView = (id) => {
     navigate(`/bike-detail/${id}`);
   };
@@ -116,8 +105,8 @@ export default function Wishlist() {
             <p className="text-text-sub text-base">Bạn đã lưu <span className="font-bold text-text-main dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-             {/* Các nút lọc giữ nguyên */}
-             <button className="group flex h-9 items-center gap-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark px-4 text-sm font-medium hover:border-primary">
+            {/* Các nút lọc giữ nguyên */}
+            <button className="group flex h-9 items-center gap-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark px-4 text-sm font-medium hover:border-primary">
               <ListFilter size={18} /> Lọc
             </button>
             <button className="flex h-9 items-center rounded-full bg-primary text-black px-4 text-sm font-bold">Tất cả</button>
@@ -146,7 +135,7 @@ export default function Wishlist() {
                       </span>
                     </div>
                   )}
-                  <button onClick={() => handleDelete(b.wishlistId)} className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-black/60 text-gray-400 hover:text-red-500 transition-colors shadow-sm">
+                  <button onClick={() => handleDelete(b.bikeId)} className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-black/60 text-gray-400 hover:text-red-500 transition-colors shadow-sm">
                     <Trash size={16} />
                   </button>
                 </div>

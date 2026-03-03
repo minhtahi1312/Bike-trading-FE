@@ -21,43 +21,7 @@ const CartBuyer = () => {
   };
   return (
     <div className="bg-[#f6f8f6] text-[#111813] font-['Lexend',sans-serif] min-h-screen overflow-x-hidden">
-      {/* Header (Giữ nguyên như cũ) */}
-      {/* <div className="w-full bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
-        <div className="max-w-[1440px] mx-auto">
-          <header className="flex items-center justify-between whitespace-nowrap px-4 lg:px-10 py-3">
-            <div className="flex items-center gap-8">
-              <a className="flex items-center gap-2 text-[#111813]" href="#">
-                <div className="size-8 text-[#2bee6c]">
-                  <span className="material-symbols-outlined" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>pedal_bike</span>
-                </div>
-                <h2 className="text-[#111813] text-xl font-bold leading-tight tracking-[-0.015em]">BikeSafe</h2>
-              </a>
-              <div className="hidden md:flex flex-col min-w-40 h-10 w-96">
-                <div className="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
-                  <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4">
-                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>search</span>
-                  </div>
-                  <input className="flex w-full min-w-0 flex-1 border-none bg-[#f0f4f2] focus:ring-0 text-[#111813] placeholder:text-[#61896f] px-4 pl-2 text-sm" placeholder="Tìm kiếm xe đạp, phụ kiện..." />
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-1 justify-end gap-4 lg:gap-8 items-center">
-              <div className="hidden lg:flex items-center gap-6">
-                <a className="text-[#111813] text-sm font-medium hover:text-[#2bee6c] transition-colors" href="#">Tin tức</a>
-                <a className="text-[#111813] text-sm font-medium hover:text-[#2bee6c] transition-colors" href="#">Cộng đồng</a>
-                <a className="text-[#111813] text-sm font-medium hover:text-[#2bee6c] transition-colors" href="#">Đơn hàng của tôi</a>
-              </div>
-              <div className="flex gap-3 items-center border-l pl-6 border-gray-200">
-                <button className="flex size-10 items-center justify-center rounded-lg bg-[#f0f4f2] hover:bg-[#e2e8e5] relative">
-                  <span className="material-symbols-outlined">notifications</span>
-                  <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full"></span>
-                </button>
-                <div className="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white shadow-sm cursor-pointer" style={{ backgroundImage: `url(${images.avatar})` }}></div>
-              </div>
-            </div>
-          </header>
-        </div>
-      </div> */}
+      
 
       <main className="w-full max-w-[1440px] mx-auto px-4 lg:px-10 py-8">
         <div className="mb-8">

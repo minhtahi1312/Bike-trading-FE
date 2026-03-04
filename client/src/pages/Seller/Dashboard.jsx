@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from "react";
-import { Eye, Package, Wallet, MessageCircle } from "lucide-react";
+import { Eye, Package, Wallet } from "lucide-react";
 
 export default function Dashboard() {
   const stats = [
@@ -24,13 +24,6 @@ export default function Dashboard() {
       note: "+12% tháng này",
       icon: Wallet,
       color: "text-emerald-600 bg-emerald-100",
-    },
-    {
-      label: "Tin nhắn chưa đọc",
-      value: 3,
-      note: "",
-      icon: MessageCircle,
-      color: "text-purple-600 bg-purple-100",
     },
   ];
 
@@ -96,7 +89,7 @@ export default function Dashboard() {
       </div>
 
       {/* ===== STATS ===== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {stats.map((item, idx) => (
           <div
             key={idx}
@@ -192,7 +185,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ===== CỘT PHẢI: FEATURED + MESSAGES ===== */}
+        {/* ===== CỘT PHẢI: FEATURED */}
         <div className="flex flex-col gap-6">
           {/* FEATURED */}
           <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -211,9 +204,7 @@ export default function Dashboard() {
               Specialized Rockhopper
             </p>
             <p className="text-emerald-600 font-bold mt-1">18.000.000đ</p>
-            <p className="text-xs text-gray-500 mt-1">
-              1.2k lượt xem · 2 ngày trước
-            </p>
+            <p className="text-xs text-gray-500 mt-1">2 ngày trước</p>
 
             <div className="flex gap-2 mt-4">
               <button className="flex-1 border rounded-lg py-2 text-sm font-medium hover:bg-gray-50">
@@ -222,46 +213,6 @@ export default function Dashboard() {
               <button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 text-sm font-semibold">
                 Đẩy tin
               </button>
-            </div>
-          </div>
-
-          {/* MESSAGES */}
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-gray-900">Tin nhắn mới</h3>
-              <span className="text-sm font-semibold text-emerald-600">
-                {messages.length}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <img
-                    src={msg.avatar}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {msg.name}
-                      </p>
-                      <span className="text-xs text-gray-400">{msg.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">
-                      {msg.content}
-                    </p>
-                  </div>
-
-                  {msg.unread && (
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </div>

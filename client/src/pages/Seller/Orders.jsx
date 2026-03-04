@@ -2,10 +2,12 @@
 import React, { useMemo, useState } from "react";
 import { Search, Filter, FileDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 5;
 
 export default function SellerOrders() {
+  const navigate = useNavigate();
   // ===== MOCK DATA =====
   const orders = [
     {
@@ -186,12 +188,12 @@ export default function SellerOrders() {
                 </td>
 
                 <td className="px-6 py-4 text-right">
-                  <Link
-                    to={`/seller/orders/${o.id}`}
-                    className="text-emerald-600 hover:underline text-sm font-medium"
+                  <button
+                    onClick={() => navigate(`/seller/orders/${o.id}`)}
+                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg"
                   >
                     Xem chi tiết
-                  </Link>
+                  </button>
                 </td>
               </tr>
             ))}

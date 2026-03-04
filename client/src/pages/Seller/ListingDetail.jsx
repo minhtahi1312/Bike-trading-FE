@@ -124,7 +124,7 @@ Tặng kèm bình nước + giá đỡ + khóa chống trộm.
         {/* RIGHT */}
         <div className="space-y-6">
           {/* STATS */}
-          <div className="bg-white p-6 rounded-xl shadow">
+          {/* <div className="bg-white p-6 rounded-xl shadow">
             <h3 className="font-semibold mb-4">Thống kê hoạt động</h3>
 
             <div className="flex gap-4 mb-4">
@@ -158,7 +158,7 @@ Tặng kèm bình nước + giá đỡ + khóa chống trộm.
                 />
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* INSPECTION */}
           <div className="bg-white p-6 rounded-xl shadow relative overflow-hidden">

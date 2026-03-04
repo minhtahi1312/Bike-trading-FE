@@ -129,11 +129,6 @@ export default function SellerListings() {
                 </span>
 
                 <span className="flex items-center gap-1">
-                  <Eye size={14} className="text-blue-500" />
-                  {item.views} lượt xem
-                </span>
-
-                <span className="flex items-center gap-1">
                   <Heart size={14} className="text-rose-500" />
                   {item.likes} quan tâm
                 </span>
@@ -145,16 +140,16 @@ export default function SellerListings() {
             <div className="flex flex-col items-end justify-between">
               <p className="font-bold text-emerald-600 text-lg">{item.price}</p>
 
-              <div className="flex gap-2">
-                <button className="border rounded-lg px-3 py-1 text-sm hover:bg-gray-50">
-                  Ẩn tin
-                </button>
-                <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
-                  <Pencil size={14} /> Chỉnh sửa
-                </button>
+              <div className="flex gap-2 justify-end">
+                {item.status === "review" && (
+                  <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
+                    <Pencil size={14} /> Chỉnh sửa
+                  </button>
+                )}
+
                 <button
                   onClick={() => navigate(`/seller/listings/${item.id}`)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
                 >
                   Xem chi tiết
                 </button>

@@ -1,5 +1,5 @@
-/* eslint-disable */
-import React from "react";
+import React, { useState } from "react";
+import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,18 +7,30 @@ import {
   XCircle,
   Phone,
   Mail,
-  MessageCircle,
   MapPin,
   Info,
 } from "lucide-react";
 
 export default function OrderDetail() {
+  const handleConfirm = () => {
+    setOrder((prev) => ({
+      ...prev,
+      status: "preparing",
+    }));
+  };
+
+  const handleCancel = () => {
+    setOrder((prev) => ({
+      ...prev,
+      status: "confirmed",
+    }));
+  };
   const { id } = useParams();
 
   // ===== MOCK DATA =====
-  const order = {
+  const [order, setOrder] = useState({
     id: id,
-    status: "pending",
+    status: "confirmed",
     product: "Trek Marlin 7 (2022) - Size M",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBYHKUb-OXY4LhuARv-D80YSszSzvNiTBpQuWHwV-gRzqpjWM-RxrxGvBn7v9zVwwXeKTuXWKRI7vcrF0Nvo75yMf-v4Qw4EZxoRP5keZ5YTumzmsOQyrp-C247lRr7DERCyY7NLVkXtQq08xDcsJorx6204U3Fk_5bf-aJ5lh0xWFGuESUg3lPCH9KXrFCl3kBq68n7BgLTqDqAOtUrHQNiKFTg1MtPnHZPzWWdDOMEsafN8wF4TBMerT50D6PnKWQ-9pPYkkNur2Q",
@@ -41,22 +53,30 @@ export default function OrderDetail() {
     },
     note: "Giao giờ hành chính giúp mình nhé.",
     date: "14:30 - 20/05/2024",
-  };
+  });
 
   const total = order.price + order.shipping + order.serviceFee;
 
   const statusMap = {
-    pending: {
+    confirmed: {
       label: "Chờ xác nhận",
       style: "bg-yellow-100 text-yellow-700",
     },
+    preparing: {
+      label: "Đang chuẩn bị",
+      style: "bg-blue-100 text-blue-700",
+    },
     shipping: {
       label: "Đang giao",
-      style: "bg-blue-100 text-blue-700",
+      style: "bg-indigo-100 text-indigo-700",
     },
     done: {
       label: "Hoàn thành",
       style: "bg-emerald-100 text-emerald-700",
+    },
+    cancelled: {
+      label: "Đã hủy",
+      style: "bg-gray-200 text-gray-600",
     },
   };
 
@@ -84,9 +104,11 @@ export default function OrderDetail() {
             <h1 className="text-2xl font-extrabold">Đơn hàng #{order.id}</h1>
 
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusMap[order.status].style}`}
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                statusMap[order.status]?.style || ""
+              }`}
             >
-              {statusMap[order.status].label}
+              {statusMap[order.status]?.label}
             </span>
           </div>
 
@@ -94,18 +116,28 @@ export default function OrderDetail() {
         </div>
 
         <div className="flex gap-3">
-          <button className="border border-red-300 text-red-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-50">
-            <XCircle size={18} />
-            Hủy đơn
-          </button>
+          {order.status === "confirmed" && (
+            <>
+              <button
+                onClick={handleCancel}
+                className="border border-red-300 text-red-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-50"
+              >
+                <XCircle size={18} />
+                Hủy đơn
+              </button>
 
-          <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
-            <CheckCircle size={18} />
-            Xác nhận đơn hàng
-          </button>
+              <button
+                onClick={handleConfirm}
+                className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-600"
+              >
+                <CheckCircle size={18} />
+                Xác nhận đơn hàng
+              </button>
+            </>
+          )}
         </div>
       </div>
-
+      <SellerOrderStepper status={order.status} />
       {/* ===== MAIN GRID ===== */}
       <div className="grid grid-cols-3 gap-6">
         {/* ===== LEFT ===== */}
@@ -151,11 +183,6 @@ export default function OrderDetail() {
               <div className="flex justify-between">
                 <span>Giá sản phẩm</span>
                 <span>{order.price.toLocaleString()}đ</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Phí vận chuyển</span>
-                <span>{order.shipping.toLocaleString()}đ</span>
               </div>
 
               <div className="flex justify-between text-red-500">
@@ -215,11 +242,6 @@ export default function OrderDetail() {
                 <Mail size={16} /> {order.buyer.email}
               </p>
             </div>
-
-            <button className="w-full bg-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200">
-              <MessageCircle size={16} />
-              Chat với Người mua
-            </button>
           </div>
 
           {/* ADDRESS */}

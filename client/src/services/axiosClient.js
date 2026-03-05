@@ -71,8 +71,15 @@ axiosClient.interceptors.response.use(
 /**
  * ===== CART API =====
  */
-const getCartItems = async (cartId) => {
-  const response = await axiosClient.get(`/api/CartItem/${cartId}`);
+
+
+const getCart = async () => {
+  const response = await axiosClient.get(`/api/Cart`);
+  return response.data;
+}
+const getCartItems = async () => {
+  
+  const response = await axiosClient.get(`/api/CartItem`);
   return response.data;
 };
 
@@ -137,8 +144,8 @@ const removeFromWishlist = async (bikeId) => {
  */
 const getSellerListings = async () => {
   try {
-    const response = await axiosClient.get(`/api/seller/bikes`);
-    console.log("✅ GET /api/seller/bikes success", response.data);
+    const response = await axiosClient.get(`/api/buyer-bikes`);
+    console.log("✅ GET /api/buyer-bikes success", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ getSellerListings failed:", error.message);
@@ -150,6 +157,7 @@ const getSellerListings = async () => {
  * ===== EXPORTS =====
  */
 export {
+  getCart,
   getCartItems,
   addCartItem,
   deleteCartItem,

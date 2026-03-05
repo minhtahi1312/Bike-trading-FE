@@ -1,148 +1,134 @@
-import { RulerDimensionLine, ShieldCheck, Trash } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCart, getCartItems, deleteCartItem, toggleCartItem } from "../../../services/axiosClient";
 
 const CartBuyer = () => {
   const navigate = useNavigate();
-  const images = {
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-    // 2 Sản phẩm chính trong giỏ
-    tarmac: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=600&auto=format&fit=crop",
-    tcr: "https://cdn.road.cc/sites/default/files/2021-giant-tcr-advanced-pro-1-disc_0.jpg",
-    
-    // 4 Link ảnh bạn cung cấp đã được gắn vào đây:
-    suggested_1: "https://th.bing.com/th/id/R.1761721b6da8ceb9ed8e8e0b37935926?rik=vHMfIUsaQxWKTA&pid=ImgRaw&r=0",
-    suggested_2: "https://tse1.mm.bing.net/th/id/OIP.eDL9U3vqrjepuaj4XzQjQgHaE7?rs=1&pid=ImgDetMain&o=7&rm=3",
-    suggested_3: "https://fujiko.vn/wp-content/uploads/2023/06/z4388767909178_8568076a3ad3923efe926730de040784.jpg",
-    suggested_4: "https://th.bing.com/th/id/R.d0add4abcb66439cbddd14ba513bbd47?rik=BYdFe%2fiDBurONQ&riu=http%3a%2f%2ffujiko.vn%2fwp-content%2fuploads%2f2023%2f06%2fz5508139247481_f7cc67795189e220332933eae1d988f8.jpg&ehk=4S2sOLEXCJ6Bu1ObdKuLJSqtzcr1WbFyB6eQ5rJUcBg%3d&risl=&pid=ImgRaw&r=0"
+  const [loading, setLoading] = useState(true);
+  
+  // Tách biệt 2 nguồn dữ liệu
+  const [items, setItems] = useState([]); // Danh sách sản phẩm (có chứa isSelected)
+  const [summary, setSummary] = useState({ totalAmount: 0 }); // Tổng tiền từ server
+
+  // Hiển thị sản phẩm trong giỏ hàng
+  const loadItems = async () => {
+    try {
+      const data = await getCartItems();
+      setItems(data || []);
+    } catch (err) {
+      console.error("Lỗi lấy danh sách:", err);
+    }
   };
-   const PaymentClick = () => {
-    navigate('/homebuyer/payment');
+
+  // Hiển thị tổng tiền (từ API Cart)
+  const loadSummary = async () => {
+    try {
+      const data = await getCart();
+      setSummary(data || { totalAmount: 0 });
+    } catch (err) {
+      console.error("Lỗi lấy tổng tiền:", err);
+    }
   };
+
+  useEffect(() => {
+    const initData = async () => {
+      setLoading(true);
+      await Promise.all([loadItems(), loadSummary()]);
+      setLoading(false);
+    };
+    initData();
+  }, []);
+
+  // XỬ LÝ DẤU TÍCH: Gọi API toggle và load lại cả 2 để cập nhật tiền
+  const handleToggle = async (id) => {
+    try {
+      await toggleCartItem(id); // Gọi API thay đổi trạng thái trong DB
+      await Promise.all([loadItems(), loadSummary()]); // Cập nhật lại giao diện và tiền ngay lập tức
+    } catch (err) {
+      alert("Không thể thay đổi trạng thái chọn");
+    }
+  };
+  // xóa sản phẩm khỏi giỏ hàng
+  const handleDelete = async (id) => {
+    if (window.confirm("Xóa sản phẩm này?")) {
+      try {
+        await deleteCartItem(id);
+        await Promise.all([loadItems(), loadSummary()]);
+      } catch (err) {
+        alert("Xóa thất bại");
+      }
+    }
+  };
+
+  if (loading) return <div className="p-20 text-center font-bold">Đang tải...</div>;
+
   return (
-    <div className="bg-[#f6f8f6] text-[#111813] font-['Lexend',sans-serif] min-h-screen overflow-x-hidden">
-      
+    <div className="min-h-screen bg-[#f6f8f6] p-4 lg:p-10 text-[#111813]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* CỘT DANH SÁCH SẢN PHẨM */}
+        <div className="lg:col-span-8 space-y-4">
+          <h1 className="text-3xl font-bold mb-6">Giỏ hàng ({items.length})</h1>
+          {items.map((item) => (
+            <div key={item.id} className="bg-white p-4 rounded-2xl flex gap-6 border border-gray-100 shadow-sm items-center">
+              
+              {/* PHỤC HỒI DẤU TÍCH Ở ĐÂY */}
+              <input
+                type="checkbox"
+                checked={item.isSelected} // Quan trọng: Lấy từ API
+                onChange={() => handleToggle(item.id)}
+                className="w-6 h-6 accent-[#2bee6c] cursor-pointer shrink-0"
+              />
 
-      <main className="w-full max-w-[1440px] mx-auto px-4 lg:px-10 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#111813]">Giỏ hàng của bạn <span className="text-lg font-normal text-gray-500 ml-2">(2 sản phẩm)</span></h1>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Content: Cart Items */}
-          <div className="lg:col-span-8 flex flex-col gap-4">
-            {/* Tarmac Item */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-6 relative group">
-              <div className="w-full sm:w-48 aspect-[4/3] rounded-xl bg-gray-100 bg-center bg-cover shrink-0" style={{ backgroundImage: `url(${images.tarmac})` }}></div>
-              <div className="flex flex-col flex-1 py-1">
+              <div 
+                className="w-40 aspect-video rounded-xl bg-cover bg-center bg-gray-100 shrink-0"
+                style={{ backgroundImage: `url(${item.imageUrl})` }}
+              />
+              
+              <div className="flex-1">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-bold text-[#111813] hover:text-[#2bee6c] transition-colors cursor-pointer">Specialized Tarmac SL7 Expert</h3>
-                    <div className="flex flex-wrap gap-3 mt-2">
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <span className="material-symbols-outlined text-sm"><RulerDimensionLine size={16} /></span> Size 54
-                      </div>
-                      <div className="flex items-center gap-1 text-xs font-bold text-[#10b981] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase">
-                        <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}><ShieldCheck size={14} /></span> Đã kiểm định
-                      </div>
-                    </div>
-                  </div>
-                  <button className="p-2 text-gray-400 hover:text-red-500 transition-colors"><span className="material-symbols-outlined"><Trash /></span></button>
+                  <h3 className="font-bold text-xl">{item.bikeTitle}</h3>
+                  <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <span className="material-symbols-outlined">delete</span>
+                  </button>
                 </div>
-                <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Giá bán:</p>
-                    <p className="text-2xl font-black text-[#2bee6c]">85.000.000 đ</p>
-                  </div>
-                  <div className="text-xs text-gray-400 italic">Sản phẩm độc bản</div>
-                </div>
+                <p className="text-[#2bee6c] text-2xl font-black mt-2">
+                  {item.unitPrice?.toLocaleString('vi-VN')} đ
+                </p>
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Giant Item */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-6 relative group">
-              <div className="w-full sm:w-48 aspect-[4/3] rounded-xl bg-gray-100 bg-center bg-cover shrink-0" style={{ backgroundImage: `url(${images.tcr})` }}></div>
-              <div className="flex flex-col flex-1 py-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-bold text-[#111813] hover:text-[#2bee6c] transition-colors cursor-pointer">Giant TCR Advanced Pro Disc</h3>
-                    <div className="flex flex-wrap gap-3 mt-2">
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <span className="material-symbols-outlined text-sm"><RulerDimensionLine size={16} /></span> Size M
-                      </div>
-                      <div className="flex items-center gap-1 text-xs font-bold text-[#10b981] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase">
-                        <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}><ShieldCheck size={14} /></span> Đã kiểm định
-                      </div>
-                    </div>
-                  </div>
-                  <button className="p-2 text-gray-400 hover:text-red-500 transition-colors"><span className="material-symbols-outlined"><Trash size={24} /></span></button>
-                </div>
-                <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Giá bán:</p>
-                    <p className="text-2xl font-black text-[#2bee6c]">42.500.000 đ</p>
-                  </div>
-                  <div className="text-xs text-gray-400 italic">Sản phẩm độc bản</div>
-                </div>
+        {/* CỘT TÓM TẮT THANH TOÁN */}
+        <div className="lg:col-span-4">
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 sticky top-24">
+            <h2 className="text-xl font-bold mb-6">Tóm tắt đơn hàng</h2>
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between text-gray-600">
+                <span>Tạm tính:</span>
+                <span className="font-bold text-[#111813]">
+                  {summary.totalAmount?.toLocaleString('vi-VN')} đ
+                </span>
+              </div>
+              <div className="border-t border-dashed pt-4 flex justify-between items-center font-black text-2xl">
+                <span>Tổng cộng:</span>
+                <span className="text-[#2bee6c]">
+                  {(summary.totalAmount > 0 ? summary.totalAmount + 500000 : 0).toLocaleString('vi-VN')} đ
+                </span>
               </div>
             </div>
-          </div>
-
-          {/* Sidebar (Giữ nguyên) */}
-          <div className="lg:col-span-4 flex flex-col gap-6 sticky top-24">
-            <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-              <h2 className="text-xl font-bold mb-6">Tóm tắt đơn hàng</h2>
-              <div className="space-y-4 mb-6 text-sm">
-                <div className="flex justify-between text-gray-600"><span>Tạm tính (2 sản phẩm)</span><span className="font-medium text-[#111813]">127.500.000 đ</span></div>
-                <div className="flex justify-between text-gray-600"><span>Phí vận chuyển dự kiến</span><span className="font-medium text-[#111813]">500.000 đ</span></div>
-                <div className="border-t border-dashed border-gray-200 pt-4 flex justify-between items-center"><span className="text-lg font-bold">Tổng cộng</span><span className="text-2xl font-black text-[#2bee6c]">128.000.000 đ</span></div>
-              </div>
-              <button onClick={PaymentClick} className="w-full bg-[#2bee6c] hover:bg-[#1fb350] text-[#111813] py-4 rounded-xl font-black text-lg shadow-lg shadow-[#2bee6c]/20 transition-all">THANH TOÁN NGAY</button>
-            </div>
+            <button 
+              disabled={summary.totalAmount === 0}
+              onClick={() => navigate('/homebuyer/payment')}
+              className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
+            >
+              THANH TOÁN NGAY
+            </button>
           </div>
         </div>
 
-        {/* --- PHẦN GỢI Ý ĐÃ GẮN LINK ẢNH CỦA BẠN --- */}
-        <div className="mt-16">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h2 className="text-2xl font-bold">Sản phẩm gợi ý</h2>
-              <p className="text-gray-500 text-sm">Dựa trên các sản phẩm bạn đã xem</p>
-            </div>
-            <a className="text-[#2bee6c] font-bold hover:underline flex items-center gap-1 text-sm" href="#">
-              Xem thêm <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: "Bianchi Oltre XR4 Disc", price: "110.000.000", img: images.suggested_1, meta: "Size 55", loc: "Đà Nẵng", icon: "straighten" },
-              { name: "Trek Marlin 7 - 2022", price: "15.000.000", img: images.suggested_2, meta: "Size M", loc: "Cần Thơ", icon: "straighten" },
-              { name: "Mingu Hybrid 2024", price: "2.450.000", img: images.suggested_3, meta: "Phụ kiện", loc: "Còn hàng", icon: "category" },
-              { name: "Custom Fixed Gear 8bar", price: "18.000.000", img: images.suggested_4, meta: "Size 52", loc: "TP.HCM", icon: "straighten" }
-            ].map((product, idx) => (
-              <div key={idx} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all flex flex-col cursor-pointer">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <div 
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
-                    style={{ backgroundImage: `url(${product.img})` }}
-                  ></div>
-                </div>
-                <div className="p-4 flex flex-col flex-1 gap-2">
-                  <h3 className="text-sm font-bold text-[#111813] line-clamp-1 group-hover:text-[#2bee6c] transition-colors">{product.name}</h3>
-                  <p className="text-base font-bold text-[#2bee6c]">{product.price} đ</p>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-auto pt-2 border-t border-gray-50">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{product.icon}</span> {product.meta}</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{product.icon === "category" ? "inventory_2" : "location_on"}</span> {product.loc}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* Footer (Giữ nguyên) */}
+      </div>
     </div>
   );
 };

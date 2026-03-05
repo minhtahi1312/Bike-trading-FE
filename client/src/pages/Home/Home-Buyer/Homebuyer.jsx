@@ -24,32 +24,66 @@ export default function Homebuyer() {
 
   }, []);
   //Load API danh sách xe của seller
+  // const loadSellerListings = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const data = await getSellerListings();
+  //     // Map API response to match component structure
+  //     console.log("Raw seller listings data:", data);
+  //     const formattedBikes = (data.items || []).map((item) => ({
+  //       id: item.id,
+  //       name: item.title || "Chưa có tên xe",
+  //       price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
+  //       size: item.size || "N/A",
+  //       location: item.location || "Chưa xác định",
+  //       image:  item.image || "https://via.placeholder.com/400x300",
+  //       verified: item.verified || item.isVerified || false,
+  //       newTag: item.isNew || item.newTag || false,
+  //     }));
+  //     console.log("✅ Seller listings loaded:", formattedBikes);
+  //     setBikes(formattedBikes);
+  //   } catch (error) {
+  //     console.error("❌ Failed to load seller listings:", error);
+  //     // Fallback to empty array on error
+  //     setBikes([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const loadSellerListings = async () => {
-    setLoading(true);
-    try {
-      const data = await getSellerListings();
-      // Map API response to match component structure
-      console.log("Raw seller listings data:", data);
-      const formattedBikes = (data.items || []).map((item) => ({
-        id: item.id,
-        name: item.title || "Chưa có tên xe",
-        price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
-        size: item.size || "N/A",
-        location: item.location || "Chưa xác định",
-        image: item.imageUrl || item.image || "https://via.placeholder.com/400x300",
-        verified: item.verified || item.isVerified || false,
-        newTag: item.isNew || item.newTag || false,
-      }));
-      console.log("✅ Seller listings loaded:", formattedBikes);
-      setBikes(formattedBikes);
-    } catch (error) {
-      console.error("❌ Failed to load seller listings:", error);
-      // Fallback to empty array on error
-      setBikes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const data = await getSellerListings();
+    console.log("Raw seller listings data:", data);
+
+    // Vì data là một Array, chúng ta map trực tiếp trên data
+    // Nếu data có thể null/undefined, dùng (data || [])
+    const formattedBikes = (data || []).map((item) => ({
+      id: item.id,
+      name: item.title || "Chưa có tên xe",
+      // Định dạng giá tiền: 35000000 -> 35.000.000 đ
+      price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
+      // Trong JSON không có size và location, bạn có thể để mặc định hoặc lấy từ trường khác
+      size: item.size || "N/A", 
+      location: item.location || "Chưa xác định",
+      // Map thumbnail từ API vào trường image của component
+      image: item.thumbnail || "https://via.placeholder.com/400x300",
+      // Kiểm tra trạng thái kiểm định từ isInspected
+      verified: item.isInspected || false,
+      // Thêm thông tin độ mới từ trường 'overall' nếu cần
+      condition: item.overall || "N/A",
+      newTag: item.isNew || false,
+    }));
+
+    console.log("✅ Seller listings loaded:", formattedBikes);
+    setBikes(formattedBikes);
+  } catch (error) {
+    console.error("❌ Failed to load seller listings:", error);
+    setBikes([]);
+  } finally {
+    setLoading(false);
+  }
+};
   //Addto wishlist
   const watchedBikes = [
 

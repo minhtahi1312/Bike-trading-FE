@@ -179,6 +179,20 @@ const CheckOut = async (data) => {
     throw error;
   }
 };
+
+/* API Orders */
+const getOrder = async () => {
+  try {
+    const myorder = await axiosClient.get(`/api/Order/my-orders`);
+    const id = myorder.data
+    const response = await axiosClient.get(`/api/Order/${id[0].id}`);
+
+    return response.data;
+  } catch (error) {
+
+    throw error;
+  }
+};
 /**
  * ===== EXPORTS =====
  */
@@ -194,7 +208,8 @@ export {
   removeFromWishlist,
   getSellerListings,
   isBuying,
-  CheckOut
+  CheckOut,
+  getOrder
 };
 
 export default axiosClient;

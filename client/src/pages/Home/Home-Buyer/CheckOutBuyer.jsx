@@ -228,7 +228,7 @@ const CheckoutPage = () => {
                           ></div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-bold text-[#111813] truncate">{item.bikeTitle}</h4>
-                            <p className="text-xs text-[#61896f] mt-1">{item.unitPrice}</p>
+                            <p className="text-xs text-[#61896f] mt-1">{item.unitPrice.toLocaleString('vi-VN')} đ</p>
                           </div>
                         </div>
                       ))

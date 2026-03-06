@@ -21,7 +21,7 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Cache-busting cho GET requests
     if (config.method === "get") {
       config.params = {
@@ -32,7 +32,7 @@ axiosClient.interceptors.request.use(
       config.headers["Pragma"] = "no-cache";
       config.headers["Expires"] = "0";
     }
-    
+
     return config;
   },
   (error) => {
@@ -57,13 +57,13 @@ axiosClient.interceptors.response.use(
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
     }
-    
+
     console.error("❌ API Error:", {
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
       url: error.config?.url,
     });
-    
+
     return Promise.reject(error);
   }
 );
@@ -78,7 +78,7 @@ const getCart = async () => {
   return response.data;
 }
 const getCartItems = async () => {
-  
+
   const response = await axiosClient.get(`/api/CartItem`);
   return response.data;
 };
@@ -152,7 +152,33 @@ const getSellerListings = async () => {
     throw error;
   }
 };
+////////////////////
 
+const isBuying = async () => {
+  try {
+    const cart = await getCart(); // Lấy thông tin cart hiện tại
+    const response = await axiosClient.get(`/api/CartItem/validate/${cart.id}`);
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ isBuying failed:", error.message);
+    throw error;
+  }
+};
+
+///////////////
+const CheckOut = async (data) => {
+  try {
+
+    const response = await axiosClient.post(`/api/Order/checkout`, data);
+
+    console.log("✅ POST /api/Order/checkout success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ CheckOut failed:", error.message);
+    throw error;
+  }
+};
 /**
  * ===== EXPORTS =====
  */
@@ -167,6 +193,8 @@ export {
   addToWishlist,
   removeFromWishlist,
   getSellerListings,
+  isBuying,
+  CheckOut
 };
 
 export default axiosClient;

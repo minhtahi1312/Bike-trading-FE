@@ -3,7 +3,7 @@ import React from "react";
 export default function OderBuyer() {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display">
-      
+
 
       <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-10 py-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
@@ -54,16 +54,9 @@ export default function OderBuyer() {
                     </div>
                     <div className="text-right">
                       <p className="text-xl font-bold text-primary dark:text-primary">15.500.000đ</p>
-                      <p className="text-xs text-gray-400 line-through">16.000.000đ</p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-start gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                    <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">verified_user</span>
-                    <div>
-                      <p className="text-sm font-semibold text-[#111813] dark:text-white">Thanh toán được bảo vệ</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Tiền của bạn đang được giữ an toàn. Vui lòng xác nhận khi bạn đã kiểm tra kỹ xe.</p>
-                    </div>
-                  </div>
+
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                   <button className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Trả hàng/Hoàn tiền</button>

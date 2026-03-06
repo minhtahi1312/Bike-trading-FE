@@ -73,25 +73,7 @@ export default function Wishlist() {
       loadWishlist();
     }
   };
-  const handleAddToWishlist = async (bikeId) => {
-  try {
-    await addToWishlist(bikeId);
-    
-    // Thông báo cho người dùng
-    alert("Đã thêm vào danh sách yêu thích!"); 
-    // Nếu dùng toast: toast.success("Đã thêm vào danh sách yêu thích!");
-    
-  } catch (error) {
-    console.error("Lỗi khi thêm vào wishlist:", error);
-    
-    // Xử lý các trường hợp lỗi thường gặp
-    if (error.response?.status === 401) {
-      alert("Vui lòng đăng nhập để thực hiện tính năng này.");
-    } else {
-      alert("Không thể thêm vào yêu thích. Có thể xe này đã có trong danh sách.");
-    }
-  }
-};
+  
   const handleView = (id) => {
     navigate(`/bike-detail/${id}`);
   };

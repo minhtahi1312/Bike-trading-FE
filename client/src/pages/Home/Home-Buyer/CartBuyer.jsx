@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCart, getCartItems, deleteCartItem, toggleCartItem } from "../../../services/axiosClient";
+import { getCart, getCartItems, deleteCartItem, toggleCartItem, isBuying , } from "../../../services/axiosClient";
 
 const CartBuyer = () => {
   const navigate = useNavigate();
@@ -29,6 +29,20 @@ const CartBuyer = () => {
       console.error("Lỗi lấy tổng tiền:", err);
     }
   };
+  const isBuy = async () => {
+    try {
+      const data = await isBuying();
+      console.log("isBuying response:", data);
+    } catch (err) {
+      console.error("Lỗi lấy tổng tiền:", err);
+    }
+  };
+  const x = 1;
+
+  setTimeout(() => {
+    console.log("x =", x); 
+    isBuy();
+  }, x * 1000);
 
   useEffect(() => {
     const initData = async () => {
@@ -114,13 +128,13 @@ const CartBuyer = () => {
               <div className="border-t border-dashed pt-4 flex justify-between items-center font-black text-2xl">
                 <span>Tổng cộng:</span>
                 <span className="text-[#2bee6c]">
-                  {(summary.totalAmount > 0 ? summary.totalAmount + 500000 : 0).toLocaleString('vi-VN')} đ
+                  {(summary.totalAmount > 0 ? summary.totalAmount : 0).toLocaleString('vi-VN')} đ
                 </span>
               </div>
             </div>
             <button 
               disabled={summary.totalAmount === 0}
-              onClick={() => navigate('/homebuyer/payment')}
+              onClick={() => navigate('/homebuyer/checkout')}
               className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
             >
               THANH TOÁN NGAY

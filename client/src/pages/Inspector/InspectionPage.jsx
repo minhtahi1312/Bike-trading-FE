@@ -3,36 +3,17 @@ import {
   ArrowLeft, ArrowRight,ChevronLeft, ChevronRight, CheckCircle2, 
   Bike, Settings, Disc, ShieldAlert,
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Save, AlertCircle, Check, X
+  Save, AlertCircle, Check, X, Loader2
 } from 'lucide-react';
 import axiosClient from '../../services/axiosClient';
 import { useNavigate, useParams } from 'react-router-dom';
 
 
-
-// --- MOCK DATA ---
-const MOCK_BIKE = {
-  name: "Giant TCR Advanced 2",
-  id: "AB3921D",
-  price: "28.500.000 ₫",
-  condition: "95% (Like New)",
-  description: "Xe chính chủ mua mới 2021, ít đi, odo khoảng 2000km. Group 105 R7000 hoạt động hoàn hảo.",
-  specs: {
-    frame: "Carbon Advanced-Grade",
-    size: "M (54cm)",
-    paint: "Nguyên bản, không trầy xước lớn"
-  },
-  media: [
-    { id: 1, type: 'image', src: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=800', label: 'Toàn cảnh - 01/08' },
-    { id: 2, type: 'image', src: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800', label: 'Bộ đề sau - 02/08' },
-    { id: 3, type: 'video', src: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800', label: 'Video test cối líp' },
-  ]
-};
-
 export default function MergedInspectionPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const [bike, setBike] = useState(null); 
+  const [loading, setLoading] = useState(true);
   // --- STATE QUẢN LÝ UI ---
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -47,6 +28,52 @@ export default function MergedInspectionPage() {
     comment: ""
   });
 const [isSubmitting, setIsSubmitting] = useState(false);
+useEffect(() => {
+    const fetchBikeDetails = async () => {
+      setLoading(true);
+      try {
+        // Gọi API với ID truyền vào Header 'x-pendingbike-id' như Swagger yêu cầu
+        const response = await axiosClient.get('/api/inspector/pending-bike-details', {
+          headers: {
+            'x-pendingbike-id': id 
+          }
+        });
+
+        const data = response.data;
+        
+        // Chuyển đổi dữ liệu từ API sang cấu trúc để hiển thị trên giao diện
+      setBike({
+          name: `${data.brand} ${data.category}`,
+          idDisplay: data.id.substring(0, 8).toUpperCase(),
+          price: data.price.toLocaleString('vi-VN') + " ₫",
+          condition: `${data.overall} - ${data.operating}`, // Hiển thị "100% - Tốt"
+          description: "Thông tin chi tiết cấu hình xe từ hệ thống.", // API chưa có trường này nên để mặc định
+          specs: {
+            frame: data.frameMaterial,
+            size: data.frameSize,
+            paint: data.paint,
+            groupset: data.groupset,     // Thêm Bộ truyền động
+            brakeType: data.brakeType,   // Thêm Loại phanh
+            tireRim: data.tireRim        // Thêm Vành lốp
+          },
+          // Map danh sách ảnh từ medias
+          media: data.medias && data.medias.length > 0 
+            ? data.medias.map((m, idx) => ({
+                id: m.id,
+                src: m.image,
+                label: `Ảnh chi tiết ${idx + 1}`
+              }))
+            : [{ id: 0, src: 'https://via.placeholder.com/800?text=No+Image', label: 'Không có ảnh' }]
+        });
+      } catch (error) {
+        console.error("Lỗi lấy chi tiết xe:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchBikeDetails();
+  }, [id]);
 
   const handleToggle = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,7 +92,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     setIsSubmitting(true);
 
     try {
-      console.log("🚀 Đang gửi dữ liệu API:", formData);
+      console.log(" Đang gửi dữ liệu API:", formData);
       const response = await axiosClient.post(
         '/api/inspector/approve-bike', 
         formData, // Data truyền lên trong Body
@@ -79,20 +106,35 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
       // Nếu gọi thành công (Axios sẽ tự văng xuống catch nếu lỗi)
       if (response.status === 200 || response.status === 201) {
-        console.log("✅ Đánh giá thành công!");
+        console.log(" Đánh giá thành công!");
         navigate(`/inspector/result/${id}`);
       }
 
     } catch (error) {
-      console.error("❌ Lỗi khi gửi API:", error);
-      // Bạn có thể lấy câu báo lỗi từ Backend ra (nếu có)
+      console.error(" Lỗi khi gửi API:", error);
       const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi duyệt xe. Vui lòng thử lại!";
       alert(errorMsg);
     } finally {
-      setIsSubmitting(false); // Hoàn tất (dù lỗi hay không) thì mở khóa nút
+      setIsSubmitting(false); 
     }
   };
   
+  if (loading) {
+  return (
+    <div className="h-screen flex flex-col items-center justify-center bg-white">
+      <Loader2 className="animate-spin text-emerald-500 mb-4" size={48} />
+      <p className="font-bold text-[#637588]">Đang tải cấu hình xe...</p>
+    </div>
+  );
+}
+
+if (!bike) {
+  return (
+    <div className="h-screen flex items-center justify-center text-[#637588] font-bold">
+      Không tìm thấy dữ liệu xe.
+    </div>
+  );
+}
 
   return (
     <div className="flex flex-col h-screen -m-8 bg-[#f3f4f6] font-display text-[#111813] overflow-hidden">
@@ -164,8 +206,8 @@ const [isSubmitting, setIsSubmitting] = useState(false);
           
           {/* Header Title */}
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black">{MOCK_BIKE.name}</h1>
-            <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded">ID: {MOCK_BIKE.id}</span>
+            <h1 className="text-2xl font-black">{bike.name}</h1>
+            <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded">ID: {bike.idDisplay}</span>
           </div>
 
           {/* Album Section */}
@@ -180,12 +222,12 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             {/* Main Image Viewer */}
             <div
              className="relative w-full aspect-video bg-gray-100 rounded-xl overflow-hidden group border border-gray-200">
-              <img src={MOCK_BIKE.media[activeMediaIndex].src} alt="Bike"
+              <img src={bike.media[activeMediaIndex]?.src} alt="Bike"
               onClick={() => setIsFullscreen(true)}
                className="w-full h-full object-cover" />
               
               <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
-                {MOCK_BIKE.media[activeMediaIndex].label}
+                {bike.media[activeMediaIndex]?.label}
               </div>
 
               {/* Navigation Arrows */}
@@ -197,7 +239,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
                   <ChevronLeft size={18} />
                 </button>
                 <button 
-                  onClick={() => setActiveMediaIndex(prev => prev < MOCK_BIKE.media.length - 1 ? prev + 1 : prev)}
+                  onClick={() => setActiveMediaIndex(prev => prev < bike.media.length - 1 ? prev + 1 : prev)}
                   className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center shadow hover:bg-gray-50"
                 >
                   <ChevronRight size={18} />
@@ -207,7 +249,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
             {/* Thumbnails */}
             <div className="flex gap-3 mt-4">
-              {MOCK_BIKE.media.map((item, index) => (
+              {bike.media.map((item, index) => (
                 <div 
                   key={item.id} 
                   onClick={() => setActiveMediaIndex(index)}
@@ -229,33 +271,46 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Giá niêm yết</p>
-                <p className="text-lg font-black">{MOCK_BIKE.price}</p>
+                <p className="text-lg font-black">{bike.price}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Tình trạng khai báo</p>
-                <p className="text-sm font-bold">{MOCK_BIKE.condition}</p>
+                <p className="text-sm font-bold">{bike.condition}</p>
               </div>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Mô tả từ người bán</p>
-              <p className="text-sm text-gray-600 italic">"{MOCK_BIKE.description}"</p>
+              <p className="text-sm text-gray-600 italic">"{bike.description}"</p>
             </div>
 
-            <div className="flex items-center gap-4 border-t border-gray-100 pt-6">
-              <img src={MOCK_BIKE.media[0].src} className="w-24 h-24 rounded-lg object-cover shadow-sm" />
+<div className="flex items-center gap-4 border-t border-gray-100 pt-6">
+              <img src={bike.media[0]?.src} className="w-24 h-24 rounded-lg object-cover shadow-sm border border-gray-100" alt="Thumbnail" />
+              
               <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
                 <div className="flex justify-between border-b border-gray-100 pb-1">
-                  <span className="text-gray-500">Chất liệu khung:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.frame}</span>
+                  <span className="text-gray-500">Chất liệu:</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.frame}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-100 pb-1">
                   <span className="text-gray-500">Kích cỡ:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.size}</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.size}</span>
                 </div>
-                <div className="flex justify-between border-b border-gray-100 pb-1 col-span-2">
-                  <span className="text-gray-500">Tình trạng sơn báo:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.paint}</span>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Màu sơn:</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.paint}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Truyền động:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.groupset}>{bike.specs.groupset}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Loại phanh:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.brakeType}>{bike.specs.brakeType}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Vành & Lốp:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.tireRim}>{bike.specs.tireRim}</span>
                 </div>
               </div>
             </div>
@@ -382,7 +437,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
           {/* Ảnh được phóng to */}
           <img 
-            src={MOCK_BIKE.media[activeMediaIndex].src} 
+            src={bike.media[activeMediaIndex]?.src} 
             alt="Fullscreen Bike" 
             className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
             onClick={(e) => e.stopPropagation()} 
@@ -396,7 +451,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             <ChevronLeft size={36} />
           </button>
           <button 
-            onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => prev < MOCK_BIKE.media.length - 1 ? prev + 1 : prev); }}
+            onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => prev < bike.media.length - 1 ? prev + 1 : prev); }}
             className="absolute right-8 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-4 rounded-full transition-all"
           >
             <ChevronRight size={36} />
@@ -404,7 +459,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
           {/* Nhãn của ảnh */}
           <div className="absolute bottom-10 text-white text-sm font-bold bg-black/60 px-6 py-2.5 rounded-full border border-white/10 backdrop-blur-md">
-            {MOCK_BIKE.media[activeMediaIndex].label}
+            {bike.media[activeMediaIndex]?.label}
           </div>
         </div>
       )}

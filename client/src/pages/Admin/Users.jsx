@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Search, Plus, Filter, MoreVertical, 
   Lock, Eye, Trash2, Shield, ShoppingBag, User, CheckCircle, XCircle,
-  X, Loader2 
+  X, Loader2, AlertCircle
 } from 'lucide-react';
 import axiosClient from "../../services/axiosClient";
 
@@ -16,7 +16,7 @@ const Users = () => {
     password: '',
     phone: ''
   });
-
+  const [errors, setErrors] = useState({});
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -46,9 +46,37 @@ const Users = () => {
       
 
     } catch (error) {
-      // 4. Xử lý khi có lỗi
       console.error("Lỗi khi tạo Inspector:", error);
-      alert(error.response?.data?.message || "Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại!");
+      
+      // --- XỬ LÝ BẮT LỖI TỪ BACKEND ---
+      if (error.response && error.response.data) {
+        const data = error.response.data;
+
+        if (data.errors) {
+          const backendErrors = {};
+          for (let key in data.errors) {
+            let formKey = key.charAt(0).toLowerCase() + key.slice(1);
+            if (formKey === 'phoneNumber') formKey = 'phone'; 
+
+            backendErrors[formKey] = Array.isArray(data.errors[key]) 
+                                      ? data.errors[key][0] 
+                                      : data.errors[key];
+          }
+          setErrors(backendErrors); 
+        } 
+        
+        else if (data.message) {
+          setErrors({ apiError: data.message });
+        } 
+        
+        else {
+          setErrors({ apiError: "Có lỗi xảy ra từ máy chủ. Vui lòng kiểm tra lại dữ liệu!" });
+        }
+      } else {
+        
+        setErrors({ apiError: "Không thể kết nối đến máy chủ. Vui lòng thử lại sau!" });
+      }
+
     } finally {
       setIsSubmitting(false); // Tắt trạng thái loading
     }
@@ -103,8 +131,6 @@ const Users = () => {
       status: "Active"
     },
   ];
-
-  // Helper render Badge cho Role (Giống hình mẫu: Seller xanh, Buyer xám, Inspector tím)
   const renderRoleBadge = (role) => {
     switch (role) {
       case 'Seller':
@@ -128,7 +154,6 @@ const Users = () => {
     }
   };
 
-  // Helper render Status (Dạng chấm tròn + Text giống hình mẫu)
   const renderStatus = (status) => {
     if (status === 'Active') {
       return (
@@ -302,77 +327,102 @@ const Users = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleAddInspector} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-[#111813] mb-1.5">Họ và tên <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" required name="fullName"
-                  value={formData.fullName} onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="VD: Lê Văn Kiểm"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-[#111813] mb-1.5">Email làm việc <span className="text-red-500">*</span></label>
-                <input 
-                  type="email" required name="email"
-                  value={formData.email} onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="inspector@bikemarket.vn"
-                />
-              </div>
+<form onSubmit={handleAddInspector} className="p-6 space-y-4">
 
-              <div>
-                <label className="block text-sm font-bold text-[#111813] mb-1.5">Mật khẩu khởi tạo <span className="text-red-500">*</span></label>
-                <input 
-                  type="password" required minLength="6" name="password"
-                  value={formData.password} onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="Tối thiểu 6 ký tự"
-                />
-              </div>
+  {/* 1. HIỂN THỊ LỖI CHUNG (apiError) Ở TRÊN CÙNG FORM */}
+  {errors.apiError && (
+    <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl border border-red-100 flex items-start gap-2">
+      <AlertCircle size={16} className="mt-0.5 shrink-0" />
+      <span>{errors.apiError}</span>
+    </div>
+  )}
 
-              <div>
-                <label className="block text-sm font-bold text-[#111813] mb-1.5">Số điện thoại liên hệ</label>
-                <input 
-                  type="tel" name="phone"
-                  value={formData.phone} onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="09..."
-                />
-              </div>
+  <div>
+    <label className="block text-sm font-bold text-[#111813] mb-1.5">Họ và tên <span className="text-red-500">*</span></label>
+    <input 
+      type="text" required name="fullName"
+      value={formData.fullName} onChange={handleInputChange}
+      disabled={isSubmitting}
+      className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400 ${
+        errors.fullName ? 'border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+      }`}
+      placeholder="VD: Lê Văn Kiểm"
+    />
+    {/* HIỂN THỊ CHỮ MÀU ĐỎ NẾU LỖI */}
+    {errors.fullName && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{errors.fullName}</p>}
+  </div>
+  
+  <div>
+    <label className="block text-sm font-bold text-[#111813] mb-1.5">Email làm việc <span className="text-red-500">*</span></label>
+    <input 
+      type="email" required name="email"
+      value={formData.email} onChange={handleInputChange}
+      disabled={isSubmitting}
+      className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400 ${
+        errors.email ? 'border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+      }`}
+      placeholder="inspector@bikemarket.vn"
+    />
+    {errors.email && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{errors.email}</p>}
+  </div>
 
-              {/* Footer Buttons */}
-              <div className="flex justify-end gap-3 pt-4 mt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 text-sm font-bold text-[#637588] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Hủy bỏ
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[130px]"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin mr-2" />
-                      Đang tạo...
-                    </>
-                  ) : (
-                    'Tạo tài khoản'
-                  )}
-                </button>
-              </div>
-            </form>
+  <div>
+    <label className="block text-sm font-bold text-[#111813] mb-1.5">Mật khẩu khởi tạo <span className="text-red-500">*</span></label>
+    <input 
+      type="password" required minLength="6" name="password"
+      value={formData.password} onChange={handleInputChange}
+      disabled={isSubmitting}
+      className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400 ${
+        errors.password ? 'border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+      }`}
+      placeholder="Tối thiểu 6 ký tự"
+    />
+    {errors.password && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{errors.password}</p>}
+  </div>
+
+  <div>
+    <label className="block text-sm font-bold text-[#111813] mb-1.5">Số điện thoại liên hệ</label>
+    <input 
+      type="tel" name="phone"
+      value={formData.phone} onChange={handleInputChange}
+      disabled={isSubmitting}
+      className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400 ${
+        errors.phone ? 'border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+      }`}
+      placeholder="09..."
+    />
+    {errors.phone && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{errors.phone}</p>}
+  </div>
+
+  {/* Footer Buttons */}
+  <div className="flex justify-end gap-3 pt-4 mt-2">
+    <button 
+      type="button" 
+      onClick={() => {
+        setIsModalOpen(false);
+        setErrors({}); // 2. THÊM DÒNG NÀY ĐỂ XÓA LỖI KHI ĐÓNG MODAL
+      }}
+      disabled={isSubmitting}
+      className="px-5 py-2.5 text-sm font-bold text-[#637588] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+    >
+      Hủy bỏ
+    </button>
+    <button 
+      type="submit" 
+      disabled={isSubmitting}
+      className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[130px]"
+    >
+      {isSubmitting ? (
+        <>
+          <Loader2 size={16} className="animate-spin mr-2" />
+          Đang tạo...
+        </>
+      ) : (
+        'Tạo tài khoản'
+      )}
+    </button>
+  </div>
+</form>
           </div>
         </div>
       )}

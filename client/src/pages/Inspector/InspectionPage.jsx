@@ -1,33 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ArrowRight,ChevronLeft, ChevronRight, CheckCircle2, 
   Bike, Settings, Disc, ShieldAlert,
   ChevronDown, ChevronUp, Image as ImageIcon,
   Save, AlertCircle, Check, X
 } from 'lucide-react';
+import axiosClient from '../../services/axiosClient';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// --- BỘ DỮ LIỆU TỪ VỰNG CHUẨN CHO API (Kịch bản A) ---
-const INSPECTION_OPTIONS = {
-  frame: [
-    "Hoàn hảo (Không tì vết, sơn zin, không nứt móp)",
-    "Khá (Xước dăm, xước sơn nhẹ bề mặt)",
-    "Kém (Tróc sơn sâu, móp/trầy xước nặng)",
-    "Lỗi nghiêm trọng (Rạn nứt carbon/Gãy/Biến dạng)"
-  ],
-  drivetrain: [
-    "Hoàn hảo (Chuyển số mượt, xích chưa giãn)",
-    "Khá (Xích giãn < 0.75%, hoạt động bình thường)",
-    "Kém (Xích giãn > 0.75%, líp mòn, nhảy mắt xích)",
-    "Lỗi nghiêm trọng (Kẹt số, gãy cùi đề, cong hanger)"
-  ],
-  brakes: [
-    "Hoàn hảo (Vành cân chuẩn, phanh ăn tuyệt đối)",
-    "Khá (Má phanh mòn < 50%, vành đảo nhẹ)",
-    "Kém (Má phanh mòn > 50%, vành rỗ mòn, cần thay cáp/dầu)",
-    "Lỗi nghiêm trọng (Nứt vành, đứt nan hoa, rò rỉ dầu)"
-  ]
-};
+
 
 // --- MOCK DATA ---
 const MOCK_BIKE = {
@@ -54,36 +35,64 @@ export default function MergedInspectionPage() {
 
   // --- STATE QUẢN LÝ UI ---
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-  const [expandedSection, setExpandedSection] = useState('frame'); 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // --- STATE QUẢN LÝ DỮ LIỆU API ---
-  const [formData, setFormData] = useState({
-    frame_condition: INSPECTION_OPTIONS.frame[0],
-    drivetrain_condition: INSPECTION_OPTIONS.drivetrain[0],
-    brakes_wheels_condition: INSPECTION_OPTIONS.brakes[0],
-    comment: "",
-    score: 100 // Tạm thời set 100
+ const [formData, setFormData] = useState({
+    frame: true,
+    paintCondition: true,
+    drivetrain: true,
+    brakes: true,
+    score: 100,
+    comment: ""
   });
+const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- HANDLERS ---
-  const handleOptionSelect = (field, value) => {
+  const handleToggle = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleComplete = async () => {
-    console.log("🚀 Dữ liệu kiểm định gửi đi:", formData);
- 
-    navigate(`/inspector/result/${id}`);
-  };
+ const handleComplete = async () => {
+    // Ngăn chặn bấm nhiều lần
+    if (isSubmitting) return; 
 
-  // Helper tính toán Status Badge cho Accordion dựa vào chuỗi được chọn
-  const getBadgeStatus = (valueStr) => {
-    if (valueStr.includes("Hoàn hảo")) return { text: "ĐẠT", color: "bg-emerald-100 text-emerald-700" };
-    if (valueStr.includes("Khá")) return { text: "CHÚ Ý", color: "bg-blue-100 text-blue-700" };
-    if (valueStr.includes("Kém")) return { text: "CẢNH BÁO", color: "bg-yellow-100 text-yellow-700" };
-    return { text: "LỖI", color: "bg-red-100 text-red-700" };
+    // Validate điểm số hợp lệ
+    if (formData.score < 0 || formData.score > 100) {
+      alert("Điểm số phải nằm trong khoảng 0 - 100.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log("🚀 Đang gửi dữ liệu API:", formData);
+      const response = await axiosClient.post(
+        '/api/inspector/approve-bike', 
+        formData, // Data truyền lên trong Body
+        {
+          headers: {
+           // 'x-bike-id': id
+           'x-bike-id': '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+          }
+        }
+      );
+
+      // Nếu gọi thành công (Axios sẽ tự văng xuống catch nếu lỗi)
+      if (response.status === 200 || response.status === 201) {
+        console.log("✅ Đánh giá thành công!");
+        navigate(`/inspector/result/${id}`);
+      }
+
+    } catch (error) {
+      console.error("❌ Lỗi khi gửi API:", error);
+      // Bạn có thể lấy câu báo lỗi từ Backend ra (nếu có)
+      const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi duyệt xe. Vui lòng thử lại!";
+      alert(errorMsg);
+    } finally {
+      setIsSubmitting(false); // Hoàn tất (dù lỗi hay không) thì mở khóa nút
+    }
   };
+  
 
   return (
     <div className="flex flex-col h-screen -m-8 bg-[#f3f4f6] font-display text-[#111813] overflow-hidden">
@@ -264,78 +273,93 @@ export default function MergedInspectionPage() {
 
           <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white custom-scrollbar pb-24">
             
-            {/* 1. Accordion Khung */}
-            <AccordionSection 
-              title="Khung sườn & Phuộc" 
+<InlineToggleItem
+              title="Khung sườn"
               icon={<Bike size={18} />}
-              isOpen={expandedSection === 'frame'}
-              onClick={() => setExpandedSection(expandedSection === 'frame' ? null : 'frame')}
-              statusBadge={getBadgeStatus(formData.frame_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.frame} 
-                selectedValue={formData.frame_condition} 
-                onChange={(val) => handleOptionSelect('frame_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.frame}
+              onChange={(val) => handleToggle('frame', val)}
+            />
 
-            {/* 2. Accordion Truyền động */}
-            <AccordionSection 
-              title="Hệ thống truyền động" 
+            <InlineToggleItem
+              title="Tình trạng nước sơn"
+              icon={<AlertCircle size={18} />}
+              value={formData.paintCondition}
+              onChange={(val) => handleToggle('paintCondition', val)}
+            />
+
+            <InlineToggleItem
+              title="Hệ thống truyền động"
               icon={<Settings size={18} />}
-              isOpen={expandedSection === 'drivetrain'}
-              onClick={() => setExpandedSection(expandedSection === 'drivetrain' ? null : 'drivetrain')}
-              statusBadge={getBadgeStatus(formData.drivetrain_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.drivetrain} 
-                selectedValue={formData.drivetrain_condition} 
-                onChange={(val) => handleOptionSelect('drivetrain_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.drivetrain}
+              onChange={(val) => handleToggle('drivetrain', val)}
+            />
 
-            {/* 3. Accordion Phanh & Bánh */}
-            <AccordionSection 
-              title="Phanh & Bánh xe" 
+            <InlineToggleItem
+              title="Phanh & Bánh xe"
               icon={<Disc size={18} />}
-              isOpen={expandedSection === 'brakes'}
-              onClick={() => setExpandedSection(expandedSection === 'brakes' ? null : 'brakes')}
-              statusBadge={getBadgeStatus(formData.brakes_wheels_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.brakes} 
-                selectedValue={formData.brakes_wheels_condition} 
-                onChange={(val) => handleOptionSelect('brakes_wheels_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.brakes}
+              onChange={(val) => handleToggle('brakes', val)}
+            />
+          {/* Thêm ô Nhập Điểm (Score) vào đây */}
+            <div className="pt-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+                Điểm đánh giá (Score)
+              </label>
+              <div className="relative">
+                <input 
+                  type="number" 
+                  min="0"
+                  max="100"
+                  value={formData.score}
+                  onChange={(e) => handleToggle('score', Number(e.target.value))} 
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                  placeholder="Nhập điểm..."
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">/ 100</span>
+              </div>
+            </div>
 
             {/* Overall Comment */}
             <div className="pt-4">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Comment Tổng quan</label>
               <textarea 
-                value={formData.comment}
-                onChange={(e) => handleOptionSelect('comment', e.target.value)}
-                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px]" 
-                placeholder="Nhập đánh giá chi tiết tình trạng thực tế của xe để lưu lại hệ thống..."
-              />
+  value={formData.comment}
+  onChange={(e) => handleToggle('comment', e.target.value)} 
+  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px]" 
+  placeholder="Nhập đánh giá chi tiết tình trạng thực tế của xe để lưu lại hệ thống..."
+/>
             </div>
             
           </div>
 
-{/* Action Footer (Sticky at bottom) */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-200 flex flex-col gap-3 shadow-[0_-15px_30px_rgba(0,0,0,0.04)] z-10">
+          {/* Action Footer (Sticky at bottom) */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex flex-col gap-2.5 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
             
             {/* Nút Hoàn tất chính */}
             <button 
               onClick={handleComplete} 
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"
+              disabled={isSubmitting} // Khóa nút
+              className={`w-full text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all 
+                ${isSubmitting 
+                  ? 'bg-emerald-50 text-emerald-400 border border-emerald-200 cursor-not-allowed opacity-70' 
+                  : 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-500 text-emerald-700'
+                }`}
             >
-              <CheckCircle2 size={20} /> Hoàn tất & Xem kết quả
+              {isSubmitting ? (
+                 <span>Đang xử lý...</span>
+              ) : (
+                 <>
+                   <CheckCircle2 size={18} /> Hoàn tất & Xem kết quả
+                 </>
+              )}
             </button>
 
-            {/* Nút Lưu nháp phụ */}
-            <button className="w-full text-center text-[13px] font-bold text-gray-400 hover:text-gray-600 py-1 transition-colors">
-              Lưu bản nháp
+            {/* Nút Từ chối */}
+            <button 
+              // onClick={() => { /* Thêm logic từ chối vào đây */ }}
+              className="w-full bg-red-50 hover:bg-red-100 border border-red-400 text-red-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+            >
+              <X size={18} /> Từ chối
             </button>
             
           </div>
@@ -388,71 +412,43 @@ export default function MergedInspectionPage() {
   );
 }
 
-// --- SUB-COMPONENTS CHO FORM ---
 
-function AccordionSection({ title, icon, isOpen, onClick, statusBadge, children }) {
+function InlineToggleItem({ title, icon, value, onChange }) {
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${isOpen ? 'border-blue-300 shadow-md ring-4 ring-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
-      {/* Header */}
-      <div onClick={onClick} className={`p-4 flex items-center justify-between cursor-pointer select-none transition-colors ${isOpen ? 'bg-blue-50/50' : 'bg-white'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isOpen ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-            {icon}
-          </div>
-          <span className="text-sm font-bold text-gray-800">{title}</span>
+    <div className="flex items-center justify-between p-3 mb-3 border border-gray-200 rounded-xl bg-white hover:border-emerald-200 transition-colors shadow-sm">
+      
+      {/* Nửa bên trái: Icon và Tiêu đề */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-slate-50 rounded-lg text-slate-600 border border-slate-100">
+          {icon}
         </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Status Badge */}
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded tracking-wide ${statusBadge.color}`}>
-            {statusBadge.text}
-          </span>
-          {isOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
-        </div>
+        <span className="text-[13px] font-bold text-gray-800">{title}</span>
       </div>
 
-      {/* Content (Mở rộng) */}
-      {isOpen && (
-        <div className="p-4 bg-white border-t border-gray-100">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RadioGroup({ options, selectedValue, onChange }) {
-  return (
-    <div className="space-y-2">
-      {options.map((opt, idx) => {
-        const isSelected = selectedValue === opt;
-        // Đổi màu border dựa vào mức độ nghiêm trọng của option
-        const activeColorClass = opt.includes("Hoàn hảo") ? 'border-emerald-500 bg-emerald-50' 
-                               : opt.includes("Kém") || opt.includes("Lỗi") ? 'border-red-500 bg-red-50' 
-                               : 'border-blue-500 bg-blue-50';
-
-        return (
-          <label 
-            key={idx} 
-            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? activeColorClass : 'border-gray-200 hover:bg-gray-50'}`}
-          >
-            <div className="mt-0.5 relative flex items-center justify-center w-4 h-4">
-              <input 
-                type="radio" 
-                name={`radio-${options[0]}`} // Dùng option đầu làm group name tạm
-                className="peer appearance-none w-4 h-4 border-2 border-gray-300 rounded-full checked:border-current transition-all"
-                style={{ color: isSelected ? 'inherit' : '' }}
-                checked={isSelected}
-                onChange={() => onChange(opt)}
-              />
-              {isSelected && <div className="absolute w-2 h-2 rounded-full bg-current"></div>}
-            </div>
-            <span className={`text-sm font-medium ${isSelected ? 'text-gray-900 font-bold' : 'text-gray-600'}`}>
-              {opt}
-            </span>
-          </label>
-        );
-      })}
+      {/* Nửa bên phải: Cụm nút Đạt / Lỗi kiểu Segmented Control */}
+      <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
+        <button
+          onClick={() => onChange(true)}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+            value === true
+              ? 'bg-white text-emerald-600 shadow-sm border border-gray-200'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Check size={14} /> Đạt
+        </button>
+        <button
+          onClick={() => onChange(false)}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+            value === false
+              ? 'bg-white text-red-600 shadow-sm border border-gray-200'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <X size={14} /> Lỗi
+        </button>
+      </div>
+      
     </div>
   );
 }

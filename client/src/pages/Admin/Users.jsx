@@ -1,10 +1,60 @@
 import React, { useState } from 'react';
 import { 
   Search, Plus, Filter, MoreVertical, 
-  Lock, Eye, Trash2, Shield, ShoppingBag, User, CheckCircle, XCircle 
+  Lock, Eye, Trash2, Shield, ShoppingBag, User, CheckCircle, XCircle,
+  X, Loader2 
 } from 'lucide-react';
+import axiosClient from "../../services/axiosClient";
 
 const Users = () => {
+  // --- STATE CHO MODAL THÊM INSPECTOR ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+ const handleAddInspector = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // 1. Chuẩn bị dữ liệu theo đúng chuẩn API yêu cầu
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phone, 
+        role: 2 
+      };
+
+      
+      const response = await axiosClient.post('/api/admin/listing/create-inspector', payload);
+      
+      // 3. Xử lý khi thành công
+      alert(response.data.message || `Tạo tài khoản Inspector thành công cho: ${formData.fullName}`);
+      setIsModalOpen(false); 
+      setFormData({ fullName: '', email: '', password: '', phone: '' }); 
+      
+
+    } catch (error) {
+      // 4. Xử lý khi có lỗi
+      console.error("Lỗi khi tạo Inspector:", error);
+      alert(error.response?.data?.message || "Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại!");
+    } finally {
+      setIsSubmitting(false); // Tắt trạng thái loading
+    }
+  };
+  
+
   // Mock Data dựa trên hình mẫu image_0b3fe1.png
   const users = [
     {
@@ -108,8 +158,11 @@ const Users = () => {
           </p>
         </div>
         
-        {/* Nút thêm mới nổi bật */}
-        <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-emerald-500/20">
+        {/* Nút thêm mới - Đã gắn sự kiện mở Modal */}
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-emerald-500/20 active:scale-95"
+        >
           <Plus size={18} strokeWidth={2.5} /> Thêm Inspector mới
         </button>
       </div>
@@ -227,6 +280,103 @@ const Users = () => {
           </div>
         </div>
       </div>
+
+      {/* --- MODAL UI --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[#111813]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            
+            {/* Header Modal */}
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-[#111813]">Thêm Inspector Mới</h2>
+                <p className="text-xs text-[#637588] mt-0.5">Tạo tài khoản cấp quyền kiểm định viên</p>
+              </div>
+              <button 
+                onClick={() => !isSubmitting && setIsModalOpen(false)} 
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isSubmitting}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAddInspector} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-[#111813] mb-1.5">Họ và tên <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" required name="fullName"
+                  value={formData.fullName} onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="VD: Lê Văn Kiểm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-[#111813] mb-1.5">Email làm việc <span className="text-red-500">*</span></label>
+                <input 
+                  type="email" required name="email"
+                  value={formData.email} onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="inspector@bikemarket.vn"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[#111813] mb-1.5">Mật khẩu khởi tạo <span className="text-red-500">*</span></label>
+                <input 
+                  type="password" required minLength="6" name="password"
+                  value={formData.password} onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="Tối thiểu 6 ký tự"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[#111813] mb-1.5">Số điện thoại liên hệ</label>
+                <input 
+                  type="tel" name="phone"
+                  value={formData.phone} onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="09..."
+                />
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex justify-end gap-3 pt-4 mt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 text-sm font-bold text-[#637588] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Hủy bỏ
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[130px]"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin mr-2" />
+                      Đang tạo...
+                    </>
+                  ) : (
+                    'Tạo tài khoản'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

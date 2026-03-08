@@ -199,9 +199,9 @@ export default function Homebuyer() {
               <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-sm flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-bold text-[#111813]">Xe đang theo dõi</h3>
-                  <a className="text-sm font-medium text-[#61896f] hover:text-primary" href="#">
-                    Xem tất cả (4)
-                  </a>
+                  <button onClick={handleWishlistClick} className="text-sm font-medium text-[#61896f] hover:text-primary">
+                    Xem tất cả ({watchedBikes.length})
+                  </button>
                 </div>
                 {watchedBikes.map((bike) => (
                   <div

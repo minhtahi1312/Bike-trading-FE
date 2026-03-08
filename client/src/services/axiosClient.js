@@ -181,15 +181,11 @@ const CheckOut = async (data) => {
 };
 
 /* API Orders */
-const getOrder = async () => {
+const getOrder = async (id) => {
   try {
-    const myorder = await axiosClient.get(`/api/Order/my-orders`);
-    const id = myorder.data
-    const response = await axiosClient.get(`/api/Order/${id[0].id}`);
-
+    const response = await axiosClient.get(`/api/Order/${id}`);
     return response.data;
   } catch (error) {
-
     throw error;
   }
 };

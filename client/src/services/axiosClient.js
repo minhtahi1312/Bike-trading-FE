@@ -119,11 +119,14 @@ const getWishlist = async () => {
 
 const addToWishlist = async (bikeId) => {
   try {
-    const response = await axiosClient.post(`/api/Wishlist/${bikeId}`);
+    // Điểm mấu chốt: Thêm {} vào tham số thứ 2 để báo cho backend biết body không bị lỗi
+    const response = await axiosClient.post(`/api/Wishlist/${bikeId}`, {});
+
     console.log("✅ POST /api/Wishlist/{bikeId} success", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ addToWishlist failed:", error.message);
+    // Mình đổi error.message thành error.response?.data để in ra lỗi chi tiết từ backend (nếu có)
+    console.error("❌ addToWishlist failed:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -202,10 +205,26 @@ const getMyOrder = async (id) => {
   }
 };
 
+const getBikeDetail = async (listingId) => {
+  try {
+    const response = await axiosClient.get(`/api/buyer/listings`, {
+      params: { id: listingId }
+    });
+
+    // Nếu API trả về một mảng, hãy lấy phần tử đầu tiên để có Object Listing
+    if (Array.isArray(response.data)) {
+      return response.data[0];
+    }
+    return response.data?.data || response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 /**
  * ===== EXPORTS =====
  */
 export {
+  getBikeDetail,
   getCart,
   getCartItems,
   addCartItem,

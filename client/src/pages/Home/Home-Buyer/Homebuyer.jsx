@@ -1,28 +1,80 @@
-import React, { useState, useEffect } from "react";
-import { Bell, Bike, ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist } from "../../../services/axiosClient";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSellerListings, addToWishlist } from "../../../services/axiosClient";
+import { ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, ShieldCheck, SlidersHorizontal } from "lucide-react";
 export default function Homebuyer() {
   const [sortBy, setSortBy] = useState("Mới nhất");
   const [verifiedOnly, setVerifiedOnly] = useState(true);
   const [bikes, setBikes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [wishlistIds, setWishlistIds] = useState(new Set());
-  //add to wishlist
-  const handleAddToWishlist = async (bikeId) => {
+  const [watchedBikes, setWatchedBikes] = useState([]);
+
+  // Toggle wishlist (Thêm hoặc Xóa)
+  const handleWishlistToggle = async (bikeId) => {
     try {
-      await addToWishlist(bikeId);
-      setWishlistIds((prev) => new Set(prev).add(bikeId));
-      console.log("✅ added bike to wishlist", bikeId);
+      if (wishlistIds.has(bikeId)) {
+        // Nếu đã có thì xóa
+        await removeFromWishlist(bikeId);
+        setWishlistIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(bikeId);
+          return newSet;
+        });
+        toast.info("Đã xóa khỏi danh sách yêu thích");
+      } else {
+        // Nếu chưa có thì thêm
+        await addToWishlist(bikeId);
+        setWishlistIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(bikeId);
+          return newSet;
+        });
+        toast.success("Đã thêm vào danh sách yêu thích");
+      }
+      // Cập nhật lại danh sách xe đang theo dõi ở sidebar
+      loadWishlist();
     } catch (error) {
-      console.error("❌ error adding to wishlist", error);
+      console.error("❌ Lỗi khi cập nhật wishlist:", error);
+      toast.error("Thao tác thất bại. Vui lòng thử lại.");
     }
   };
 
   useEffect(() => {
     loadSellerListings();
-
+    loadWishlist();
   }, []);
+
+  const loadWishlist = async () => {
+    try {
+      const response = await getWishlist();
+      const dataArray = Array.isArray(response) ? response : response?.data || [];
+
+      const ids = new Set();
+      const wishlistBikes = [];
+
+      dataArray.forEach(item => {
+        const bikeData = item.bike || item;
+        const bikeId = item.bikeId || bikeData.id;
+        if (bikeId) {
+          ids.add(bikeId);
+          wishlistBikes.push({
+            id: bikeId,
+            name: bikeData.title || bikeData.name || "Chưa có tên xe",
+            price: bikeData.price ? `${bikeData.price.toLocaleString("vi-VN")} đ` : "0 đ",
+            image: bikeData.thumbnail || bikeData.imageUrl || "https://via.placeholder.com/400x300"
+          });
+        }
+      });
+
+      setWishlistIds(ids);
+      setWatchedBikes(wishlistBikes.slice(0, 4)); // Hiển thị 4 xe mới nhất trong sidebar
+    } catch (error) {
+      console.error("❌ Failed to load wishlist:", error);
+    }
+  };
 
   const loadSellerListings = async () => {
     setLoading(true);
@@ -33,7 +85,7 @@ export default function Homebuyer() {
       // Vì data là một Array, chúng ta map trực tiếp trên data
       // Nếu data có thể null/undefined, dùng (data || [])
       const formattedBikes = (data || []).map((item) => ({
-        id: item.id,
+        id: item.bikeId || item.id,
         name: item.title || "Chưa có tên xe",
 
         price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
@@ -58,14 +110,10 @@ export default function Homebuyer() {
       setLoading(false);
     }
   };
-  //Addto wishlist
-  const watchedBikes = [
-
-  ];
   const navigate = useNavigate();
 
   const handleWishlistClick = () => {
-    navigate('/homebuyer/Wishlist');
+    navigate('/homebuyer/wishlist');
   };
   return (
     <div className="bg-background-light dark:bg-background-dark text-[#111813] overflow-x-hidden">
@@ -156,7 +204,11 @@ export default function Homebuyer() {
                   </a>
                 </div>
                 {watchedBikes.map((bike) => (
-                  <div key={bike.id} className="flex gap-3 items-center p-2 hover:bg-[#f9fafb] rounded-lg transition-colors cursor-pointer group">
+                  <div
+                    key={bike.id}
+                    className="flex gap-3 items-center p-2 hover:bg-[#f9fafb] rounded-lg transition-colors cursor-pointer group"
+                    onClick={() => navigate(`/homebuyer/details/${bike.id}`)}
+                  >
                     <div
                       className="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0"
                       style={{ backgroundImage: `url("${bike.image}")` }}
@@ -167,10 +219,14 @@ export default function Homebuyer() {
                       </h4>
                       <p className="text-xs text-[#61896f]">{bike.price}</p>
                     </div>
-                    <button className="text-red-500 hover:text-red-600">
-                      <span className="material-symbols-outlined filled" style={{ fontSize: "20px" }}>
-                        favorite
-                      </span>
+                    <button
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWishlistToggle(bike.id);
+                      }}
+                    >
+                      <Heart size={18} fill="currentColor" />
                     </button>
                   </div>
                 ))}
@@ -267,7 +323,11 @@ export default function Homebuyer() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {bikes.map((bike) => (
-                    <div key={bike.id} className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
+                    <div
+                      key={bike.id}
+                      className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
+                      onClick={() => navigate(`/homebuyer/details/${bike.id}`)}
+                    >
                       <div className="relative aspect-[4/3] overflow-hidden">
                         {bike.verified && (
                           <div className="absolute top-3 left-3 z-10 bg-primary text-[#111813] text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
@@ -283,14 +343,20 @@ export default function Homebuyer() {
                           </div>
                         )}
                         <button
-                          onClick={() => handleAddToWishlist(bike.id)}
-                          disabled={wishlistIds.has(bike.id)}
-                          className={`absolute top-3 right-3 z-10 bg-white/80 p-1.5 rounded-full hover:bg-white transition-colors ${wishlistIds.has(bike.id) ? "text-red-500" : "text-gray-500"
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleWishlistToggle(bike.id);
+                          }}
+                          className={`absolute top-3 right-3 z-[30] p-2 rounded-full bg-white/90 shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${wishlistIds.has(bike.id) ? "text-red-500" : "text-gray-400 hover:text-red-500"
                             }`}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                            <Heart strokeWidth={3} />
-                          </span>
+                          <Heart
+                            size={20}
+                            fill={wishlistIds.has(bike.id) ? "currentColor" : "none"}
+                            strokeWidth={2.5}
+                          />
                         </button>
                         <div
                           className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
@@ -298,9 +364,10 @@ export default function Homebuyer() {
                         ></div>
                       </div>
                       <div className="p-4 flex flex-col flex-1 gap-2">
-                        <h3 className="text-base font-bold text-[#111813] line-clamp-2">{bike.name}</h3>
+                        <h3 className="text-base font-bold text-[#111813] line-clamp-2 min-h-[2.5rem]">{bike.name}</h3>
                         <p className="text-lg font-bold text-primary">{bike.price}</p>
-                        <div className="flex items-center gap-4 text-xs text-[#61896f] mt-auto pt-2 border-t border-gray-100">
+
+                        <div className="flex items-center gap-4 text-xs text-[#61896f] py-2">
                           <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
                               <RulerDimensionLine strokeWidth={1.25} />
@@ -314,6 +381,11 @@ export default function Homebuyer() {
                             {bike.location}
                           </div>
                         </div>
+
+                        <button className="mt-auto w-full py-2.5 bg-[#f0f4f2] hover:bg-primary text-[#111813] font-bold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                          Xem chi tiết
+                          <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_forward</span>
+                        </button>
                       </div>
                     </div>
                   ))}

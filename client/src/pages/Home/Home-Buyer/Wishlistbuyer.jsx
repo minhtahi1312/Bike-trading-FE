@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Bike, ChevronRight, House, ListFilter, MapPin, RulerDimensionLine, Search, Settings, Shapes, Trash, Truck } from "lucide-react";
+import { ListFilter, Trash, Heart, MapPin, RulerDimensionLine, Shapes, Settings, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getWishlist, removeFromWishlist } from "../../../services/axiosClient";
+import { toast } from "react-toastify";
 
 function formatVND(n) {
+  if (typeof n === 'string') return n;
   return n ? n.toLocaleString("vi-VN") + " ₫" : "0 ₫";
 }
 
@@ -16,134 +18,183 @@ export default function Wishlist() {
     document.title = "Danh sách yêu thích - BikeMarket";
     loadWishlist();
   }, []);
-  //Get wishlist
+
   const loadWishlist = async () => {
     setLoading(true);
     try {
-      // Gọi API để lấy dữ liệu wishlist từ server
       const response = await getWishlist();
-      // Mapping dữ liệu với null checking
-      const formattedData = (response || []).map(item => {
-        const bike = item || {};
+      console.log("✅ Wishlist page response:", response);
+      
+      const dataArray = Array.isArray(response) ? response : response?.data || [];
+      
+      const formattedData = dataArray.map(item => {
+        // Handle nested bike object if present, otherwise assume item is the bike
+        const bikeData = item.bike || item;
+        const bikeId = item.bikeId || bikeData.id || item.id;
+        
         return {
-
-          id: bike.id || item.bikeId,
-          wishlistId: item.id,
-
-
-          title: bike.title || 'Chưa có tên xe',
-          price: bike.price || 0,
-
-
-          image: bike.imageUrl || 'https://via.placeholder.com/400x300',
+          id: bikeId,                     // ID của xe để xem chi tiết
+          wishlistId: item.id,            // ID bản ghi wishlist
+          bikeId: bikeId,                 // ID của xe để xóa từ wishlist
+          title: bikeData.title || bikeData.name || 'Chưa có tên xe',
+          price: bikeData.price || 0,
+          brand: bikeData.brand || 'N/A',
+          category: bikeData.category || 'N/A',
+          bikeStatus: bikeData.bikeStatus || 'N/A',
+          image: bikeData.thumbnail || bikeData.imageUrl || 'https://via.placeholder.com/400x300',
+          size: bikeData.size || 'N/A',
+          location: bikeData.location || 'N/A',
+          material: bikeData.material || 'N/A',
+          groupset: bikeData.groupset || 'N/A',
+          year: bikeData.year || '',
+          sold: bikeData.bikeStatus && bikeData.bikeStatus.toLowerCase() !== "available"
         };
       });
-      console.log("✅ Wishlist loaded:", formattedData);
+      
+      console.log("✅ Wishlist page formatted:", formattedData);
       setBikes(formattedData);
     } catch (e) {
-      console.error('failed to load wishlist', e);
+      console.error('❌ Failed to load wishlist:', e);
+      toast.error("Không thể tải danh sách yêu thích");
     } finally {
       setLoading(false);
     }
   };
-  //Xóa sản phẩm khỏi wishlist
-  const handleDelete = async (wishlistId) => {
-    // 1. Hỏi xác nhận để tránh bấm nhầm
+
+  const handleDelete = async (bikeId) => {
     if (!window.confirm("Bạn có muốn xóa xe này khỏi danh sách yêu thích?")) return;
 
     try {
-      console.log("Đang xóa ID:", wishlistId);
-      // 2. Gọi API xóa lên Server
-      await removeFromWishlist(wishlistId);
-
-      // 3. CẬP NHẬT STATE TẠI CHỖ: 
-      // Lọc bỏ sản phẩm có wishlistId vừa xóa ra khỏi danh sách đang hiển thị
-      setBikes((prevBikes) => prevBikes.filter((b) => b.wishlistId !== wishlistId));
-
-      console.log("Xóa thành công ID:", wishlistId);
+      await removeFromWishlist(bikeId);
+      setBikes((prevBikes) => prevBikes.filter((b) => b.bikeId !== bikeId));
+      toast.info("Đã xóa khỏi danh sách yêu thích");
     } catch (e) {
-      console.error('Lỗi khi xóa:', e);
-      alert("Không thể xóa sản phẩm. Vui lòng kiểm tra lại kết nối hoặc Token.");
-
-      // Nếu lỗi, có thể gọi lại loadWishlist() để đồng bộ lại dữ liệu chuẩn từ Server
-      loadWishlist();
+      console.error('❌ Lỗi khi xóa:', e);
+      toast.error("Không thể xóa sản phẩm");
     }
   };
 
   const handleView = (id) => {
-    navigate(`/bike-detail/${id}`);
+    navigate(`/homebuyer/details/${id}`);
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col text-text-main dark:text-white transition-colors duration-200">
+    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col text-[#111813] dark:text-white transition-colors duration-200">
       <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-text-main dark:text-white mb-2">Danh sách yêu thích</h1>
-            <p className="text-text-sub text-base">Bạn đã lưu <span className="font-bold text-text-main dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Danh sách yêu thích</h1>
+            <p className="text-[#61896f] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {/* Các nút lọc giữ nguyên */}
-            <button className="group flex h-9 items-center gap-2 rounded-full border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark px-4 text-sm font-medium hover:border-primary">
+            <button className="group flex h-9 items-center gap-2 rounded-full border border-[#e5e7eb] bg-white dark:bg-gray-800 px-4 text-sm font-medium hover:border-primary transition-all">
               <ListFilter size={18} /> Lọc
             </button>
-            <button className="flex h-9 items-center rounded-full bg-primary text-black px-4 text-sm font-bold">Tất cả</button>
+            <button className="flex h-9 items-center rounded-full bg-primary text-[#111813] px-4 text-sm font-bold shadow-sm">Tất cả</button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading ? (
-            <p className="text-center col-span-full py-20 text-gray-500">Đang tải...</p>
-          ) : bikes.length === 0 ? (
-            <p className="text-center col-span-full py-20 text-gray-500">Không có sản phẩm yêu thích</p>
-          ) : (
-            bikes.map((b) => (
-              <article key={b.wishlistId} className={`group relative flex flex-col ${b.sold ? "opacity-75" : ""} bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-soft border border-transparent hover:border-primary/50 transition-all duration-300`}>
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{ backgroundImage: `url('${b.image}')` }} />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-gray-500">Đang tải danh sách...</p>
+          </div>
+        ) : bikes.length === 0 ? (
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 shadow-sm">
+            <Heart size={48} className="mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-500 text-lg">Danh sách yêu thích của bạn đang trống</p>
+            <button 
+              onClick={() => navigate('/homebuyer')}
+              className="mt-4 text-primary font-bold hover:underline"
+            >
+              Khám phá xe ngay
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {bikes.map((b) => (
+              <article key={b.wishlistId || b.bikeId} className={`group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e5e7eb] dark:border-gray-700 hover:border-primary/50 transition-all duration-300 ${b.sold ? "opacity-75" : ""}`}>
+                {/* Ảnh sản phẩm */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer" onClick={() => !b.sold && handleView(b.id)}>
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" 
+                    style={{ backgroundImage: `url('${b.image}')` }} 
+                  />
+                  
                   {b.sold && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                      <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-bold uppercase">Đã bán</span>
+                      <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-bold uppercase shadow-lg">Đã bán</span>
                     </div>
                   )}
-                  {b.freeship && (
-                    <div className="absolute top-3 left-3 flex flex-col gap-1">
-                      <span className="inline-flex items-center gap-1 rounded bg-white/90 dark:bg-black/80 px-2 py-1 text-xs font-bold text-blue-600 backdrop-blur-sm">
-                        <Truck size={14} /> Freeship
-                      </span>
-                    </div>
-                  )}
-                  <button onClick={() => handleDelete(b.bikeId)} className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-black/60 text-gray-400 hover:text-red-500 transition-colors shadow-sm">
-                    <Trash size={16} />
+
+                  {/* Badge Trạng thái */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    <span className="bg-primary/95 backdrop-blur-sm text-[#111813] font-bold text-[10px] px-2 py-1 rounded shadow-sm uppercase tracking-wider">
+                      {b.bikeStatus || 'CÓ SẴN'}
+                    </span>
+                  </div>
+
+                  {/* Nút Xóa */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(b.bikeId);
+                    }} 
+                    className="absolute top-3 right-3 p-2 rounded-full bg-white/90 text-gray-400 hover:text-red-500 hover:scale-110 transition-all shadow-md"
+                    title="Xóa khỏi yêu thích"
+                  >
+                    <Trash size={16} strokeWidth={2.5} />
                   </button>
                 </div>
 
-                <div className="flex flex-1 flex-col p-4">
+                {/* Nội dung */}
+                <div className="flex flex-1 flex-col p-5">
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-text-main dark:text-white leading-tight line-clamp-1 group-hover:text-primary">{b.title}</h3>
-                    <p className="text-text-sub text-xs font-medium mb-3">{b.year} • {b.category}</p>
-                    <div className="text-xl font-bold text-primary mb-4">{formatVND(b.price)}</div>
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-1 text-xs text-text-sub mb-4">
-                      <div className="flex items-center gap-1.5"><RulerDimensionLine size={16} /><span>Size {b.size}</span></div>
-                      <div className="flex items-center gap-1.5"><Shapes size={16} /><span>{b.material}</span></div>
-                      <div className="flex items-center gap-1.5"><Settings size={16} /><span>{b.groupset}</span></div>
-                      <div className="flex items-center gap-1.5"><MapPin size={16} /><span className="truncate">{b.location}</span></div>
+                    <h3 
+                      className="text-base font-bold text-[#111813] dark:text-white leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-2 cursor-pointer min-h-[2.5rem]" 
+                      onClick={() => !b.sold && handleView(b.id)}
+                    >
+                      {b.title}
+                    </h3>
+                    
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-[10px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        {b.brand}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                        {b.category}
+                      </span>
+                    </div>
+
+                    <div className="text-xl font-black text-primary mb-4">
+                      {formatVND(b.price)}
+                    </div>
+
+                    {/* Meta info */}
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-[#61896f] mb-2">
+                      <div className="flex items-center gap-1.5"><RulerDimensionLine size={14} /><span>Size {b.size}</span></div>
+                      <div className="flex items-center gap-1.5"><MapPin size={14} /><span className="truncate">{b.location}</span></div>
                     </div>
                   </div>
-                  <div className="mt-2 pt-3 border-t border-border-light dark:border-border-dark flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-xs font-medium text-text-main dark:text-white">
-                      <div className="size-6 rounded-full bg-gray-200 bg-cover bg-center" style={{ backgroundImage: `url('${b.sellerAvatar}')` }} />
-                      {b.seller}
-                    </div>
-                    <button onClick={() => handleView(b.id)} className={`ml-auto flex items-center justify-center rounded-lg ${b.sold ? "bg-gray-100 text-text-sub" : "bg-primary/10 hover:bg-primary text-primary hover:text-black"} px-3 py-2 text-sm font-bold transition-all`} disabled={b.sold}>
+                  
+                  <div className="mt-4">
+                    <button 
+                      onClick={() => handleView(b.id)} 
+                      disabled={b.sold}
+                      className={`w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition-all ${
+                        b.sold 
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                        : "bg-[#f0f4f2] hover:bg-primary text-[#111813] shadow-sm active:scale-95"
+                      }`}
+                    >
                       {b.sold ? "Đã bán" : "Xem chi tiết"}
                     </button>
                   </div>
                 </div>
               </article>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

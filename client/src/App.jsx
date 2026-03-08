@@ -37,7 +37,7 @@ import CreateListing from "./pages/Seller/CreateListing";
 
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
-import CarDetail from "./pages/Home/Home-Buyer/Details/CarDetail";
+import BikeDetailPage from "./pages/Home/Home-Buyer/DetailsBuyer";
 import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
 import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
 import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
@@ -54,7 +54,7 @@ function App() {
           <Route path="wishlist" element={<Wishlistbuyer />} />
           <Route path="cart" element={<CartBuyer />} />
           <Route path="payment" element={<PaymentBuyer />} />
-          <Route path="details/:id" element={<CarDetail />} />
+          <Route path="details/:id" element={<BikeDetailPage />} />
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order/:id" element={<OrderDetail />} />

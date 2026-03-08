@@ -6,7 +6,7 @@ const BuyerHeader = () => {
   const navigate = useNavigate();
 
   const handleWishlistClick = () => {
-    navigate('/homebuyer/Wishlist');
+    navigate('/homebuyer/wishlist');
   };
   const CartBuyerClick = () => {
     navigate('/homebuyer/cart');
@@ -20,14 +20,14 @@ const BuyerHeader = () => {
         <header className="flex items-center justify-between whitespace-nowrap px-4 lg:px-10 py-3">
           <div className="flex items-center gap-8">
             <div className="p-6 pb-2">
-             <button onClick={HomeBuyerClick}> 
-               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
-                  <Bike size={20} />
+              <button onClick={HomeBuyerClick}>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
+                    <Bike size={20} />
+                  </div>
+                  <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
                 </div>
-                <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
-              </div>
-             </button>
+              </button>
             </div>
             <label className="hidden md:flex flex-col min-w-40 !h-10 w-96">
               <div className="flex w-full flex-1 items-stretch rounded-lg h-full">

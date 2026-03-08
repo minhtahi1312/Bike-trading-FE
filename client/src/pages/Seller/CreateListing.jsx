@@ -20,25 +20,130 @@ import {
 } from "lucide-react";
 
 export default function CreateListing() {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    brand: "",
+    size: "",
+    frameMaterial: "",
+    paintCondition: "",
+    drivetrain: "",
+    drivetrainCondition: "",
+    tireRim: "",
+    brakeType: "",
+    brakeCondition: "",
+    overallCondition: "",
+    price: "",
+    images: [],
+    video: null,
+  });
+
+  const updateField = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const handleSubmit = async () => {
-    if (loading) return;
-
     try {
       setLoading(true);
-      toast.loading("Đang đăng tin...");
+      const token = localStorage.getItem("accessToken");
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // 1️⃣ CREATE LISTING
+      const listingRes = await fetch(
+        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+          }),
+        },
+      );
 
-      toast.dismiss();
-      toast.success("Tin đăng đã được tạo và đang chờ duyệt.");
+      const listingData = await listingRes.json();
+      const listingId = listingData.id;
 
+      // 2️⃣ CREATE BIKE
+      const bikeRes = await fetch(
+        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "x-listing-id": listingId,
+          },
+          body: JSON.stringify({
+            category: formData.category,
+            brand: formData.brand,
+            frameSize: formData.size,
+            frameMaterial: formData.frameMaterial,
+            paint: formData.paintCondition,
+            groupset: formData.drivetrain,
+            operating: formData.drivetrainCondition,
+            tireRim: formData.tireRim,
+            brakeType: formData.brakeType,
+            overall: formData.overallCondition,
+            price: formData.price,
+          }),
+        },
+      );
+
+      const bikeData = await bikeRes.json();
+      console.log("bikeData", bikeData);
+
+      const bikeId = bikeData.id;
+
+      // 3️⃣ UPLOAD IMAGES
+      for (const img of formData.images) {
+        const imgForm = new FormData();
+        imgForm.append("file", img);
+
+        await fetch(
+          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-image",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "x-bike-id": bikeId,
+            },
+            body: imgForm,
+          },
+        );
+      }
+
+      // 4️⃣ UPLOAD VIDEO
+      if (formData.video) {
+        const videoForm = new FormData();
+        videoForm.append("file", formData.video);
+
+        await fetch(
+          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-video",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: videoForm,
+          },
+        );
+      }
+
+      toast.success("Đăng tin thành công");
       navigate("/seller/listings");
     } catch (error) {
-      toast.dismiss();
-      toast.error("Đăng tin thất bại.");
+      console.error(error);
+      toast.error("Đăng tin thất bại");
     } finally {
       setLoading(false);
     }
@@ -69,9 +174,17 @@ export default function CreateListing() {
       </div>
 
       {/* ===== STEP CONTENT ===== */}
-      {step === 1 && <StepBasic />}
-      {step === 2 && <StepTechnical />}
-      {step === 3 && <StepImages />}
+      {step === 1 && (
+        <StepBasic formData={formData} updateField={updateField} />
+      )}
+
+      {step === 2 && (
+        <StepTechnical formData={formData} updateField={updateField} />
+      )}
+
+      {step === 3 && (
+        <StepImages formData={formData} updateField={updateField} />
+      )}
 
       {/* ===== NAVIGATION BUTTONS ===== */}
       <div className="flex justify-between pt-6">
@@ -171,7 +284,7 @@ function StepProgress({ step }) {
     </div>
   );
 }
-function StepBasic() {
+function StepBasic({ formData, updateField }) {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       {/* Header */}
@@ -194,6 +307,8 @@ function StepBasic() {
               Tiêu đề tin đăng *
             </label>
             <input
+              value={formData.title}
+              onChange={(e) => updateField("title", e.target.value)}
               placeholder="Ví dụ: Xe đạp Road Giant TCR Advanced 2022"
               className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
             />
@@ -206,12 +321,14 @@ function StepBasic() {
             </label>
             <textarea
               rows={6}
+              value={formData.description}
+              onChange={(e) => updateField("description", e.target.value)}
               placeholder="Viết về lịch sử sử dụng xe, tình trạng bảo dưỡng..."
               className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
             />
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <span>Tối thiểu 30 ký tự để được duyệt nhanh</span>
-              <span>0 / 3000 ký tự</span>
+              <span>{formData.description.length} / 3000 ký tự</span>
             </div>
           </div>
         </div>
@@ -251,22 +368,7 @@ function StepBasic() {
   );
 }
 
-function StepTechnical() {
-  const [selectedSize, setSelectedSize] = useState("M");
-  const [condition, setCondition] = useState("good");
-  const [price, setPrice] = useState("");
-  const handlePriceChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, ""); // chỉ giữ số
-
-    if (!rawValue) {
-      setPrice("");
-      return;
-    }
-
-    const formatted = Number(rawValue).toLocaleString("vi-VN");
-    setPrice(formatted);
-  };
-
+function StepTechnical({ formData, updateField }) {
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
       {/* ===== TITLE ===== */}
@@ -295,11 +397,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Danh mục xe <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn danh mục</option>
-                  <option>Road Bike</option>
-                  <option>MTB</option>
-                  <option>Gravel</option>
+                <select
+                  value={formData.category}
+                  onChange={(e) => updateField("category", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn danh mục</option>
+                  <option value="road">Road Bike</option>
+                  <option value="mtb">MTB</option>
+                  <option value="gravel">Gravel</option>
                 </select>
               </div>
 
@@ -307,11 +413,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Hãng xe <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn hãng</option>
-                  <option>Specialized</option>
-                  <option>Trek</option>
-                  <option>Giant</option>
+                <select
+                  value={formData.brand}
+                  onChange={(e) => updateField("brand", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn hãng</option>
+                  <option value="specialized">Specialized</option>
+                  <option value="trek">Trek</option>
+                  <option value="giant">Giant</option>
                 </select>
               </div>
             </div>
@@ -328,14 +438,14 @@ function StepTechnical() {
               {["XS", "S", "M", "L", "XL"].map((size) => (
                 <button
                   key={size}
-                  onClick={() => setSelectedSize(size)}
+                  onClick={() => updateField("size", size)}
                   className={`px-4 py-2 border rounded-lg transition
-                    ${
-                      selectedSize === size
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "hover:border-emerald-400"
-                    }
-                  `}
+      ${
+        formData.size === size
+          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+          : "hover:border-emerald-400"
+      }
+    `}
                 >
                   {size}
                 </button>
@@ -343,7 +453,7 @@ function StepTechnical() {
             </div>
           </div>
 
-          {/* 3️⃣ KHUNG & PHUỘC */}
+          {/* KHUNG & PHUỘC */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Wrench className="w-5 h-5 text-emerald-600" />
@@ -355,11 +465,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Chất liệu khung <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn chất liệu</option>
-                  <option>Carbon</option>
-                  <option>Nhôm</option>
-                  <option>Thép</option>
+                <select
+                  value={formData.frameMaterial}
+                  onChange={(e) => updateField("frameMaterial", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn chất liệu</option>
+                  <option value="carbon">Carbon</option>
+                  <option value="aluminum">Nhôm</option>
+                  <option value="steel">Thép</option>
                 </select>
               </div>
 
@@ -367,10 +481,16 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Tình trạng nước sơn <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Như mới</option>
-                  <option>Mòn nhẹ</option>
-                  <option>Cần sơn lại</option>
+                <select
+                  value={formData.paintCondition}
+                  onChange={(e) =>
+                    updateField("paintCondition", e.target.value)
+                  }
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="new">Như mới</option>
+                  <option value="light_scratch">Mòn nhẹ</option>
+                  <option value="repaint">Cần sơn lại</option>
                 </select>
               </div>
             </div>
@@ -385,15 +505,23 @@ function StepTechnical() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
+                value={formData.drivetrain}
+                onChange={(e) => updateField("drivetrain", e.target.value)}
                 className="border rounded-lg px-3 py-2"
                 placeholder="Ví dụ: Shimano 105 R7000"
               />
 
-              <select className="border rounded-lg px-3 py-2">
-                <option>Đánh giá tình trạng</option>
-                <option>Như mới</option>
-                <option>Mòn nhẹ</option>
-                <option>Cần thay</option>
+              <select
+                value={formData.drivetrainCondition}
+                onChange={(e) =>
+                  updateField("drivetrainCondition", e.target.value)
+                }
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Đánh giá tình trạng</option>
+                <option value="new">Như mới</option>
+                <option value="good">Mòn nhẹ</option>
+                <option value="bad">Cần thay</option>
               </select>
             </div>
           </div>
@@ -405,18 +533,32 @@ function StepTechnical() {
               <h3 className="font-semibold text-lg">Phanh & Bánh xe</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select className="border rounded-lg px-3 py-2">
-                <option>Chọn loại phanh</option>
-                <option>Phanh đĩa</option>
-                <option>Phanh vành</option>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input
+                value={formData.tireRim}
+                onChange={(e) => updateField("tireRim", e.target.value)}
+                placeholder="Ví dụ: Shimano RS100 / DT Swiss R470"
+                className="border rounded-lg px-3 py-2"
+              />
+              <select
+                value={formData.brakeType}
+                onChange={(e) => updateField("brakeType", e.target.value)}
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Chọn loại phanh</option>
+                <option value="disc">Phanh đĩa</option>
+                <option value="rim">Phanh vành</option>
               </select>
 
-              <select className="border rounded-lg px-3 py-2">
-                <option>Chọn tình trạng</option>
-                <option>Như mới</option>
-                <option>Mòn nhẹ</option>
-                <option>Cần thay</option>
+              <select
+                value={formData.brakeCondition}
+                onChange={(e) => updateField("brakeCondition", e.target.value)}
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Chọn tình trạng</option>
+                <option value="new">Như mới</option>
+                <option value="good">Mòn nhẹ</option>
+                <option value="replace">Cần thay</option>
               </select>
             </div>
           </div>
@@ -429,24 +571,24 @@ function StepTechnical() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <ConditionCard
-                active={condition === "new"}
-                onClick={() => setCondition("new")}
+                active={formData.overallCondition === "new"}
+                onClick={() => updateField("overallCondition", "new")}
                 icon={<CheckCircle className="w-6 h-6 text-emerald-600" />}
                 title="Như mới"
                 desc="Không trầy xước, linh kiện nguyên bản."
               />
 
               <ConditionCard
-                active={condition === "good"}
-                onClick={() => setCondition("good")}
+                active={formData.overallCondition === "good"}
+                onClick={() => updateField("overallCondition", "good")}
                 icon={<ThumbsUp className="w-6 h-6 text-amber-500" />}
                 title="Tốt"
                 desc="Có xước dăm nhẹ, hoạt động ổn định."
               />
 
               <ConditionCard
-                active={condition === "fair"}
-                onClick={() => setCondition("fair")}
+                active={formData.overallCondition === "fair"}
+                onClick={() => updateField("overallCondition", "fair")}
                 icon={<Wrench className="w-6 h-6 text-orange-500" />}
                 title="Khá"
                 desc="Có trầy rõ, cần bảo dưỡng nhẹ."
@@ -465,11 +607,11 @@ function StepTechnical() {
 
             <div className="flex">
               <input
-                type="text"
-                value={price}
-                onChange={handlePriceChange}
+                type="number"
+                value={formData.price}
+                onChange={(e) => updateField("price", Number(e.target.value))}
                 placeholder="0"
-                className="w-full border rounded-l-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
+                className="w-full border rounded-l-xl px-4 py-3 text-sm"
               />
               <span className="px-6 flex items-center bg-gray-100 border border-l-0 rounded-r-xl text-sm font-medium text-gray-600">
                 VND
@@ -531,24 +673,28 @@ function StepTechnical() {
   );
 }
 
-function StepImages() {
-  const [images, setImages] = useState([]);
-  const [video, setVideo] = useState(null);
-
+function StepImages({ formData, updateField }) {
+  const images = formData.images || [];
+  const video = formData.video;
   /* ================= IMAGE ================= */
   const handleImageUpload = (e) => {
+    // if (file.size > 5 * 1024 * 1024) {
+    //   alert("Ảnh phải nhỏ hơn 5MB");
+    // }
     const files = Array.from(e.target.files);
 
-    const preview = files.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
+    if (images.length + files.length > 8) {
+      alert("Chỉ được upload tối đa 8 ảnh");
+      return;
+    }
 
-    setImages((prev) => [...prev, ...preview]);
+    updateField("images", [...images, ...files]);
   };
 
   const removeImage = (indexToRemove) => {
-    setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+
+    updateField("images", updatedImages);
   };
 
   /* ================= VIDEO ================= */
@@ -556,14 +702,11 @@ function StepImages() {
     const file = e.target.files[0];
     if (!file) return;
 
-    setVideo({
-      file,
-      url: URL.createObjectURL(file),
-    });
+    updateField("video", file);
   };
 
   const removeVideo = () => {
-    setVideo(null);
+    updateField("video", null);
   };
 
   return (
@@ -624,7 +767,7 @@ function StepImages() {
                       </button>
 
                       <img
-                        src={img.url}
+                        src={URL.createObjectURL(img)}
                         alt=""
                         className="w-full h-full object-cover"
                       />
@@ -675,7 +818,7 @@ function StepImages() {
                   </button>
 
                   <video
-                    src={video.url}
+                    src={URL.createObjectURL(video)}
                     controls
                     className="w-full rounded-lg border"
                   />
@@ -691,7 +834,7 @@ function StepImages() {
             <div className="h-40 bg-gray-100 flex items-center justify-center">
               {images.length > 0 ? (
                 <img
-                  src={images[0].url}
+                  src={URL.createObjectURL(images[0])}
                   alt=""
                   className="w-full h-full object-cover"
                 />

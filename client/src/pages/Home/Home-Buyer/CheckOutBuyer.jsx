@@ -256,7 +256,7 @@ const CheckoutPage = () => {
                         <p className="text-xl font-black text-emerald-700 leading-none">
                           {totalAmount.toLocaleString('vi-VN')} đ
                         </p>
-                        <p className="text-[10px] text-[#61896f] mt-1 font-medium">(Đã bao gồm VAT)</p>
+                        {/* <p className="text-[10px] text-[#61896f] mt-1 font-medium">(Đã bao gồm VAT)</p> */}
                       </div>
                     </div>
                   </div>

@@ -144,8 +144,8 @@ const removeFromWishlist = async (bikeId) => {
  */
 const getSellerListings = async () => {
   try {
-    const response = await axiosClient.get(`/api/buyer-bikes`);
-    console.log("✅ GET /api/buyer-bikes success", response.data);
+    const response = await axiosClient.get(`/api/buyer/listings`);
+
     return response.data;
   } catch (error) {
     console.error("❌ getSellerListings failed:", error.message);
@@ -193,6 +193,19 @@ const getOrder = async () => {
     throw error;
   }
 };
+
+const getMyOrder = async (id) => {
+  try {
+    // Truyền trực tiếp tham số id vào đường dẫn
+    const response = await axiosClient.get(`/api/Order/my-orders`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -209,7 +222,8 @@ export {
   getSellerListings,
   isBuying,
   CheckOut,
-  getOrder
+  getOrder,
+  getMyOrder
 };
 
 export default axiosClient;

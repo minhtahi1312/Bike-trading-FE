@@ -39,7 +39,9 @@ import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
 import CarDetail from "./pages/Home/Home-Buyer/Details/CarDetail";
 import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
-import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer"; 
+import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
+import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
+
 function App() {
   return (
     <BrowserRouter>
@@ -55,6 +57,8 @@ function App() {
           <Route path="details/:id" element={<CarDetail />} />
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="order/:id" element={<OrderDetail />} />
+
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>

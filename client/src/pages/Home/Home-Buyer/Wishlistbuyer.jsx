@@ -26,20 +26,16 @@ export default function Wishlist() {
       const formattedData = (response || []).map(item => {
         const bike = item || {};
         return {
-          ...bike,
-          id: bike.id || item.bikeId,        // Fallback to bikeId if bike.id missing
-          wishlistId: item.id,               // ID của wishlist để dùng cho xóa
+
+          id: bike.id || item.bikeId,
+          wishlistId: item.id,
+
+
           title: bike.title || 'Chưa có tên xe',
-          image: bike.imageUrl || 'https://via.placeholder.com/400x300',
-          seller: bike.seller || 'Người bán ẩn danh',
-          sellerAvatar: bike.sellerAvatar || 'https://via.placeholder.com/40x40',
           price: bike.price || 0,
-          size: bike.size || 'N/A',
-          material: bike.material || 'N/A',
-          year: bike.year || new Date().getFullYear(),
-          category: bike.category || 'Khác',
-          groupset: bike.groupset || '',
-          location: bike.location || 'Chưa xác định'
+
+
+          image: bike.imageUrl || 'https://via.placeholder.com/400x300',
         };
       });
       console.log("✅ Wishlist loaded:", formattedData);
@@ -73,7 +69,7 @@ export default function Wishlist() {
       loadWishlist();
     }
   };
-  
+
   const handleView = (id) => {
     navigate(`/bike-detail/${id}`);
   };

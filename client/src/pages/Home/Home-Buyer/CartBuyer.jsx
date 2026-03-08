@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCart, getCartItems, deleteCartItem, toggleCartItem, isBuying , } from "../../../services/axiosClient";
+import { getCart, getCartItems, deleteCartItem, toggleCartItem, isBuying, } from "../../../services/axiosClient";
 
 const CartBuyer = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  
+
   // Tách biệt 2 nguồn dữ liệu
   const [items, setItems] = useState([]); // Danh sách sản phẩm (có chứa isSelected)
   const [summary, setSummary] = useState({ totalAmount: 0 }); // Tổng tiền từ server
@@ -40,7 +40,7 @@ const CartBuyer = () => {
   const x = 1;
 
   setTimeout(() => {
-    console.log("x =", x); 
+    console.log("x =", x);
     isBuy();
   }, x * 1000);
 
@@ -79,36 +79,55 @@ const CartBuyer = () => {
   return (
     <div className="min-h-screen bg-[#f6f8f6] p-4 lg:p-10 text-[#111813]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* CỘT DANH SÁCH SẢN PHẨM */}
         <div className="lg:col-span-8 space-y-4">
           <h1 className="text-3xl font-bold mb-6">Giỏ hàng ({items.length})</h1>
           {items.map((item) => (
-            <div key={item.id} className="bg-white p-4 rounded-2xl flex gap-6 border border-gray-100 shadow-sm items-center">
-              
-              {/* PHỤC HỒI DẤU TÍCH Ở ĐÂY */}
+            <div key={item.id} className="bg-white p-4 rounded-2xl flex gap-6 border border-gray-100 shadow-sm items-center relative">
+
+              {/* DẤU TÍCH CHỌN */}
               <input
                 type="checkbox"
-                checked={item.isSelected} // Quan trọng: Lấy từ API
+                checked={item.isSelected}
                 onChange={() => handleToggle(item.id)}
                 className="w-6 h-6 accent-[#2bee6c] cursor-pointer shrink-0"
               />
 
-              <div 
+              {/* HÌNH ẢNH */}
+              <div
                 className="w-40 aspect-video rounded-xl bg-cover bg-center bg-gray-100 shrink-0"
                 style={{ backgroundImage: `url(${item.imageUrl})` }}
               />
-              
-              <div className="flex-1">
+
+              {/* NỘI DUNG CHI TIẾT */}
+              <div className="flex-1 flex flex-col min-h-[100px]"> {/* min-h để đảm bảo chiều cao cho cột */}
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-xl">{item.bikeTitle}</h3>
+                  <h3 className="font-bold text-xl text-[#111813] line-clamp-1">{item.bikeTitle}</h3>
+
+                  {/* NÚT XÓA - Giữ ở góc trên cùng bên phải của text */}
                   <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                 </div>
-                <p className="text-[#2bee6c] text-2xl font-black mt-2">
-                  {item.unitPrice?.toLocaleString('vi-VN')} đ
-                </p>
+
+                {/* ĐẨY PHẦN DƯỚI NÀY XUỐNG ĐÁY */}
+                <div className="mt-auto flex justify-between items-end">
+                  {/* HIỂN THỊ UNIT PRICE (Bên trái) */}
+                  <p className="text-[#2bee6c] text-2xl font-black">
+                    {item.unitPrice?.toLocaleString('vi-VN')} đ
+                  </p>
+
+                  {/* HIỂN THỊ BIKE STATUS (Góc dưới bên phải) */}
+                  <div className="flex items-center">
+                    <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${item.bikeStatus === 'Available'
+                      ? 'bg-green-50 border-green-200 text-green-700'
+                      : 'bg-red-50 border-red-200 text-red-700'
+                      }`}>
+                      {item.bikeStatus === 'Available' ? '● Còn Hàng' : `● ${item.bikeStatus}`}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -132,7 +151,7 @@ const CartBuyer = () => {
                 </span>
               </div>
             </div>
-            <button 
+            <button
               disabled={summary.totalAmount === 0}
               onClick={() => navigate('/homebuyer/checkout')}
               className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"

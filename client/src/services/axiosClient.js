@@ -205,12 +205,12 @@ const getMyOrder = async (id) => {
   }
 };
 
-const getBikeDetail = async (listingId) => {
+const getBikeDetail = async (id) => {
   try {
-    const response = await axiosClient.get(`/api/buyer/listings`, {
-      params: { id: listingId }
+    const response = await axiosClient.get(`/api/buyer/listings/${id}`, {
+      // params: { id: listingId }
     });
-
+    console.log("data", response.data);
     // Nếu API trả về một mảng, hãy lấy phần tử đầu tiên để có Object Listing
     if (Array.isArray(response.data)) {
       return response.data[0];

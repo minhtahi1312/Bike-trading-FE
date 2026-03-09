@@ -122,9 +122,15 @@ const CartBuyer = () => {
                   <div className="flex items-center">
                     <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${item.bikeStatus === 'Available'
                       ? 'bg-green-50 border-green-200 text-green-700'
-                      : 'bg-red-50 border-red-200 text-red-700'
+                      : item.bikeStatus === 'PendingInspection'
+                        ? 'bg-red-50 border-red-200 text-red-700' // Màu đỏ cho Hết hàng
+                        : 'bg-gray-50 border-gray-200 text-gray-700' // Màu mặc định nếu có status khác
                       }`}>
-                      {item.bikeStatus === 'Available' ? '● Còn Hàng' : `● ${item.bikeStatus}`}
+                      {item.bikeStatus === 'Available'
+                        ? '● Còn Hàng'
+                        : item.bikeStatus === 'PendingInspection'
+                          ? '● Đang Chờ Kiểm Tra'
+                          : `● ${item.bikeStatus}`}
                     </span>
                   </div>
                 </div>

@@ -10,37 +10,17 @@ const axiosClient = axios.create({
   },
   timeout: 10000, // 10 seconds
 });
-
-/**
- * ===== REQUEST INTERCEPTOR =====
- * Thêm token vào mỗi request + cache-busting
- */
-axiosClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // Cache-busting cho GET requests
-    if (config.method === "get") {
-      config.params = {
-        ...config.params,
-        _t: new Date().getTime(),
-      };
-      config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
-      config.headers["Pragma"] = "no-cache";
-      config.headers["Expires"] = "0";
-    }
-
-    return config;
-  },
-  (error) => {
-    console.error("❌ Request interceptor error:", error);
-    return Promise.reject(error);
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  console.log("Token đang gửi đi:", token);
+  
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
 
+  // Bắt buộc phải return config để Axios tiếp tục gửi request đi
+  return config; 
+});
 /**
  * ===== RESPONSE INTERCEPTOR =====
  * Xử lý lỗi, token expiry, etc.

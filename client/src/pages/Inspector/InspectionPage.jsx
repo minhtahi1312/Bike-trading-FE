@@ -1,89 +1,140 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ArrowRight,ChevronLeft, ChevronRight, CheckCircle2, 
   Bike, Settings, Disc, ShieldAlert,
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Save, AlertCircle, Check, X
+  Save, AlertCircle, Check, X, Loader2
 } from 'lucide-react';
+import axiosClient from '../../services/axiosClient';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// --- BỘ DỮ LIỆU TỪ VỰNG CHUẨN CHO API (Kịch bản A) ---
-const INSPECTION_OPTIONS = {
-  frame: [
-    "Hoàn hảo (Không tì vết, sơn zin, không nứt móp)",
-    "Khá (Xước dăm, xước sơn nhẹ bề mặt)",
-    "Kém (Tróc sơn sâu, móp/trầy xước nặng)",
-    "Lỗi nghiêm trọng (Rạn nứt carbon/Gãy/Biến dạng)"
-  ],
-  drivetrain: [
-    "Hoàn hảo (Chuyển số mượt, xích chưa giãn)",
-    "Khá (Xích giãn < 0.75%, hoạt động bình thường)",
-    "Kém (Xích giãn > 0.75%, líp mòn, nhảy mắt xích)",
-    "Lỗi nghiêm trọng (Kẹt số, gãy cùi đề, cong hanger)"
-  ],
-  brakes: [
-    "Hoàn hảo (Vành cân chuẩn, phanh ăn tuyệt đối)",
-    "Khá (Má phanh mòn < 50%, vành đảo nhẹ)",
-    "Kém (Má phanh mòn > 50%, vành rỗ mòn, cần thay cáp/dầu)",
-    "Lỗi nghiêm trọng (Nứt vành, đứt nan hoa, rò rỉ dầu)"
-  ]
-};
-
-// --- MOCK DATA ---
-const MOCK_BIKE = {
-  name: "Giant TCR Advanced 2",
-  id: "AB3921D",
-  price: "28.500.000 ₫",
-  condition: "95% (Like New)",
-  description: "Xe chính chủ mua mới 2021, ít đi, odo khoảng 2000km. Group 105 R7000 hoạt động hoàn hảo.",
-  specs: {
-    frame: "Carbon Advanced-Grade",
-    size: "M (54cm)",
-    paint: "Nguyên bản, không trầy xước lớn"
-  },
-  media: [
-    { id: 1, type: 'image', src: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=800', label: 'Toàn cảnh - 01/08' },
-    { id: 2, type: 'image', src: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800', label: 'Bộ đề sau - 02/08' },
-    { id: 3, type: 'video', src: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800', label: 'Video test cối líp' },
-  ]
-};
 
 export default function MergedInspectionPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const [bike, setBike] = useState(null); 
+  const [loading, setLoading] = useState(true);
   // --- STATE QUẢN LÝ UI ---
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-  const [expandedSection, setExpandedSection] = useState('frame'); 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // --- STATE QUẢN LÝ DỮ LIỆU API ---
-  const [formData, setFormData] = useState({
-    frame_condition: INSPECTION_OPTIONS.frame[0],
-    drivetrain_condition: INSPECTION_OPTIONS.drivetrain[0],
-    brakes_wheels_condition: INSPECTION_OPTIONS.brakes[0],
-    comment: "",
-    score: 100 // Tạm thời set 100
+ const [formData, setFormData] = useState({
+    frame: true,
+    paintCondition: true,
+    drivetrain: true,
+    brakes: true,
+    score: 100,
+    comment: ""
   });
+const [isSubmitting, setIsSubmitting] = useState(false);
+useEffect(() => {
+    const fetchBikeDetails = async () => {
+      setLoading(true);
+      try {
+        // Gọi API với ID truyền vào Header 'x-pendingbike-id' như Swagger yêu cầu
+        const response = await axiosClient.get('/api/inspector/pending-bike-details', {
+          headers: {
+            'x-pendingbike-id': id 
+          }
+        });
 
-  // --- HANDLERS ---
-  const handleOptionSelect = (field, value) => {
+        const data = response.data;
+        
+        // Chuyển đổi dữ liệu từ API sang cấu trúc để hiển thị trên giao diện
+      setBike({
+          name: `${data.brand} ${data.category}`,
+          idDisplay: data.id.substring(0, 8).toUpperCase(),
+          price: data.price.toLocaleString('vi-VN') + " ₫",
+          condition: `${data.overall} - ${data.operating}`, // Hiển thị "100% - Tốt"
+          description: "Thông tin chi tiết cấu hình xe từ hệ thống.", // API chưa có trường này nên để mặc định
+          specs: {
+            frame: data.frameMaterial,
+            size: data.frameSize,
+            paint: data.paint,
+            groupset: data.groupset,     // Thêm Bộ truyền động
+            brakeType: data.brakeType,   // Thêm Loại phanh
+            tireRim: data.tireRim        // Thêm Vành lốp
+          },
+          // Map danh sách ảnh từ medias
+          media: data.medias && data.medias.length > 0 
+            ? data.medias.map((m, idx) => ({
+                id: m.id,
+                src: m.image,
+                label: `Ảnh chi tiết ${idx + 1}`
+              }))
+            : [{ id: 0, src: 'https://via.placeholder.com/800?text=No+Image', label: 'Không có ảnh' }]
+        });
+      } catch (error) {
+        console.error("Lỗi lấy chi tiết xe:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchBikeDetails();
+  }, [id]);
+
+  const handleToggle = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleComplete = async () => {
-    console.log("🚀 Dữ liệu kiểm định gửi đi:", formData);
- 
-    navigate(`/inspector/result/${id}`);
-  };
+ const handleComplete = async () => {
+    // Ngăn chặn bấm nhiều lần
+    if (isSubmitting) return; 
 
-  // Helper tính toán Status Badge cho Accordion dựa vào chuỗi được chọn
-  const getBadgeStatus = (valueStr) => {
-    if (valueStr.includes("Hoàn hảo")) return { text: "ĐẠT", color: "bg-emerald-100 text-emerald-700" };
-    if (valueStr.includes("Khá")) return { text: "CHÚ Ý", color: "bg-blue-100 text-blue-700" };
-    if (valueStr.includes("Kém")) return { text: "CẢNH BÁO", color: "bg-yellow-100 text-yellow-700" };
-    return { text: "LỖI", color: "bg-red-100 text-red-700" };
+    // Validate điểm số hợp lệ
+    if (formData.score < 0 || formData.score > 100) {
+      alert("Điểm số phải nằm trong khoảng 0 - 100.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log(" Đang gửi dữ liệu API:", formData);
+      const response = await axiosClient.post(
+        '/api/inspector/approve-bike', 
+        formData, // Data truyền lên trong Body
+        {
+          headers: {
+           // 'x-bike-id': id
+           'x-bike-id': '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+          }
+        }
+      );
+
+      // Nếu gọi thành công (Axios sẽ tự văng xuống catch nếu lỗi)
+      if (response.status === 200 || response.status === 201) {
+        console.log(" Đánh giá thành công!");
+        navigate(`/inspector/result/${id}`);
+      }
+
+    } catch (error) {
+      console.error(" Lỗi khi gửi API:", error);
+      const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi duyệt xe. Vui lòng thử lại!";
+      alert(errorMsg);
+    } finally {
+      setIsSubmitting(false); 
+    }
   };
+  
+  if (loading) {
+  return (
+    <div className="h-screen flex flex-col items-center justify-center bg-white">
+      <Loader2 className="animate-spin text-emerald-500 mb-4" size={48} />
+      <p className="font-bold text-[#637588]">Đang tải cấu hình xe...</p>
+    </div>
+  );
+}
+
+if (!bike) {
+  return (
+    <div className="h-screen flex items-center justify-center text-[#637588] font-bold">
+      Không tìm thấy dữ liệu xe.
+    </div>
+  );
+}
 
   return (
     <div className="flex flex-col h-screen -m-8 bg-[#f3f4f6] font-display text-[#111813] overflow-hidden">
@@ -155,8 +206,8 @@ export default function MergedInspectionPage() {
           
           {/* Header Title */}
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black">{MOCK_BIKE.name}</h1>
-            <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded">ID: {MOCK_BIKE.id}</span>
+            <h1 className="text-2xl font-black">{bike.name}</h1>
+            <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded">ID: {bike.idDisplay}</span>
           </div>
 
           {/* Album Section */}
@@ -171,12 +222,12 @@ export default function MergedInspectionPage() {
             {/* Main Image Viewer */}
             <div
              className="relative w-full aspect-video bg-gray-100 rounded-xl overflow-hidden group border border-gray-200">
-              <img src={MOCK_BIKE.media[activeMediaIndex].src} alt="Bike"
+              <img src={bike.media[activeMediaIndex]?.src} alt="Bike"
               onClick={() => setIsFullscreen(true)}
                className="w-full h-full object-cover" />
               
               <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
-                {MOCK_BIKE.media[activeMediaIndex].label}
+                {bike.media[activeMediaIndex]?.label}
               </div>
 
               {/* Navigation Arrows */}
@@ -188,7 +239,7 @@ export default function MergedInspectionPage() {
                   <ChevronLeft size={18} />
                 </button>
                 <button 
-                  onClick={() => setActiveMediaIndex(prev => prev < MOCK_BIKE.media.length - 1 ? prev + 1 : prev)}
+                  onClick={() => setActiveMediaIndex(prev => prev < bike.media.length - 1 ? prev + 1 : prev)}
                   className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center shadow hover:bg-gray-50"
                 >
                   <ChevronRight size={18} />
@@ -198,7 +249,7 @@ export default function MergedInspectionPage() {
 
             {/* Thumbnails */}
             <div className="flex gap-3 mt-4">
-              {MOCK_BIKE.media.map((item, index) => (
+              {bike.media.map((item, index) => (
                 <div 
                   key={item.id} 
                   onClick={() => setActiveMediaIndex(index)}
@@ -220,33 +271,46 @@ export default function MergedInspectionPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Giá niêm yết</p>
-                <p className="text-lg font-black">{MOCK_BIKE.price}</p>
+                <p className="text-lg font-black">{bike.price}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Tình trạng khai báo</p>
-                <p className="text-sm font-bold">{MOCK_BIKE.condition}</p>
+                <p className="text-sm font-bold">{bike.condition}</p>
               </div>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Mô tả từ người bán</p>
-              <p className="text-sm text-gray-600 italic">"{MOCK_BIKE.description}"</p>
+              <p className="text-sm text-gray-600 italic">"{bike.description}"</p>
             </div>
 
-            <div className="flex items-center gap-4 border-t border-gray-100 pt-6">
-              <img src={MOCK_BIKE.media[0].src} className="w-24 h-24 rounded-lg object-cover shadow-sm" />
+<div className="flex items-center gap-4 border-t border-gray-100 pt-6">
+              <img src={bike.media[0]?.src} className="w-24 h-24 rounded-lg object-cover shadow-sm border border-gray-100" alt="Thumbnail" />
+              
               <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
                 <div className="flex justify-between border-b border-gray-100 pb-1">
-                  <span className="text-gray-500">Chất liệu khung:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.frame}</span>
+                  <span className="text-gray-500">Chất liệu:</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.frame}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-100 pb-1">
                   <span className="text-gray-500">Kích cỡ:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.size}</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.size}</span>
                 </div>
-                <div className="flex justify-between border-b border-gray-100 pb-1 col-span-2">
-                  <span className="text-gray-500">Tình trạng sơn báo:</span>
-                  <span className="font-bold">{MOCK_BIKE.specs.paint}</span>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Màu sơn:</span>
+                  <span className="font-bold text-right text-[#111813]">{bike.specs.paint}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Truyền động:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.groupset}>{bike.specs.groupset}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Loại phanh:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.brakeType}>{bike.specs.brakeType}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-100 pb-1">
+                  <span className="text-gray-500">Vành & Lốp:</span>
+                  <span className="font-bold text-right text-[#111813] truncate max-w-[120px]" title={bike.specs.tireRim}>{bike.specs.tireRim}</span>
                 </div>
               </div>
             </div>
@@ -264,78 +328,93 @@ export default function MergedInspectionPage() {
 
           <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white custom-scrollbar pb-24">
             
-            {/* 1. Accordion Khung */}
-            <AccordionSection 
-              title="Khung sườn & Phuộc" 
+<InlineToggleItem
+              title="Khung sườn"
               icon={<Bike size={18} />}
-              isOpen={expandedSection === 'frame'}
-              onClick={() => setExpandedSection(expandedSection === 'frame' ? null : 'frame')}
-              statusBadge={getBadgeStatus(formData.frame_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.frame} 
-                selectedValue={formData.frame_condition} 
-                onChange={(val) => handleOptionSelect('frame_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.frame}
+              onChange={(val) => handleToggle('frame', val)}
+            />
 
-            {/* 2. Accordion Truyền động */}
-            <AccordionSection 
-              title="Hệ thống truyền động" 
+            <InlineToggleItem
+              title="Tình trạng nước sơn"
+              icon={<AlertCircle size={18} />}
+              value={formData.paintCondition}
+              onChange={(val) => handleToggle('paintCondition', val)}
+            />
+
+            <InlineToggleItem
+              title="Hệ thống truyền động"
               icon={<Settings size={18} />}
-              isOpen={expandedSection === 'drivetrain'}
-              onClick={() => setExpandedSection(expandedSection === 'drivetrain' ? null : 'drivetrain')}
-              statusBadge={getBadgeStatus(formData.drivetrain_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.drivetrain} 
-                selectedValue={formData.drivetrain_condition} 
-                onChange={(val) => handleOptionSelect('drivetrain_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.drivetrain}
+              onChange={(val) => handleToggle('drivetrain', val)}
+            />
 
-            {/* 3. Accordion Phanh & Bánh */}
-            <AccordionSection 
-              title="Phanh & Bánh xe" 
+            <InlineToggleItem
+              title="Phanh & Bánh xe"
               icon={<Disc size={18} />}
-              isOpen={expandedSection === 'brakes'}
-              onClick={() => setExpandedSection(expandedSection === 'brakes' ? null : 'brakes')}
-              statusBadge={getBadgeStatus(formData.brakes_wheels_condition)}
-            >
-              <RadioGroup 
-                options={INSPECTION_OPTIONS.brakes} 
-                selectedValue={formData.brakes_wheels_condition} 
-                onChange={(val) => handleOptionSelect('brakes_wheels_condition', val)} 
-              />
-            </AccordionSection>
+              value={formData.brakes}
+              onChange={(val) => handleToggle('brakes', val)}
+            />
+          {/* Thêm ô Nhập Điểm (Score) vào đây */}
+            <div className="pt-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+                Điểm đánh giá (Score)
+              </label>
+              <div className="relative">
+                <input 
+                  type="number" 
+                  min="0"
+                  max="100"
+                  value={formData.score}
+                  onChange={(e) => handleToggle('score', Number(e.target.value))} 
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                  placeholder="Nhập điểm..."
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">/ 100</span>
+              </div>
+            </div>
 
             {/* Overall Comment */}
             <div className="pt-4">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Comment Tổng quan</label>
               <textarea 
-                value={formData.comment}
-                onChange={(e) => handleOptionSelect('comment', e.target.value)}
-                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px]" 
-                placeholder="Nhập đánh giá chi tiết tình trạng thực tế của xe để lưu lại hệ thống..."
-              />
+  value={formData.comment}
+  onChange={(e) => handleToggle('comment', e.target.value)} 
+  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px]" 
+  placeholder="Nhập đánh giá chi tiết tình trạng thực tế của xe để lưu lại hệ thống..."
+/>
             </div>
             
           </div>
 
-{/* Action Footer (Sticky at bottom) */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-200 flex flex-col gap-3 shadow-[0_-15px_30px_rgba(0,0,0,0.04)] z-10">
+          {/* Action Footer (Sticky at bottom) */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex flex-col gap-2.5 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
             
             {/* Nút Hoàn tất chính */}
             <button 
               onClick={handleComplete} 
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"
+              disabled={isSubmitting} // Khóa nút
+              className={`w-full text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all 
+                ${isSubmitting 
+                  ? 'bg-emerald-50 text-emerald-400 border border-emerald-200 cursor-not-allowed opacity-70' 
+                  : 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-500 text-emerald-700'
+                }`}
             >
-              <CheckCircle2 size={20} /> Hoàn tất & Xem kết quả
+              {isSubmitting ? (
+                 <span>Đang xử lý...</span>
+              ) : (
+                 <>
+                   <CheckCircle2 size={18} /> Hoàn tất & Xem kết quả
+                 </>
+              )}
             </button>
 
-            {/* Nút Lưu nháp phụ */}
-            <button className="w-full text-center text-[13px] font-bold text-gray-400 hover:text-gray-600 py-1 transition-colors">
-              Lưu bản nháp
+            {/* Nút Từ chối */}
+            <button 
+              // onClick={() => { /* Thêm logic từ chối vào đây */ }}
+              className="w-full bg-red-50 hover:bg-red-100 border border-red-400 text-red-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+            >
+              <X size={18} /> Từ chối
             </button>
             
           </div>
@@ -358,7 +437,7 @@ export default function MergedInspectionPage() {
 
           {/* Ảnh được phóng to */}
           <img 
-            src={MOCK_BIKE.media[activeMediaIndex].src} 
+            src={bike.media[activeMediaIndex]?.src} 
             alt="Fullscreen Bike" 
             className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
             onClick={(e) => e.stopPropagation()} 
@@ -372,7 +451,7 @@ export default function MergedInspectionPage() {
             <ChevronLeft size={36} />
           </button>
           <button 
-            onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => prev < MOCK_BIKE.media.length - 1 ? prev + 1 : prev); }}
+            onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => prev < bike.media.length - 1 ? prev + 1 : prev); }}
             className="absolute right-8 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-4 rounded-full transition-all"
           >
             <ChevronRight size={36} />
@@ -380,7 +459,7 @@ export default function MergedInspectionPage() {
 
           {/* Nhãn của ảnh */}
           <div className="absolute bottom-10 text-white text-sm font-bold bg-black/60 px-6 py-2.5 rounded-full border border-white/10 backdrop-blur-md">
-            {MOCK_BIKE.media[activeMediaIndex].label}
+            {bike.media[activeMediaIndex]?.label}
           </div>
         </div>
       )}
@@ -388,71 +467,43 @@ export default function MergedInspectionPage() {
   );
 }
 
-// --- SUB-COMPONENTS CHO FORM ---
 
-function AccordionSection({ title, icon, isOpen, onClick, statusBadge, children }) {
+function InlineToggleItem({ title, icon, value, onChange }) {
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${isOpen ? 'border-blue-300 shadow-md ring-4 ring-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
-      {/* Header */}
-      <div onClick={onClick} className={`p-4 flex items-center justify-between cursor-pointer select-none transition-colors ${isOpen ? 'bg-blue-50/50' : 'bg-white'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isOpen ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-            {icon}
-          </div>
-          <span className="text-sm font-bold text-gray-800">{title}</span>
+    <div className="flex items-center justify-between p-3 mb-3 border border-gray-200 rounded-xl bg-white hover:border-emerald-200 transition-colors shadow-sm">
+      
+      {/* Nửa bên trái: Icon và Tiêu đề */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-slate-50 rounded-lg text-slate-600 border border-slate-100">
+          {icon}
         </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Status Badge */}
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded tracking-wide ${statusBadge.color}`}>
-            {statusBadge.text}
-          </span>
-          {isOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
-        </div>
+        <span className="text-[13px] font-bold text-gray-800">{title}</span>
       </div>
 
-      {/* Content (Mở rộng) */}
-      {isOpen && (
-        <div className="p-4 bg-white border-t border-gray-100">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RadioGroup({ options, selectedValue, onChange }) {
-  return (
-    <div className="space-y-2">
-      {options.map((opt, idx) => {
-        const isSelected = selectedValue === opt;
-        // Đổi màu border dựa vào mức độ nghiêm trọng của option
-        const activeColorClass = opt.includes("Hoàn hảo") ? 'border-emerald-500 bg-emerald-50' 
-                               : opt.includes("Kém") || opt.includes("Lỗi") ? 'border-red-500 bg-red-50' 
-                               : 'border-blue-500 bg-blue-50';
-
-        return (
-          <label 
-            key={idx} 
-            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? activeColorClass : 'border-gray-200 hover:bg-gray-50'}`}
-          >
-            <div className="mt-0.5 relative flex items-center justify-center w-4 h-4">
-              <input 
-                type="radio" 
-                name={`radio-${options[0]}`} // Dùng option đầu làm group name tạm
-                className="peer appearance-none w-4 h-4 border-2 border-gray-300 rounded-full checked:border-current transition-all"
-                style={{ color: isSelected ? 'inherit' : '' }}
-                checked={isSelected}
-                onChange={() => onChange(opt)}
-              />
-              {isSelected && <div className="absolute w-2 h-2 rounded-full bg-current"></div>}
-            </div>
-            <span className={`text-sm font-medium ${isSelected ? 'text-gray-900 font-bold' : 'text-gray-600'}`}>
-              {opt}
-            </span>
-          </label>
-        );
-      })}
+      {/* Nửa bên phải: Cụm nút Đạt / Lỗi kiểu Segmented Control */}
+      <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
+        <button
+          onClick={() => onChange(true)}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+            value === true
+              ? 'bg-white text-emerald-600 shadow-sm border border-gray-200'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Check size={14} /> Đạt
+        </button>
+        <button
+          onClick={() => onChange(false)}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+            value === false
+              ? 'bg-white text-red-600 shadow-sm border border-gray-200'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <X size={14} /> Lỗi
+        </button>
+      </div>
+      
     </div>
   );
 }

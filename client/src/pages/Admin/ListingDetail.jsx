@@ -1,51 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, MapPin, Clock, Shield, CheckCircle, 
   XCircle, AlertCircle, PlayCircle, ExternalLink, 
-  Star, ChevronRight, Tag
+  Star, ChevronRight, Tag, Bike
 } from 'lucide-react';
+
+
+import axiosClient from "../../services/axiosClient";
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeImage, setActiveImage] = useState(0);
+  const [listingData, setListingData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock Data: Dựa trên hình mẫu Giant TCR Advanced Pro
-  const listing = {
-    id: id,
-    code: '#BM-29384',
-    name: 'Giant TCR Advanced Pro 1 Disc - 2022',
-    price: '45.000.000 ₫',
-    originalPrice: '52.000.000 ₫',
-    status: 'pending', // pending
-    category: 'Road Bike',
-    location: 'TP. Hồ Chí Minh',
-    time: 'Đăng 2 giờ trước',
-    description: `Cần bán xe Giant TCR Advanced Pro 1 Disc đời 2022, size M phù hợp chiều cao 1m70-1m80. 
-    
-Xe mới đi được khoảng 2000km, bảo dưỡng định kỳ tại hãng. Khung carbon không một vết xước, groupset Ultegra hoạt động hoàn hảo. Đã nâng cấp bánh carbon SLR 1 42mm. 
+  useEffect(() => {
+    const fetchDetail = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axiosClient.get(`/api/admin/listing/detail/${id}`);
+        setListingData(response.data);
+      } catch (error) {
+        console.error("Lỗi lấy chi tiết tin đăng:", error);
+        alert("Không thể tải thông tin chi tiết tin đăng này.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-Tặng kèm gọng nước và bàn đạp can Shimano. Xem xe tại nhà riêng quận 7.`,
-    images: [
-      "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=800&q=80", // Ảnh chính (Giant bike placeholder)
-      "https://images.unsplash.com/photo-1576435728678-35d0160181f7?w=800&q=80",
-      "https://images.unsplash.com/photo-1507035895480-08acdf9b6bc9?w=800&q=80",
-      "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800&q=80"
-    ],
-    video: true,
-    seller: {
-      name: 'Nguyễn Văn A',
-      avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=0D8ABC&color=fff',
-      verified: true,
-      rating: 4.8,
-      ratingCount: 24,
-      joinTime: '2 năm trước',
-      sales: 15, // Đã bán
-      successRate: '12 thành công'
+    fetchDetail();
+  }, [id]);
+
+  // --- HÀM XỬ LÝ PHÊ DUYỆT ---
+  const handleApprove = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn phê duyệt tin đăng này?")) {
+      try {
+        await axiosClient.patch(`/api/admin/listing/${id}`, {
+          isApproved: true
+        });
+        
+        alert("Phê duyệt tin đăng thành công!");
+        navigate('/admin/listings'); 
+      } catch (error) {
+        console.error("Lỗi duyệt tin:", error);
+        alert("Không thể phê duyệt tin.");
+      }
     }
   };
 
+  const handleReject = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn TỪ CHỐI tin đăng này?")) {
+      try {
+        await axiosClient.patch(`/api/admin/listing/${id}`, {
+          isApproved: false
+        });
+        
+        alert("Đã từ chối tin đăng!");
+        navigate('/admin/listings'); 
+      } catch (error) {
+        console.error("Lỗi từ chối tin:", error);
+        alert("Không thể từ chối tin.");
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Đang tải chi tiết tin đăng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!listingData) {
+    return <div className="p-10 text-center font-bold text-gray-500">Không tìm thấy dữ liệu tin đăng.</div>;
+  }
+
+  // Lấy dữ liệu xe đầu tiên (vì API trả về mảng bikes)
+  const bikeInfo = listingData.bikes && listingData.bikes.length > 0 ? listingData.bikes[0] : null;
   return (
     <div className="font-display text-[#111813] bg-gray-50/50 min-h-screen pb-10">
       
@@ -61,15 +98,17 @@ Tặng kèm gọng nước và bàn đạp can Shimano. Xem xe tại nhà riêng
           <div className="flex items-center gap-2 text-sm text-gray-500">
              <span>Tin đăng</span>
              <ChevronRight size={16} />
-             <span className="font-bold text-[#111813]">Chi tiết {listing.code}</span>
+             <span className="font-bold text-[#111813]">Chi tiết #{listingData.id.substring(0, 8).toUpperCase()}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-           <div className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-              Đang chờ duyệt
-           </div>
+            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 ${
+               listingData.status === 1 ? 'bg-yellow-100 text-yellow-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+               <span className={`w-2 h-2 rounded-full animate-pulse ${listingData.status === 1 ? 'bg-yellow-500' : 'bg-emerald-500'}`}></span>
+                  {listingData.status === 1 ? 'Đang chờ duyệt' : 'Đã duyệt'}
+            </div>
         </div>
       </div>
 
@@ -79,84 +118,122 @@ Tặng kèm gọng nước và bàn đạp can Shimano. Xem xe tại nhà riêng
         {/* === CỘT TRÁI: NỘI DUNG (2/3) === */}
         <div className="lg:col-span-2 space-y-6">
            
-           {/* 1. Hình ảnh & Video */}
-           <div className="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                 <h3 className="font-bold text-lg">Hình ảnh & Video</h3>
-                 <span className="text-sm text-gray-500">6 ảnh • 1 video</span>
-              </div>
-              
-              {/* Main Image View */}
-              <div className="aspect-video w-full bg-gray-100 rounded-xl overflow-hidden mb-4 border border-gray-100">
-                 <img 
-                   src={listing.images[activeImage]} 
-                   alt="Main View" 
-                   className="w-full h-full object-cover" 
-                 />
-              </div>
+{/* 1. Hình ảnh & Video */}
+<div className="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm">
+   <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-lg">Hình ảnh</h3>
+      {/* Hiển thị số lượng ảnh thực tế từ API */}
+      <span className="text-sm text-gray-500">{bikeInfo?.medias?.length || 0} ảnh</span>
+   </div>
+   
+   {/* --- ẢNH CHÍNH (TO NHẤT) --- */}
+   <div className="aspect-video w-full bg-gray-100 rounded-xl overflow-hidden mb-4 border border-gray-100">
+      <img 
+        // Lấy ảnh đang được chọn (activeImage), nếu mảng rỗng thì dùng ảnh mặc định
+        src={bikeInfo?.medias?.[activeImage]?.url || bikeInfo?.medias?.[activeImage] || "https://placehold.co/800x450?text=Chua+co+anh"} 
+        alt={listingData?.title || "Main View"} 
+        className="w-full h-full object-cover" 
+        // Đề phòng trường hợp link ảnh bị chết/lỗi
+        onError={(e) => { e.target.src = "https://placehold.co/800x450?text=Loi+anh" }}
+      />
+   </div>
 
-              {/* Thumbnails */}
-              <div className="grid grid-cols-4 gap-4">
-                 {listing.images.map((img, idx) => (
-                   <div 
-                      key={idx} 
-                      onClick={() => setActiveImage(idx)}
-                      className={`aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                         activeImage === idx ? 'border-emerald-500 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                   >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                   </div>
-                 ))}
-                 
-                 {/* Video Thumbnail Placeholder */}
-                 {listing.video && (
-                    <div className="aspect-video rounded-lg bg-[#111813] flex items-center justify-center cursor-pointer group relative overflow-hidden">
-                       <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
-                       <PlayCircle size={32} className="text-white relative z-10" />
-                       <span className="absolute bottom-1 right-2 text-[10px] font-bold text-white bg-black/50 px-1 rounded">00:45</span>
-                    </div>
-                 )}
-              </div>
-           </div>
+   {/* --- DANH SÁCH ẢNH NHỎ (THUMBNAILS) --- */}
+   {bikeInfo?.medias && bikeInfo.medias.length > 0 && (
+     <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
+        {bikeInfo.medias.map((media, idx) => (
+          <div 
+             key={idx} 
+             onClick={() => setActiveImage(idx)}
+             className={`aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                activeImage === idx ? 'border-emerald-500 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
+             }`}
+          >
+             <img 
+               // API có thể trả về object {url: "..."} hoặc mảng string "..."
+               src={media.url || media} 
+               alt={`Thumb ${idx}`} 
+               className="w-full h-full object-cover" 
+               onError={(e) => { e.target.src = "https://placehold.co/150x100?text=Loi" }}
+             />
+          </div>
+        ))}
+     </div>
+   )}
+</div>
 
-           {/* 2. Thông tin chi tiết */}
-           <div className="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm">
-              <div className="flex justify-between items-start mb-2">
-                 <h1 className="text-2xl font-extrabold text-[#111813] leading-snug max-w-xl">
-                    {listing.name}
-                 </h1>
-                 <div className="text-right">
-                    <div className="text-2xl font-extrabold text-emerald-600">{listing.price}</div>
-                    <div className="text-sm text-gray-400 line-through font-medium">{listing.originalPrice}</div>
-                 </div>
-              </div>
+{/* 2. Thông tin chi tiết */}
+<div className="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm">
+   <div className="flex justify-between items-start mb-6">
+      <div>
+         <h1 className="text-2xl font-extrabold text-[#111813] leading-snug">{listingData.title}</h1>
+         {/* Hiển thị ngày tạo (createdAt) */}
+         <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+            <Clock size={14} /> 
+            <span>Đăng ngày: {new Date(listingData.createdAt).toLocaleDateString('vi-VN')}</span>
+         </div>
+      </div>
+      <div className="text-right">
+         <div className="text-2xl font-extrabold text-emerald-600">
+             {bikeInfo?.price ? `${bikeInfo.price.toLocaleString('vi-VN')} ₫` : 'Liên hệ'}
+         </div>
+      </div>
+   </div>
 
-              {/* Metadata Tags */}
-              <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-100">
-                 <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg font-medium">
-                    <Tag size={16} /> {listing.category}
-                 </span>
-                 <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg font-medium">
-                    <MapPin size={16} /> {listing.location}
-                 </span>
-                 <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg font-medium">
-                    <Clock size={16} /> {listing.time}
-                 </span>
-              </div>
+   {/* BẢNG THÔNG SỐ KỸ THUẬT (Dữ liệu từ API bikes[0]) */}
+   <h3 className="font-bold text-lg mb-4 flex items-center gap-2 border-t border-gray-100 pt-6">
+     <Bike size={20} className="text-emerald-600" /> Thông số kỹ thuật xe
+   </h3>
+   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 bg-gray-50 p-5 rounded-xl border border-gray-100 mb-6">
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Thương hiệu</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.brand || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Loại xe</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.category || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Size khung</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.frameSize || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Chất liệu</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.frameMaterial || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Màu sơn</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.paint || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Bộ truyền động</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.groupset || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Vành/Lốp</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.tireRim || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2">
+       <span className="text-gray-500 text-sm">Loại phanh</span>
+       <span className="font-bold text-sm text-[#111813]">{bikeInfo?.brakeType || '-'}</span>
+     </div>
+     <div className="flex justify-between border-b border-gray-200 pb-2 md:col-span-2">
+       <span className="text-gray-500 text-sm">Độ mới tổng thể</span>
+       <span className="font-bold text-sm text-emerald-600">{bikeInfo?.overall || '-'}</span>
+     </div>
+   </div>
 
-              {/* Description */}
-              <h3 className="font-bold text-lg mb-3">Mô tả từ người bán</h3>
-              <div className="text-sm text-[#4b5563] leading-7 whitespace-pre-line">
-                 {listing.description}
-              </div>
-           </div>
+   <h3 className="font-bold text-lg mb-3">Mô tả từ người bán</h3>
+   <div className="text-sm text-[#4b5563] leading-7 whitespace-pre-line bg-gray-50 p-4 rounded-lg border border-gray-100">
+      {listingData.description || "Không có mô tả."}
+   </div>
+</div>
         </div>
 
         {/* === CỘT PHẢI: SIDEBAR (1/3) === */}
         <div className="lg:col-span-1 space-y-6">
            
-           {/* 1. Quyết định duyệt tin (Box quan trọng nhất) */}
+           {/* 1. Quyết định duyệt tin */}
            <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
               <div className="bg-emerald-600 p-4 text-white">
                  <h3 className="font-bold flex items-center gap-2">
@@ -178,10 +255,15 @@ Tặng kèm gọng nước và bàn đạp can Shimano. Xem xe tại nhà riêng
                  </div>
                  
                  <div className="grid grid-cols-2 gap-3">
-                    <button className="flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-bold transition-colors">
+                    <button onClick={handleReject} className="flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-bold transition-colors">
                        <XCircle size={18} /> Từ chối
                     </button>
-                    <button className="flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all">
+                    
+                    {/* ĐÃ GẮN HÀM onClick={handleApprove} VÀO ĐÂY */}
+                    <button 
+                       onClick={handleApprove}
+                       className="flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all"
+                    >
                        <CheckCircle size={18} /> Phê duyệt
                     </button>
                  </div>
@@ -189,45 +271,45 @@ Tặng kèm gọng nước và bàn đạp can Shimano. Xem xe tại nhà riêng
            </div>
 
            {/* 2. Thông tin người bán */}
-           <div className="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-sm">
-              <h3 className="font-bold text-[#111813] mb-4 border-b border-gray-100 pb-2">Thông tin người bán</h3>
-              
-              <div className="flex items-center gap-3 mb-4">
-                 <img src={listing.seller.avatar} alt="Seller" className="w-12 h-12 rounded-full border border-gray-200" />
-                 <div>
-                    <div className="font-bold text-[#111813] text-base">{listing.seller.name}</div>
-                    {listing.seller.verified && (
-                       <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded mt-0.5 w-fit">
-                          <Shield size={10} /> Tài khoản xác thực
-                       </span>
-                    )}
-                 </div>
-              </div>
+           {/* 2. Thông tin người bán */}
+<div className="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-sm">
+   <h3 className="font-bold text-[#111813] mb-4 border-b border-gray-100 pb-2">Thông tin người bán</h3>
+   
+   <div className="flex items-center gap-3 mb-4">
+      {/* Không có link ảnh avatar, nên dùng chữ cái đầu của Tên làm Avatar mặc định */}
+      <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700 border border-emerald-200 text-xl uppercase">
+         {listingData?.seller?.fullName?.charAt(0) || 'U'}
+      </div>
+      <div className="flex flex-col">
+         <div className="font-bold text-[#111813] text-base">{listingData?.seller?.fullName || 'Chưa cập nhật'}</div>
+         <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded mt-0.5 w-fit">
+            Thành viên BikeStore
+         </span>
+      </div>
+   </div>
 
-              <div className="space-y-3 text-sm">
-                 <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-gray-500">Độ uy tín</span>
-                    <span className="font-bold flex items-center gap-1">
-                       {listing.seller.rating} <Star size={12} className="text-yellow-500 fill-yellow-500" />
-                       <span className="text-gray-400 text-xs font-normal">({listing.seller.ratingCount} đánh giá)</span>
-                    </span>
-                 </div>
-                 <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-gray-500">Tham gia</span>
-                    <span className="font-medium text-[#111813]">{listing.seller.joinTime}</span>
-                 </div>
-                 <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                    <span className="text-gray-500">Lịch sử đăng</span>
-                    <span className="font-medium text-[#111813]">
-                       {listing.seller.sales} tin <span className="text-xs text-gray-400 font-normal">({listing.seller.successRate})</span>
-                    </span>
-                 </div>
-              </div>
+   <div className="space-y-3 text-sm">
+      <div className="flex justify-between items-center py-2 border-b border-gray-50">
+         <span className="text-gray-500">Email</span>
+         <span className="font-medium text-[#111813]">{listingData?.seller?.email || 'Không có'}</span>
+      </div>
+      <div className="flex justify-between items-center py-2 border-b border-gray-50">
+         <span className="text-gray-500">Số điện thoại</span>
+         <span className="font-bold text-[#111813]">{listingData?.seller?.phoneNumber || 'Không có'}</span>
+      </div>
+      <div className="flex justify-between items-center py-2 border-b border-gray-50">
+         <span className="text-gray-500">ID Người bán</span>
+         {/* ID khá dài nên dùng truncate để cắt bớt, di chuột vào sẽ thấy toàn bộ (thẻ title) */}
+         <span className="font-mono text-xs text-gray-400 max-w-[120px] truncate" title={listingData?.seller?.id}>
+            {listingData?.seller?.id}
+         </span>
+      </div>
+   </div>
 
-              <button className="w-full mt-4 flex items-center justify-center gap-2 text-emerald-600 text-xs font-bold hover:underline">
-                 Xem hồ sơ chi tiết <ExternalLink size={12} />
-              </button>
-           </div>
+   <button className="w-full mt-4 flex items-center justify-center gap-2 text-emerald-600 text-xs font-bold hover:underline">
+      Xem hồ sơ chi tiết <ExternalLink size={12} />
+   </button>
+</div>
 
            {/* 3. Tiêu chuẩn cộng đồng */}
            <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100">

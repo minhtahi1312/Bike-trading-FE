@@ -61,6 +61,7 @@ export default function Homebuyer() {
         if (bikeId) {
           ids.add(bikeId);
           wishlistBikes.push({
+            listingId: item.id,
             id: bikeId,
             name: bikeData.title || bikeData.name || "Chưa có tên xe",
             price: bikeData.price ? `${bikeData.price.toLocaleString("vi-VN")} đ` : "0 đ",
@@ -85,7 +86,8 @@ export default function Homebuyer() {
       // Vì data là một Array, chúng ta map trực tiếp trên data
       // Nếu data có thể null/undefined, dùng (data || [])
       const formattedBikes = (data || []).map((item) => ({
-        id: item.bikeId || item.id,
+        listingId: item.id,
+        id: item.bikeId,
         name: item.title || "Chưa có tên xe",
 
         price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
@@ -205,9 +207,9 @@ export default function Homebuyer() {
                 </div>
                 {watchedBikes.map((bike) => (
                   <div
-                    key={bike.id}
+                    key={bike.listingId}
                     className="flex gap-3 items-center p-2 hover:bg-[#f9fafb] rounded-lg transition-colors cursor-pointer group"
-                    onClick={() => navigate(`/homebuyer/details/${bike.id}`)}
+                    onClick={() => navigate(`/homebuyer/details/${bike.listingId}`)}
                   >
                     <div
                       className="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0"
@@ -324,9 +326,9 @@ export default function Homebuyer() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {bikes.map((bike) => (
                     <div
-                      key={bike.id}
+                      key={bike.listingId}
                       className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
-                      onClick={() => navigate(`/homebuyer/details/${bike.id}`)}
+                      onClick={() => navigate(`/homebuyer/details/${bike.listingId}`)}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">
                         {bike.verified && (
@@ -421,7 +423,7 @@ export default function Homebuyer() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

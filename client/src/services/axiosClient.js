@@ -207,6 +207,7 @@ const getMyOrder = async (id) => {
 
 const getBikeDetail = async (id) => {
   try {
+
     const response = await axiosClient.get(`/api/buyer/listings/${id}`, {
       // params: { id: listingId }
     });

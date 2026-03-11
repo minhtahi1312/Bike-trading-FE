@@ -10,27 +10,28 @@ const BikeMarketDetail = () => {
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     useEffect(() => {
-        const fetchBikeDetail = async () => {
-            if (!id) return; // Nếu không có id thì không gọi API
+        const fetchListingDetail = async () => {
+            if (!id) return;
 
             try {
                 setLoading(true);
+                // GIẢ SỬ: Bạn đổi hàm API thành getListingDetail hoặc truyền đúng endpoint của Listing
                 const data = await getBikeDetail(id);
-                console.log("Lỗi khi tải thông tin xe:", data);
-                // Lưu dữ liệu vào state (kiểm tra lại API trả về data trực tiếp hay qua trường data.data)
+                console.log("👉 DỮ LIỆU TỪ API TRẢ VỀ:", data); // Thêm dòng này!                // Nếu API trả về Listing object chứa Bike object bên trong (ví dụ: data.bike)
+                // Bạn có thể cần setBike(data.bike) tùy vào cấu trúc JSON của Backend
                 setBike(data);
+
                 setError(null);
             } catch (err) {
-                console.error("Lỗi khi tải thông tin xe:", err);
-                setError('Không thể tải thông tin xe đạp. Vui lòng thử lại sau.');
+                console.error("Lỗi khi tải thông tin từ Listing ID:", err);
+                setError('Không thể tìm thấy tin đăng này.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchBikeDetail();
+        fetchListingDetail();
     }, [id]);
 
     // 1. Hiển thị trạng thái đang tải
@@ -67,13 +68,14 @@ const BikeMarketDetail = () => {
     }
 
     // --- RENDER GIAO DIỆN CHÍNH ---
+    // --- RENDER GIAO DIỆN CHÍNH ---
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
                 <div className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth bg-[#f6f8f6] dark:bg-[#102216] 
-                    [&::-webkit-scrollbar]:!hidden 
-                    [-ms-overflow-style:none] 
-                    [scrollbar-width:none]">
+                    [&::-webkit-scrollbar]:!hidden 
+                    [-ms-overflow-style:none] 
+                    [scrollbar-width:none]">
                     <div className="max-w-[1200px] mx-auto flex flex-col gap-6">
 
                         {/* Header / Actions */}
@@ -83,12 +85,12 @@ const BikeMarketDetail = () => {
                                     <h2 className="text-[#111813] dark:text-white text-2xl lg:text-3xl font-bold leading-tight">
                                         {bike.title}
                                     </h2>
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${bike.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
-                                        {bike.status === 'active' ? 'Đang hiển thị' : 'Đã bán / Ẩn'}
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${bike.status === 3 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
+                                        {bike.status === 3 ? 'Đang hiển thị' : 'Đã bán / Ẩn'}
                                     </span>
                                 </div>
                                 <p className="text-[#637588] dark:text-[#a0aec0] text-sm mt-1">
-                                    Đăng ngày {bike.postedDate} • Mã tin: #{bike.listingCode || id}
+                                    Đăng ngày {new Date(bike.createdAt).toLocaleDateString('vi-VN')} • Mã tin: #{bike.listingId || id}
                                 </p>
                             </div>
                         </div>
@@ -98,22 +100,51 @@ const BikeMarketDetail = () => {
                             <div className="xl:col-span-2 flex flex-col gap-6">
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-4 shadow-sm">
                                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 mb-4 relative group">
-                                        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${bike.images?.[0] || ''}")` }}></div>
-                                        <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm flex items-center gap-2">
+
+                                        {/* HIỂN THỊ MAIN MEDIA: Nếu media đầu tiên là video thì hiện <video>, ngược lại hiện ảnh */}
+                                        {(bike?.bikes?.[0]?.medias?.[0]?.videoUrl || bike?.bikes?.[0]?.medias?.[0]?.video) ? (
+                                            <video
+                                                src={bike?.bikes?.[0]?.medias?.[0]?.videoUrl || bike?.bikes?.[0]?.medias?.[0]?.video}
+                                                controls
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${bike?.bikes?.[0]?.medias?.[1]?.image || bike?.bikes?.[0]?.medias?.[0]?.image || ''}")` }}></div>
+                                        )}
+
+                                        <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm flex items-center gap-2 z-10">
                                             <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-                                            1/{bike.images?.length || 0}
+                                            1/{bike?.bikes?.[0]?.medias?.length || 0}
                                         </div>
                                     </div>
+
                                     <div className="grid grid-cols-4 gap-4">
-                                        {(bike.images || []).slice(0, 4).map((img, index) => (
-                                            <div key={index} className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity ${index === 0 ? 'border-2 border-[#2bee6c]' : ''} ${index === 3 && bike.images?.length > 4 ? 'relative' : ''}`} style={{ backgroundImage: `url("${img}")` }}>
-                                                {index === 3 && bike.images?.length > 4 && (
-                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg text-white font-bold text-lg">
-                                                        +{bike.images.length - 4}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                        {(bike?.bikes?.[0]?.medias || []).slice(0, 4).map((media, index) => {
+                                            // Kiểm tra xem phần tử này có phải video không
+                                            const isVideo = media.videoUrl || media.video;
+
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity relative ${index === 0 ? 'border-2 border-[#2bee6c]' : ''}`}
+                                                    style={{ backgroundImage: `url("${media.image || ''}")` }}
+                                                >
+                                                    {/* NẾU LÀ VIDEO: Hiện icon Play ở giữa ảnh thu nhỏ */}
+                                                    {isVideo && (
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                                                            <span className="material-symbols-outlined text-white text-3xl drop-shadow-md">play_circle</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* NẾU LÀ ẢNH CUỐI CÙNG VÀ CÒN NHIỀU ẢNH KHÁC: Hiện lớp phủ +số lượng */}
+                                                    {index === 3 && bike?.bikes?.[0]?.medias?.length > 4 && (
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg text-white font-bold text-lg">
+                                                            +{bike?.bikes?.[0]?.medias?.length - 4}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -132,10 +163,10 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-2xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-md flex flex-col gap-6">
                                     <div className="flex justify-between items-start">
                                         <div className="flex flex-col gap-2">
-                                            <h2 className="text-2xl font-extrabold text-[#111813] dark:text-white tracking-tight">{bike.modelName}</h2>
+                                            <h2 className="text-2xl font-extrabold text-[#111813] dark:text-white tracking-tight">{bike?.bikes?.[0]?.brand} {bike?.bikes?.[0]?.category}</h2>
                                             <div className="inline-flex items-center w-fit px-3 py-1 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-400 rounded-full">
                                                 <span className="size-1.5 bg-green-500 rounded-full mr-2"></span>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider">Tình trạng: {bike.condition}</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">Độ mới: {bike?.bikes?.[0]?.overall}</span>
                                             </div>
                                         </div>
                                         <button className="text-gray-300 hover:text-red-500 transition-colors">
@@ -144,22 +175,17 @@ const BikeMarketDetail = () => {
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 text-[#637588] dark:text-[#a0aec0] text-[10px] font-bold uppercase tracking-widest">
-                                        <span>Model {bike.year}</span>
+                                        <span>Khung {bike?.bikes?.[0]?.frameMaterial}</span>
                                         <span>•</span>
-                                        <span>Size {bike.size}</span>
+                                        <span>Size {bike?.bikes?.[0]?.frameSize}</span>
                                         <span>•</span>
-                                        <span>Đã đi {bike.mileage}km</span>
+                                        <span>{bike?.bikes?.[0]?.brakeType} Brake</span>
                                     </div>
 
                                     <div className="flex items-baseline gap-3">
                                         <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400 tracking-tight">
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bike.price || 0)}
+                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bike?.bikes?.[0]?.price || 0)}
                                         </span>
-                                        {bike.originalPrice && (
-                                            <span className="text-sm text-gray-400 line-through font-medium">
-                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bike.originalPrice)}
-                                            </span>
-                                        )}
                                     </div>
 
                                     <div className="flex flex-col gap-3 pt-2">
@@ -184,15 +210,39 @@ const BikeMarketDetail = () => {
                                             </h4>
                                             <div className="grid grid-cols-2 gap-y-2 text-sm">
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Thương hiệu</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike.specs?.brand}</div>
-                                                <div className="text-[#637588] dark:text-[#a0aec0]">Dòng xe</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike.specs?.model}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.brand || 'N/A'}</div>
+
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Loại xe</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike.specs?.type}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.category || 'N/A'}</div>
+
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Kích thước</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">Size {bike.specs?.size}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">Size {bike?.bikes?.[0]?.frameSize || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Chất liệu khung</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.frameMaterial || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Màu sơn</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.paint || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Bộ truyền động</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.groupset || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Vận hành</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.operating || 'N/A'}</div>
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Vành / Lốp</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.tireRim || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Loại phanh</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.brakeType || 'N/A'}</div>
+
+                                                <div className="text-[#637588] dark:text-[#a0aec0]">Tổng thể</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.overall || 'N/A'}</div>
+
                                             </div>
                                         </div>
+
+
+
                                     </div>
                                 </div>
 

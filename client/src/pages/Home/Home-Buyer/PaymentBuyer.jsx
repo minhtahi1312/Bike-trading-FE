@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { getOrder } from "../../../services/axiosClient";
-import { useNavigate, useParams } from "react-router-dom";
+import { getOrder, getPayos } from "../../../services/axiosClient";
+import { data, useNavigate, useParams } from "react-router-dom";
+import { QrCode } from "react-qr-code";
 
 export default function PaymentBuyer() {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null); // Đổi thành null vì order là 1 object
-  const { orderId } = useParams(); // Sửa lỗi chính tả orerId -> orderId
+  const { id } = useParams(); // Sửa lỗi chính tả orerId -> orderId
 
   const loadOrder = async () => {
     try {
       // Lưu ý: Cần truyền orderId vào hàm getOrder nếu API yêu cầu
-      const data = await getOrder(orderId);
+      console.log("🔍 Lấy thông tin đơn hàng với ID:", id);
+      const data = await getOrder(id);
       console.log("✅ Dữ liệu đơn hàng:", data);
+      const qrdata = await getPayos(id);
+      console.log("✅ Dữ liệu thanh toán Payos:", qrdata);
       setOrder(data);
     } catch (err) {
       console.error("❌ Lỗi lấy thông tin đơn hàng:", err);
@@ -20,7 +24,7 @@ export default function PaymentBuyer() {
 
   useEffect(() => {
     loadOrder();
-  }, [orderId]);
+  },);
 
   if (!order) return <div className="text-center py-10">Đang tải dữ liệu...</div>;
 
@@ -33,6 +37,12 @@ export default function PaymentBuyer() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-[#111813] dark:text-white mb-2">Xác nhận đơn hàng</h1>
               <p className="text-[#61896f] dark:text-gray-400">Vui lòng kiểm tra lại thông tin sản phẩm và thực hiện chuyển khoản.</p>
+            </div>
+            <div>
+              <QrCode value={data.checkoutUrl}
+              size={200}
+
+              />
             </div>
 
             {/* Thông tin nhận hàng */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 // Đảm bảo đường dẫn này trỏ đúng đến file chứa hàm getBikeDetail của bạn
-import { getBikeDetail } from '../../../services/axiosClient';
+import { addCartItem, getBikeDetail } from '../../../services/axiosClient';
 
 const BikeMarketDetail = () => {
     const { id } = useParams(); // Lấy ID từ URL (VD: /bike-market/123 -> id = 123)
@@ -33,6 +33,21 @@ const BikeMarketDetail = () => {
 
         fetchListingDetail();
     }, [id]);
+
+    const handleAddCartItem = async () => {
+        try {
+            // Gọi API để thêm vào giỏ hàng
+            await addCartItem(bike.bikes[0].id);
+            alert('Đã thêm vào giỏ hàng!');
+        } catch (err) {  
+            console.error("Lỗi khi thêm vào giỏ hàng:", err);
+                        alert('thêm cc!');
+
+           } 
+    
+    };
+
+
 
     // 1. Hiển thị trạng thái đang tải
     if (loading) {
@@ -193,7 +208,7 @@ const BikeMarketDetail = () => {
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>
-                                        <button className="flex items-center justify-center gap-3 bg-[#10b981] text-white font-bold py-4 rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/10 group">
+                                        <button onClick={handleAddCartItem  } className="flex items-center justify-center gap-3 bg-[#10b981] text-white font-bold py-4 rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">add_shopping_cart</span>
                                             Thêm vào giỏ hàng
                                         </button>

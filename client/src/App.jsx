@@ -53,7 +53,7 @@ function App() {
           <Route index element={<Homebuyer />} />
           <Route path="wishlist" element={<Wishlistbuyer />} />
           <Route path="cart" element={<CartBuyer />} />
-          <Route path="payment" element={<PaymentBuyer />} />
+          <Route path="payment/:id" element={<PaymentBuyer />} />
           <Route path="details/:id" element={<BikeDetailPage />} />
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />

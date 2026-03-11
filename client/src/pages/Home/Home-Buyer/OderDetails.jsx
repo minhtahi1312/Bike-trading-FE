@@ -93,17 +93,11 @@ export default function OrderDetail() {
     ];
 
     const currentStatusIndex = orderSteps.findIndex(s => s.id === order.status);
-    // If canceled or other, handle separately or show progress up to current if match
-
-    const isStepActive = (index) => {
-        if (order.status === "Canceled") return false;
-        return index <= currentStatusIndex;
-    };
 
     return (
         <div className="bg-background-light dark:bg-background-dark text-[#111813] dark:text-white min-h-screen flex flex-col font-display">
             {/* Main Content */}
-            <main className="flex-1 w-full  px-4 md:px-10 py-8">
+            <main className="flex-1 w-full px-4 md:px-10 py-8">
                 <button
                     onClick={() => navigate('/homebuyer/order')}
                     className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary mb-6 transition-colors"
@@ -132,36 +126,56 @@ export default function OrderDetail() {
                     </div>
                 </div>
 
-                {/* Stepper Process */}
+                {/* Stepper Process Mới */}
                 {order.status !== "Canceled" && (
-                    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 p-8 mb-6 shadow-sm">
-                        <div className="flex items-center justify-between relative">
-                            {orderSteps.map((step, index) => (
-                                <React.Fragment key={step.id}>
-                                    <div className="flex flex-col items-center z-10 w-24">
-                                        <div className={`size-10 rounded-full flex items-center justify-center mb-2 shadow-lg ${isStepActive(index)
-                                            ? "bg-white border border-emerald-500 text-emerald-500 shadow-emerald-500/20"
-                                            : "bg-gray-100 border border-gray-300 text-gray-400"
-                                            }`}>
-                                            <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                                                {typeof step.icon === 'string' ? step.icon : step.icon}
-                                            </span>
+                    <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border p-8 mb-6 shadow-sm">
+                        <div className="flex items-center justify-between relative max-w-4xl mx-auto">
+                            {/* LINE */}
+                            <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700" />
+
+                            {/* ACTIVE PROGRESS LINE */}
+                            <div
+                                className="absolute top-5 left-0 h-1 bg-emerald-500 transition-all duration-500"
+                                style={{
+                                    width: `${Math.max(0, (currentStatusIndex / (orderSteps.length - 1)) * 100)}%`,
+                                }}
+                            />
+
+                            {orderSteps.map((step, index) => {
+                                const isActive = index === currentStatusIndex;
+                                const isDone = index < currentStatusIndex;
+
+                                return (
+                                    <div
+                                        key={step.id}
+                                        className="flex flex-col items-center relative z-10 w-24"
+                                    >
+                                        <div
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                                            ${isDone || isActive
+                                                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                                    : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                                                }`}
+                                        >
+                                            {/* Xử lý icon: Nếu là chuỗi thì dùng Material Symbols, nếu là component thì hiển thị trực tiếp */}
+                                            {typeof step.icon === 'string' ? (
+                                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
+                                                    {step.icon}
+                                                </span>
+                                            ) : (
+                                                step.icon
+                                            )}
                                         </div>
-                                        <span className={`text-xs font-semibold text-center whitespace-nowrap ${isStepActive(index) ? "text-emerald-600" : "text-gray-400"
-                                            }`}>
+
+                                        <p
+                                            className={`text-xs mt-2 font-medium text-center whitespace-nowrap
+                                            ${isDone || isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}
+                                        >
                                             {step.label}
-                                        </span>
+                                        </p>
                                     </div>
-                                    {index < orderSteps.length - 1 && (
-                                        <div className="flex-1 flex justify-center items-start pt-2">
-                                            <span className={`material-symbols-outlined text-2xl ${isStepActive(index + 1) ? "text-emerald-500/50" : "text-gray-200"
-                                                }`}>
-                                                chevron_right
-                                            </span>
-                                        </div>
-                                    )}
-                                </React.Fragment>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

@@ -201,10 +201,20 @@ const getBikeDetail = async (id) => {
     throw error;
   }
 };
+
+const getPayos = async (id) => {
+  try {
+    const response = await axiosClient.post(`/api/payos/checkout`, { orderId: id });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 /**
  * ===== EXPORTS =====
  */
 export {
+  getPayos,
   getBikeDetail,
   getCart,
   getCartItems,

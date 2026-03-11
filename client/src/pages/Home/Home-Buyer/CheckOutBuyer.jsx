@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckOut, getCart, getCartItems } from '../../../services/axiosClient';
+import { CheckOut, getCart, getCartItems, getMyOrder, getPayos } from '../../../services/axiosClient';
 import { useEffect } from 'react';
 
 const CheckoutPage = () => {
@@ -37,10 +37,16 @@ const CheckoutPage = () => {
     try {
       const result = await CheckOut(requestBody);
       console.log("Thanh toán thành công!", result);
+      const orders= await getMyOrder(); // Giả sử bạn có hàm này để lấy ID đơn hàng vừa tạo
       // Chuyển hướng sang trang thanh toán sau khi tạo đơn thành công
-      navigate('/homebuyer/payment');
+      const orderId = orders[0].id; // Lấy ID của đơn hàng vừa tạo (giả sử là phần tử đầu tiên trong mảng)
+      // navigate(`/homebuyer/payment/${orderId}`);
+      const urlQR = await getPayos(orderId);
+      console.log("URL QR Code:", urlQR.data.checkoutUrl);
+  window.location.href = urlQR.data.checkoutUrl;
+    
     } catch (error) {
-      console.error("Lỗi khi thanh toán", error);
+      console.error("Lỗi khi thanh toán", error); 
       alert("Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.");
     }
   };

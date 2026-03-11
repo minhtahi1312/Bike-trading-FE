@@ -26,13 +26,15 @@ export default function Wishlist() {
       console.log("✅ Wishlist page response:", response);
       
       const dataArray = Array.isArray(response) ? response : response?.data || [];
-      
+      console.log("✅ Wishlist page data array:", dataArray);
       const formattedData = dataArray.map(item => {
         // Handle nested bike object if present, otherwise assume item is the bike
         const bikeData = item.bike || item;
-        const bikeId = item.bikeId || bikeData.id || item.id;
+        const bikeId = item.bikeId || bikeData.id;
+        const listingId = item.listingId ; // Fallback to bikeId if listingId is missing
         
         return {
+          listingId: listingId,
           id: bikeId,                     // ID của xe để xem chi tiết
           wishlistId: item.id,            // ID bản ghi wishlist
           bikeId: bikeId,                 // ID của xe để xóa từ wishlist
@@ -113,9 +115,9 @@ export default function Wishlist() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {bikes.map((b) => (
-              <article key={b.wishlistId || b.bikeId} className={`group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e5e7eb] dark:border-gray-700 hover:border-primary/50 transition-all duration-300 ${b.sold ? "opacity-75" : ""}`}>
+              <article key={b.wishlistId || b.listingId} className={`group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e5e7eb] dark:border-gray-700 hover:border-primary/50 transition-all duration-300 ${b.sold ? "opacity-75" : ""}`}>
                 {/* Ảnh sản phẩm */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer" onClick={() => !b.sold && handleView(b.id)}>
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer" onClick={() => navigate(`/homebuyer/details/${b.listingId}`)}>
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" 
                     style={{ backgroundImage: `url('${b.image}')` }} 

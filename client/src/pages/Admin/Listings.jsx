@@ -1,80 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from "../../services/axiosClient";
 import {
   Plus, Search, Calendar, Filter, Eye, Check, X,
   MoreVertical, Star, AlertCircle, Clock
 } from 'lucide-react';
 
 const Listings = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState(() => {
+  return sessionStorage.getItem('adminListingTab') || 'pending';
+});
+  const [data, setData] = useState([]); 
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const fetchListData = async (tabId) => {
+  setIsLoading(true);
+  try {
+    // Ánh xạ Tab ID với Endpoint tương ứng dựa trên ảnh bạn cung cấp
+    const apiMap = {
+      'pending': '/api/admin/listing/pending-list',     //
+      'inspecting': '/api/admin/listing/inspecting-list', //
+      'public': '/api/admin/listing/active-list',        //
+      'rejected': '/api/admin/listing/rejected-list',    //
+      'all': '/api/admin/listing/pending-list'           // Tạm thời để pending khi chưa có API tổng hợp
+    };
+
+    const endpoint = apiMap[tabId] || apiMap.pending;
+    const response = await axiosClient.get(endpoint);
+    
+    // Nếu API rỗng (như ảnh 4), response.data sẽ là []
+    setData(response.data);
+  } catch (error) {
+    console.error(`Lỗi fetch API cho tab ${tabId}:`, error);
+    setData([]); 
+  } finally {
+    setIsLoading(false);
+  }
+};
+useEffect(() => {
+  sessionStorage.setItem('adminListingTab', activeTab);
+  fetchListData(activeTab);
+}, [activeTab]);
+
   const handleViewDetail = (id) => {
     navigate(`/admin/listings/${id}`);
   };
-  // Dữ liệu giả lập (Mock Data)
-  const listings = [
-    {
-      id: 1,
-      code: '#BM-29384',
-      name: 'Honda Winner X Sport',
-      year: 2022,
-      km: '12,000 km',
-      image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&q=80',
-      seller: { name: 'Nguyễn Tuấn', avatar: 'https://ui-avatars.com/api/?name=Nguyen+Tuan&background=random', rating: 4.8 },
-      price: '28.500.000 ₫',
-      inspectorStatus: 'Chưa kiểm',
-      inspectorColor: 'gray',
-      status: 'Chờ duyệt',
-      statusColor: 'yellow',
-      time: '2 phút trước'
-    },
-    {
-      id: 2,
-      code: '#BM-29383',
-      name: 'Yamaha Exciter 155 VVA',
-      year: 2020,
-      km: '24,000 km',
-      image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&q=80',
-      seller: { name: 'Trần Văn B', avatar: 'https://ui-avatars.com/api/?name=Tran+Van&background=random', rating: 0 },
-      price: '31.000.000 ₫',
-      inspectorStatus: 'Đang kiểm',
-      inspectorColor: 'purple',
-      status: 'Chờ duyệt',
-      statusColor: 'yellow',
-      time: '15 phút trước'
-    },
-    {
-      id: 3,
-      code: '#BM-29380',
-      name: 'Honda SH 150i ABS',
-      year: 2023,
-      km: '5,000 km',
-      image: 'https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?w=500&q=80',
-      seller: { name: 'Hoàng Motor', avatar: 'https://ui-avatars.com/api/?name=Hoang+Motor&background=0D8ABC&color=fff', rating: 5.0, verified: true },
-      price: '85.000.000 ₫',
-      inspectorStatus: 'Đạt chuẩn',
-      inspectorColor: 'green',
-      status: 'Công khai',
-      statusColor: 'blue',
-      time: '1 giờ trước'
-    },
-    {
-      id: 4,
-      code: '#BM-29379',
-      name: 'Wave Alpha 110cc',
-      year: 2015,
-      km: 'Unknown',
-      // Dùng link ảnh từ nguồn cực kỳ ổn định (Wikimedia)
-      image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/da/d3/2014_Honda_Wave_110i.jpg/640px-2014_Honda_Wave_110i.jpg',
-      seller: { name: 'User 9283', avatar: null, rating: 0, reported: true },
-      price: '5.000.000 ₫',
-      inspectorStatus: 'Rủi ro',
-      inspectorColor: 'red',
-      status: 'Từ chối',
-      statusColor: 'red',
-      time: '2 giờ trước'
-    }
-  ];
+  
 
   const tabs = [
     { id: 'all', label: 'Tất cả' },
@@ -100,9 +71,9 @@ const Listings = () => {
     );
   };
 
-  // Hàm xử lý khi ảnh bị lỗi (QUAN TRỌNG)
+  // Hàm xử lý khi ảnh bị lỗi
   const handleImageError = (e) => {
-    e.target.src = "https://placehold.co/400x300?text=No+Image"; // Ảnh thay thế nếu link chính bị hỏng
+    e.target.src = "https://placehold.co/400x300?text=No+Image";
   };
 
   return (
@@ -116,16 +87,6 @@ const Listings = () => {
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center min-w-[100px]">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Cần duyệt</span>
-            <span className="text-xl font-bold text-[#111813]">15</span>
-          </div>
-          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center min-w-[100px]">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hôm nay</span>
-            <span className="text-xl font-bold text-[#111813]">42</span>
-          </div>
-        </div>
       </div>
 
       {/* MAIN CONTENT CARD */}
@@ -133,165 +94,192 @@ const Listings = () => {
 
         {/* TABS */}
         <div className="flex overflow-x-auto border-b border-[#e5e7eb] px-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-4 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id
-                  ? 'border-emerald-600 text-emerald-700'
-                  : 'border-transparent text-[#637588] hover:text-[#111813]'
-                }`}
-            >
-              {tab.label}
-              {tab.count && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+         {tabs.map((tab) => (
+  <button
+    key={tab.id}
+    onClick={() => setActiveTab(tab.id)}
+    className={`py-4 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${
+      activeTab === tab.id
+        ? 'border-emerald-600 text-emerald-700'
+        : 'border-transparent text-[#637588] hover:text-[#111813]'
+    }`}
+  >
+    {tab.label}
+    
+    {activeTab === tab.id && !isLoading && (
+      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 animate-in fade-in zoom-in">
+        {data.length}
+      </span>
+    )}
+  </button>
+))}
         </div>
 
-        {/* TOOLBAR */}
-        <div className="p-5 flex flex-col sm:flex-row gap-3 justify-between items-center bg-[#fcfdfd]">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo mã tin, tên xe, hoặc người bán..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-            />
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-[#637588]">
-              <Calendar size={16} /> Thời gian
-            </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-[#637588]">
-              <Filter size={16} /> Bộ lọc
-            </button>
-          </div>
-        </div>
+
 
         {/* TABLE */}
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
-                <th className="px-6 py-3 w-[50px]">
-                  <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Thông tin xe
                 </th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Thông tin xe</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Người bán</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Giá bán</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Inspector</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Trạng thái</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-right">Hành động</th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Người bán
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Giá bán
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
+                  Inspector
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-right">
+                  Hành động
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e7eb]">
-              {listings.map((item) => {
-                const isRiskyOrRejected = item.inspectorStatus === 'Rủi ro' || item.status === 'Từ chối';
+  
+  {isLoading ? (
+    <tr>
+      <td colSpan="6" className="px-6 py-20 text-center">
+        <div className="flex flex-col items-center gap-3">
+          {/* Vòng xoay loading */}
+          <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          <p className="text-sm text-gray-500 font-medium">Đang tải dữ liệu tin đăng...</p>
+        </div>
+      </td>
+    </tr>
+  ) : data && data.length > 0 ? (
+ 
+  data.map((item) => {
+      const isRiskyOrRejected = item.listingStatus === 'Rejected';
 
-                return (
-                  <tr
-                    key={item.id}
-                    className={`hover:bg-gray-50 group transition-colors border-b border-gray-100 ${
-                      isRiskyOrRejected ? 'opacity-50 bg-gray-50/50 grayscale-[30%]' : ''
-                    }`}
-                  >
-                    <td className="px-6 py-4">
-                      <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-                    </td>
+      return (
+        <tr
+          key={item.id}
+          className={`hover:bg-gray-50 group transition-colors border-b border-gray-100 ${
+            isRiskyOrRejected ? 'opacity-50 bg-gray-50/50 grayscale-[30%]' : ''
+          }`}
+        >
+          {/* Đã xóa phần Checkbox ở đây */}
 
-                    {/* Cột Thông tin xe */}
-                    <td className="px-6 py-4">
-                      <div className="flex gap-4">
-                        <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-50">
-                          {/* SỬA QUAN TRỌNG: Thêm onError để tự fix ảnh lỗi */}
-                          <img 
-                            src={item.image} 
-                            alt={item.name} 
-                            className="w-full h-full object-cover" 
-                            onError={handleImageError}
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-emerald-600 mb-0.5">{item.code}</span>
-                          <span className="text-sm font-bold text-[#111813] line-clamp-1">{item.name}</span>
-                          <div className="flex items-center gap-2 text-xs text-[#637588] mt-1">
-                            <span>{item.year}</span>
-                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span>{item.km}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
+          {/* 1. Thông tin xe (trước đó là mục 2) */}
+          <td className="px-6 py-4">
+            <div className="flex gap-4">
+              <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-50">
+                <img 
+                  src={item.thumbnail || "https://placehold.co/400x300?text=No+Image"} 
+                  alt={item.title}
+                  className="w-full h-full object-cover" 
+                  onError={handleImageError}
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-emerald-600 mb-0.5">#{item.id.substring(0, 8).toUpperCase()}</span>
+                <span className="text-sm font-bold text-[#111813] line-clamp-1">{item.title}</span>
+                <div className="flex items-center gap-2 text-xs text-[#637588] mt-1">
+                  <Clock size={10} /> 
+                  <span>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</span>
+                </div>
+              </div>
+            </div>
+          </td>
 
-                    {/* Cột Người bán */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {item.seller.avatar ? (
-                          <img src={item.seller.avatar} className="w-8 h-8 rounded-full border border-gray-200" alt="" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">U</div>
-                        )}
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1">
-                            <span className={`text-sm font-medium ${item.seller.reported ? 'text-red-600' : 'text-[#111813]'}`}>{item.seller.name}</span>
-                            {item.seller.verified && <Check size={12} className="text-blue-500 bg-blue-100 rounded-full p-0.5" />}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-[#637588]">
-                            <Star size={10} className="text-yellow-500 fill-yellow-500" />
-                            <span>{item.seller.rating || 'N/A'}</span>
-                            {item.seller.reported && <span className="text-red-500 ml-1 text-[10px] bg-red-50 px-1 rounded">Reported</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
+          {/* 2. Người bán */}
+          <td className="px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
+                {item.sellerName ? item.sellerName.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-[#111813]">{item.sellerName || 'Chưa rõ'}</span>
+                <span className="text-[10px] text-[#637588]">Thành viên BikeStore</span>
+              </div>
+            </div>
+          </td>
 
-                    {/* Cột Giá */}
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-[#111813]">{item.price}</div>
-                    </td>
+          {/* 3. Giá bán */}
+          <td className="px-6 py-4">
+            <div className="text-sm font-bold text-[#111813] whitespace-nowrap">
+              {item.price ? `${item.price.toLocaleString('vi-VN')} đ` : 'Liên hệ'}
+            </div>
+          </td>
 
-                    {/* Cột Inspector */}
-                    <td className="px-6 py-4 text-center">
-                      {renderBadge(item.inspectorStatus, item.inspectorColor)}
-                    </td>
+          {/* 4. Inspector */}
+          <td className="px-6 py-4 text-center">
+            {renderBadge(item.inspectorName || 'Chưa có', item.inspectorName === 'Chưa có' ? 'gray' : 'purple')}
+          </td>
 
-                    {/* Cột Trạng thái */}
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        {renderBadge(item.status, item.statusColor)}
-                        <span className="text-[10px] text-[#9ca3af] flex items-center gap-1">
-                          <Clock size={10} /> {item.time}
-                        </span>
-                      </div>
-                    </td>
+          {/* 5. Trạng thái */}
+          <td className="px-6 py-4 text-center">
+            <div className="flex flex-col items-center gap-1">
+              {(() => {
+                let text = 'Khác';
+                let color = 'blue';
 
-                    {/* Cột Hành động */}
-                    <td className="px-6 py-4 text-right">
-                      {item.status === 'Chờ duyệt' ? (
-                        <div className="flex justify-end gap-2">
-                          <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors" title="Duyệt ngay">
-                            <Check size={16} />
-                          </button>
-                          <button onClick={() => handleViewDetail(item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-200 transition-colors" title="Xem chi tiết">
-                            <Eye size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end gap-2">
-                          <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-                            <MoreVertical size={16} />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+                if (item.listingStatus === 'PendingApproval') {
+                  text = 'Chờ duyệt';
+                  color = 'yellow';
+                } else if (item.listingStatus === 'Rejected') {
+                  text = 'Từ chối';
+                  color = 'red';
+                } else if (item.listingStatus === 'Active') {
+                  if (item.bikeStatus === 'PendingInspection') {
+                    text = 'Đang kiểm định';
+                    color = 'purple';
+                  } else if (item.bikeStatus === 'Available') {
+                    text = 'Đã công khai';
+                    color = 'green';
+                  }
+                }
+
+                return renderBadge(text, color);
+              })()}
+              <span className="text-[10px] text-[#9ca3af] flex items-center gap-1">
+                <Clock size={10} /> {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+              </span>
+            </div>
+          </td>
+
+          {/* 6. Hành động */}
+          <td className="px-6 py-4 text-right">
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => handleViewDetail(item.id)} 
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                title="Xem chi tiết"
+              >
+                <Eye size={16} />
+              </button>
+            </div>
+          </td>
+        </tr>
+      );
+    })
+  ) : (
+    /* TRƯỜNG HỢP 3: DỮ LIỆU RỖNG (EMPTY) */
+    <tr>
+      <td colSpan="6" className="px-6 py-24 text-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+            <AlertCircle size={40} className="text-gray-300" />
+          </div>
+          <div className="max-w-xs mx-auto">
+            <p className="text-lg font-bold text-[#111813]">Chưa có tin đăng nào</p>
+            <p className="text-sm text-[#637588] mt-1">
+              Danh sách mục này hiện đang trống. Vui lòng quay lại sau hoặc kiểm tra các mục khác.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  )}
+</tbody>
           </table>
         </div>
 

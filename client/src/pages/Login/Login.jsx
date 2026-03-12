@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import axiosClient from "../../services/axiosClient";
 import { toast } from "react-toastify";
 import { FcGoogle } from "react-icons/fc";
+
 const RoleSelector = ({ role, setRole }) => {
   return (
     <div>
@@ -43,6 +44,7 @@ const LoginForm = ({ role, tab, setTab }) => {
   const navigate = useNavigate();
 
   // --- STATE ---
+  const [isAgreed, setIsAgreed] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -216,7 +218,10 @@ const LoginForm = ({ role, tab, setTab }) => {
   // 2. XỬ LÝ NÚT ĐĂNG KÝ
   const handleRegisterClick = async (e) => {
     e.preventDefault();
-
+    if (!isAgreed) {
+    toast.warning("Bạn phải đồng ý với Điều khoản dịch vụ để tiếp tục!");
+    return;
+    }
     // Validate dữ liệu
     if (!email || !password || !fullName || !phone) {
       toast.warning("Vui lòng nhập đầy đủ thông tin!");
@@ -449,6 +454,8 @@ const LoginForm = ({ role, tab, setTab }) => {
               type="checkbox"
               id="terms"
               style={{ marginTop: 4, width: "auto", marginRight: 8 }}
+              checked={isAgreed}
+            onChange={(e) => setIsAgreed(e.target.checked)}
             />
             <label
               htmlFor="terms"

@@ -13,7 +13,19 @@ export default function SellerListings() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const [sort, setSort] = useState("newest");
+
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const sortedListings = [...listings].sort((a, b) => {
+    if (sort === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt) || b.id - a.id;
+    } else {
+      return new Date(a.createdAt) - new Date(b.createdAt) || a.id - b.id;
+    }
+  });
+
+  // const pageSize = 10;
 
   const deleteListing = async (id) => {
     try {
@@ -35,7 +47,6 @@ export default function SellerListings() {
     }
   };
 
-  const [status, setStatus] = useState("");
   useEffect(() => {
     setLoading(true);
 
@@ -49,6 +60,7 @@ export default function SellerListings() {
     )
       .then((res) => res.json())
       .then((data) => {
+        console.log("LISTINGS:", data.items);
         setListings(data.items);
         setTotalPages(data.totalPages);
 
@@ -61,16 +73,16 @@ export default function SellerListings() {
     Draft: "Bản nháp",
     PendingApproval: "Chờ duyệt",
     Active: "Đã duyệt",
+    Inactive: "Ngừng hiển thị",
     Rejected: "Bị từ chối",
-    Sold: "Đã bán",
   };
 
   const statusStyle = {
     Draft: "bg-gray-100 text-gray-700",
     PendingApproval: "bg-yellow-100 text-yellow-700",
     Active: "bg-emerald-100 text-emerald-700",
+    Inactive: "bg-gray-200 text-gray-600",
     Rejected: "bg-red-100 text-red-700",
-    Sold: "bg-gray-300 text-gray-600",
   };
   const getVisiblePages = () => {
     const pages = [];
@@ -128,14 +140,18 @@ export default function SellerListings() {
           className="border rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Tất cả trạng thái</option>
-          <option value="Active">Đã duyệt</option>
+          <option value="Draft">Bản nháp</option>
           <option value="PendingApproval">Chờ duyệt</option>
-          <option value="Sold">Đã bán</option>
+          <option value="Active">Đã duyệt</option>
         </select>
 
-        <select className="border rounded-lg px-3 py-2 text-sm">
-          <option>Mới nhất</option>
-          <option>Cũ nhất</option>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
         </select>
       </div>
 
@@ -151,7 +167,7 @@ export default function SellerListings() {
         </div>
       )}
       <div className="space-y-4">
-        {listings.map((item) => (
+        {sortedListings.map((item) => (
           <div
             key={item.id}
             className="bg-white border rounded-xl p-4 flex gap-4"
@@ -192,7 +208,9 @@ export default function SellerListings() {
 
             <div className="flex flex-col items-end justify-between">
               <p className="font-bold text-emerald-600 text-lg">
-                {item.price?.toLocaleString()} đ
+                {item.price
+                  ? item.price.toLocaleString("vi-VN") + " đ"
+                  : "Chưa có giá"}
               </p>
 
               <div className="flex gap-2 justify-end">

@@ -47,10 +47,10 @@ export default function OrderDetail() {
 
     const getStatusInfo = (status) => {
         switch (status) {
-            case "Pending":
+            case "Paid":
                 return { text: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400" };
-            case "Processing":
-                return { text: "Đang xử lý", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" };
+            case "Confirmed":
+                return { text: "Đang chuẩn bị", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" };
             case "Shipping":
                 return { text: "Đang giao", color: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" };
             case "Completed":
@@ -87,9 +87,10 @@ export default function OrderDetail() {
     const statusInfo = getStatusInfo(order.status);
     const orderSteps = [
         { id: "Pending", label: "Đã đặt hàng", icon: <NotebookText size={20} /> },
-        { id: "Processing", label: "Đã thanh toán", icon: "payments" },
-        { id: "Shipping", label: "Đang giao", icon: "local_shipping" },
-        { id: "Completed", label: "Hoàn tất", icon: "verified" }
+      { id: "Paid", label: "Chờ xác nhận", icon: "receipt_long" }, // Thay icon phù hợp nếu cần
+    { id: "Confirmed", label: "Đang chuẩn bị", icon: "inventory_2" },
+    { id: "Shipping", label: "Đang giao", icon: "local_shipping" },
+    { id: "Completed", label: "Hoàn tất", icon: "check_circle" },
     ];
 
     const currentStatusIndex = orderSteps.findIndex(s => s.id === order.status);
@@ -118,37 +119,39 @@ export default function OrderDetail() {
                             Ngày đặt hàng: {formatDate(order.createdAt)} | {statusInfo.text}
                         </p>
                     </div>
-                    
+
                 </div>
 
                 {/* Stepper Process Mới */}
-               {order.status !== "Canceled" && (
-    // 1. Đổi p-8 thành py-6 px-2 sm:px-6 để giảm khoảng trắng 2 bên
+                {order.status !== "Canceled" && (
     <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border py-6 px-2 sm:px-6 mb-6 shadow-sm overflow-hidden">
-        {/* 2. Đổi max-w-4xl thành w-full để thanh dãn tối đa chiều ngang */}
         <div className="flex items-center justify-between relative w-full mx-auto">
-            
-            {/* LINE NỀN - Đổi thành left-12 right-12 để đường kẻ vừa khớp từ tâm icon */}
+
+            {/* ĐƯỜNG NỀN XÁM */}
             <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 dark:bg-gray-700" />
 
-            {/* ACTIVE PROGRESS LINE - Bọc trong 1 thẻ khung để tính phần trăm width chuẩn xác */}
+            {/* ACTIVE PROGRESS LINE - Đã đồng bộ với currentStatusIndex */}
             <div className="absolute top-5 left-12 right-12 h-1">
                 <div
                     className="h-full bg-emerald-500 transition-all duration-500"
                     style={{
-                        width: `${Math.max(0, (currentStatusIndex / (orderSteps.length - 1)) * 100)}%`,
+                        // Nếu status không tìm thấy (index = -1), set width = 0
+                        width: currentStatusIndex >= 0 
+                            ? `${(currentStatusIndex / (orderSteps.length - 1)) * 100}%` 
+                            : "0%",
                     }}
                 />
             </div>
 
+            {/* RENDER CÁC BƯỚC */}
             {orderSteps.map((step, index) => {
-                const isActive = index === currentStatusIndex;
-                const isDone = index < currentStatusIndex;
+                const isActive = index === currentStatusIndex; // Đang ở bước này
+                const isDone = index < currentStatusIndex;     // Đã qua bước này
 
                 return (
                     <div
                         key={step.id}
-                        className="flex flex-col items-center relative z-10 w-24" // w-24 = 6rem = 96px (tâm là 48px = left-12)
+                        className="flex flex-col items-center relative z-10 w-24" // Tâm là 48px
                     >
                         <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300

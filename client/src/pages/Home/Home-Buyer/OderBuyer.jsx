@@ -11,9 +11,9 @@ export default function OrderBuyer() {
   // Tabs danh mục
   const tabs = [
     { id: "all", name: "Tất cả" },
-    { id: "processing", name: "Đang xử lý" },
-    { id: "shipping", name: "Đang giao" },
     { id: "waiting", name: "Chờ xác nhận" },
+
+    { id: "shipping", name: "Đang giao" },
     { id: "completed", name: "Hoàn tất" },
     { id: "canceled", name: "Đã hủy" },
   ];
@@ -53,17 +53,17 @@ export default function OrderBuyer() {
   const getStatusInfo = (status) => {
     switch (String(status)) {
       case "Pending":
-        return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Paid":
+        return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Confirmed":
-      case "Processing":
-        return { text: "Đang xử lý", tabId: "processing", colorClass: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" };
+        return { text: "Đang chuẩn bị", tabId: "processing", colorClass: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" };
+      // case "Processing":
       case "Shipping":
         return { text: "Đang giao", tabId: "shipping", colorClass: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300" };
       case "Completed":
         return { text: "Hoàn tất", tabId: "completed", colorClass: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300" };
-      case "Cancelled": 
-      case "Canceled":  
+      // case "Cancelled":
+      case "Cancelled":
         return { text: "Đã hủy", tabId: "canceled", colorClass: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" };
       default:
         return { text: status || "Không rõ", tabId: "all", colorClass: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" };
@@ -88,14 +88,14 @@ export default function OrderBuyer() {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display">
       <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-10 py-8">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-[#111813] dark:text-white mb-2">Đơn hàng của tôi</h1>
             <p className="text-gray-500 dark:text-gray-400">Quản lý và theo dõi quá trình mua bán xe đạp của bạn</p>
           </div>
-          
+
         </div>
 
         {/* Tabs */}
@@ -105,11 +105,10 @@ export default function OrderBuyer() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                     ? "border-[#111813] dark:border-primary text-[#111813] dark:text-primary font-semibold"
                     : "border-transparent text-gray-500 hover:text-[#111813] dark:hover:text-white"
-                }`}
+                  }`}
               >
                 {tab.name}
               </button>
@@ -128,7 +127,7 @@ export default function OrderBuyer() {
               return (
                 <section key={order?.id} className="group bg-surface-light dark:bg-surface-dark rounded-xl border border-primary/40 dark:border-primary/30 p-4 md:p-5 shadow-sm hover:shadow-md transition-all duration-200">
                   <div className="flex flex-col md:flex-row gap-5">
-                    
+
                     {/* Hình ảnh mô phỏng */}
                     <div className="shrink-0 relative">
                       <div className="w-full md:w-[160px] aspect-[4/3] rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
@@ -185,9 +184,9 @@ export default function OrderBuyer() {
               );
             })
           ) : (
-             <div className="text-center py-10 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-               <p className="text-gray-500 dark:text-gray-400">Không có đơn hàng nào để hiển thị.</p>
-             </div>
+            <div className="text-center py-10 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+              <p className="text-gray-500 dark:text-gray-400">Không có đơn hàng nào để hiển thị.</p>
+            </div>
           )}
         </div>
 

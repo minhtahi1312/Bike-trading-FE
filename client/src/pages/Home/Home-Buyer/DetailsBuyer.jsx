@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 // Đảm bảo đường dẫn này trỏ đúng đến file chứa hàm getBikeDetail của bạn
 import { addCartItem, getBikeDetail } from '../../../services/axiosClient';
-
+import { useNavigate } from 'react-router-dom';
 const BikeMarketDetail = () => {
     const { id } = useParams(); // Lấy ID từ URL (VD: /bike-market/123 -> id = 123)
+    const navigate = useNavigate();
 
     // SỬA LỖI: Sử dụng useState thay vì useActionState
     const [bike, setBike] = useState(null);
@@ -41,7 +42,7 @@ const BikeMarketDetail = () => {
             alert('Đã thêm vào giỏ hàng!');
         } catch (err) {  
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
-                        alert('thêm cc!');
+                        alert('Xe đã có trong giỏ hàng');
 
            } 
     
@@ -203,8 +204,8 @@ const BikeMarketDetail = () => {
                                         </span>
                                     </div>
 
-                                    <div className="flex flex-col gap-3 pt-2">
-                                        <button className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
+                                    <div  className="flex flex-col gap-3 pt-2">
+                                        <button onClick={() => navigate('/homebuyer/checkout', { state: { bike: bike?.bikes?.[0] } }) }  className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>

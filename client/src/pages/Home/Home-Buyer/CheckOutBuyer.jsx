@@ -124,47 +124,6 @@ const CheckoutPage = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-[#111813]">Tỉnh/Thành phố</label>
-                      <select
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 transition-all appearance-none"
-                      >
-                        <option value="">Chọn Tỉnh/Thành phố</option>
-                        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                        <option value="Hà Nội">Hà Nội</option>
-                        <option value="Đà Nẵng">Đà Nẵng</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-[#111813]">Quận/Huyện</label>
-                      <select
-                        name="district"
-                        value={formData.district}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                      >
-                        <option value="">Chọn Quận/Huyện</option>
-                        <option value="Quận 1">Quận 1</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-[#111813]">Phường/Xã</label>
-                      <select
-                        name="ward"
-                        value={formData.ward}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                      >
-                        <option value="">Chọn Phường/Xã</option>
-                        <option value="Phường Bến Nghé">Phường Bến Nghé</option>
-                      </select>
-                    </div>
-                  </div>
-
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-[#111813]">Địa chỉ chi tiết (Số nhà, tên đường)</label>
                     <input

@@ -118,67 +118,67 @@ export default function OrderDetail() {
                             Ngày đặt hàng: {formatDate(order.createdAt)} | {statusInfo.text}
                         </p>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                            Xuất hóa đơn
-                        </button>
-                    </div>
+                    
                 </div>
 
                 {/* Stepper Process Mới */}
-                {order.status !== "Canceled" && (
-                    <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border p-8 mb-6 shadow-sm">
-                        <div className="flex items-center justify-between relative max-w-4xl mx-auto">
-                            {/* LINE */}
-                            <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700" />
+               {order.status !== "Canceled" && (
+    // 1. Đổi p-8 thành py-6 px-2 sm:px-6 để giảm khoảng trắng 2 bên
+    <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border py-6 px-2 sm:px-6 mb-6 shadow-sm overflow-hidden">
+        {/* 2. Đổi max-w-4xl thành w-full để thanh dãn tối đa chiều ngang */}
+        <div className="flex items-center justify-between relative w-full mx-auto">
+            
+            {/* LINE NỀN - Đổi thành left-12 right-12 để đường kẻ vừa khớp từ tâm icon */}
+            <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 dark:bg-gray-700" />
 
-                            {/* ACTIVE PROGRESS LINE */}
-                            <div
-                                className="absolute top-5 left-0 h-1 bg-emerald-500 transition-all duration-500"
-                                style={{
-                                    width: `${Math.max(0, (currentStatusIndex / (orderSteps.length - 1)) * 100)}%`,
-                                }}
-                            />
+            {/* ACTIVE PROGRESS LINE - Bọc trong 1 thẻ khung để tính phần trăm width chuẩn xác */}
+            <div className="absolute top-5 left-12 right-12 h-1">
+                <div
+                    className="h-full bg-emerald-500 transition-all duration-500"
+                    style={{
+                        width: `${Math.max(0, (currentStatusIndex / (orderSteps.length - 1)) * 100)}%`,
+                    }}
+                />
+            </div>
 
-                            {orderSteps.map((step, index) => {
-                                const isActive = index === currentStatusIndex;
-                                const isDone = index < currentStatusIndex;
+            {orderSteps.map((step, index) => {
+                const isActive = index === currentStatusIndex;
+                const isDone = index < currentStatusIndex;
 
-                                return (
-                                    <div
-                                        key={step.id}
-                                        className="flex flex-col items-center relative z-10 w-24"
-                                    >
-                                        <div
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
-                                            ${isDone || isActive
-                                                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
-                                                    : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                                                }`}
-                                        >
-                                            {/* Xử lý icon: Nếu là chuỗi thì dùng Material Symbols, nếu là component thì hiển thị trực tiếp */}
-                                            {typeof step.icon === 'string' ? (
-                                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                                                    {step.icon}
-                                                </span>
-                                            ) : (
-                                                step.icon
-                                            )}
-                                        </div>
-
-                                        <p
-                                            className={`text-xs mt-2 font-medium text-center whitespace-nowrap
-                                            ${isDone || isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}
-                                        >
-                                            {step.label}
-                                        </p>
-                                    </div>
-                                );
-                            })}
+                return (
+                    <div
+                        key={step.id}
+                        className="flex flex-col items-center relative z-10 w-24" // w-24 = 6rem = 96px (tâm là 48px = left-12)
+                    >
+                        <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                            ${isDone || isActive
+                                ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                            }`}
+                        >
+                            {/* Xử lý icon */}
+                            {typeof step.icon === 'string' ? (
+                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
+                                    {step.icon}
+                                </span>
+                            ) : (
+                                step.icon
+                            )}
                         </div>
+
+                        <p
+                            className={`text-xs mt-2 font-medium text-center whitespace-nowrap
+                            ${isDone || isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}
+                        >
+                            {step.label}
+                        </p>
                     </div>
-                )}
+                );
+            })}
+        </div>
+    </div>
+)}
 
                 {/* Order Info & Summary Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

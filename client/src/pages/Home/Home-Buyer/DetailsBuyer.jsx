@@ -194,7 +194,7 @@ const BikeMarketDetail = () => {
                                         <span>•</span>
                                         <span>Size {bike?.bikes?.[0]?.frameSize}</span>
                                         <span>•</span>
-                                        <span>{bike?.bikes?.[0]?.brakeType} Brake</span>
+                                        <span>Phanh {bike?.bikes?.[0]?.brakeType}</span>
                                     </div>
 
                                     <div className="flex items-baseline gap-3">

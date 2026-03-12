@@ -265,7 +265,7 @@ export default function Homebuyer() {
                     Bộ lọc
                   </button>
                   <div className="h-6 w-px bg-gray-200 mx-1 hidden md:block"></div>
-                  <label className="flex items-center gap-2 cursor-pointer bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 hover:border-primary transition-all">
+                  {/* <label className="flex items-center gap-2 cursor-pointer bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 hover:border-primary transition-all">
                     <div className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -281,7 +281,7 @@ export default function Homebuyer() {
                       </span>
                       Đã kiểm định
                     </span>
-                  </label>
+                  </label> */}
                   <div className="hidden sm:flex gap-2">
                     <button className="px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-sm hover:border-primary hover:text-primary transition-colors bg-white">
                       Road

@@ -181,7 +181,7 @@ export default function Wishlist() {
                   
                   <div className="mt-4">
                     <button 
-                      onClick={() => handleView(b.id)} 
+                      onClick={() => handleView(b.listingId)} 
                       disabled={b.sold}
                       className={`w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition-all ${
                         b.sold 

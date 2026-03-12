@@ -210,10 +210,22 @@ const getPayos = async (id) => {
     throw error;
   }
 };
+
+const cancelOrder = async (id) => {
+  try {
+    
+    const response = await axiosClient.post(`/api/Order/${id}/cancel`);
+    return response.data;
+  } catch (error) {
+    console.error(`Lỗi hủy đơn ${id}:`, error);
+    throw error; 
+  }
+};
 /**
  * ===== EXPORTS =====
  */
 export {
+  cancelOrder,
   getPayos,
   getBikeDetail,
   getCart,

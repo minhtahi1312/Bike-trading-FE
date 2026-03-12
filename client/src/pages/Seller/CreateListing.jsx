@@ -20,25 +20,132 @@ import {
 } from "lucide-react";
 
 export default function CreateListing() {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    brand: "",
+    size: "",
+    frameMaterial: "",
+    paintCondition: "",
+    drivetrain: "",
+    drivetrainCondition: "",
+    tireRim: "",
+    brakeType: "",
+    brakeCondition: "",
+    overallCondition: "",
+    price: "",
+    images: [],
+    video: null,
+  });
+
+  const updateField = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const handleSubmit = async () => {
-    if (loading) return;
-
     try {
       setLoading(true);
-      toast.loading("Đang đăng tin...");
+      const token = localStorage.getItem("accessToken");
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // 1️⃣ CREATE LISTING
+      const listingRes = await fetch(
+        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            status: 2,
+          }),
+        },
+      );
 
-      toast.dismiss();
-      toast.success("Tin đăng đã được tạo và đang chờ duyệt.");
+      const listingData = await listingRes.json();
+      const listingId = listingData.id;
 
+      // 2️⃣ CREATE BIKE
+      const bikeRes = await fetch(
+        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "x-listing-id": listingId,
+          },
+          body: JSON.stringify({
+            category: formData.category,
+            brand: formData.brand,
+            frameSize: formData.size,
+            frameMaterial: formData.frameMaterial,
+            paint: formData.paintCondition,
+            groupset: formData.drivetrain,
+            operating: formData.drivetrainCondition,
+            tireRim: formData.tireRim,
+            brakeType: formData.brakeType,
+            overall: formData.overallCondition,
+            price: Number(formData.price),
+          }),
+        },
+      );
+
+      const bikeData = await bikeRes.json();
+      console.log("bikeData", bikeData);
+
+      const bikeId = bikeData.id;
+
+      // 3️⃣ UPLOAD IMAGES
+      for (const img of formData.images) {
+        const imgForm = new FormData();
+        imgForm.append("file", img.file);
+
+        await fetch(
+          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-image",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "x-bike-id": bikeId,
+            },
+            body: imgForm,
+          },
+        );
+      }
+
+      // 4️⃣ UPLOAD VIDEO
+      if (formData.video) {
+        const videoForm = new FormData();
+        videoForm.append("file", formData.video.file);
+
+        await fetch(
+          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-video",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "x-bike-id": bikeId,
+            },
+            body: videoForm,
+          },
+        );
+      }
+
+      toast.success("Đăng tin thành công");
       navigate("/seller/listings");
     } catch (error) {
-      toast.dismiss();
-      toast.error("Đăng tin thất bại.");
+      console.error(error);
+      toast.error("Đăng tin thất bại");
     } finally {
       setLoading(false);
     }
@@ -47,31 +154,20 @@ export default function CreateListing() {
   return (
     <div className="max-w-6xl mx-auto py-10 space-y-8">
       {/* ===== STEP INDICATOR ===== */}
-      <div className="flex justify-center gap-10">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                step >= s
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {s}
-            </div>
-            <span className="text-sm font-medium">
-              {s === 1 && "Thông tin"}
-              {s === 2 && "Kỹ thuật"}
-              {s === 3 && "Hình ảnh"}
-            </span>
-          </div>
-        ))}
-      </div>
+      <StepProgress step={step} className="mb-10" />
 
       {/* ===== STEP CONTENT ===== */}
-      {step === 1 && <StepBasic />}
-      {step === 2 && <StepTechnical />}
-      {step === 3 && <StepImages />}
+      {step === 1 && (
+        <StepBasic formData={formData} updateField={updateField} />
+      )}
+
+      {step === 2 && (
+        <StepTechnical formData={formData} updateField={updateField} />
+      )}
+
+      {step === 3 && (
+        <StepImages formData={formData} updateField={updateField} />
+      )}
 
       {/* ===== NAVIGATION BUTTONS ===== */}
       <div className="flex justify-between pt-6">
@@ -94,19 +190,20 @@ export default function CreateListing() {
             Tiếp theo →
           </button>
         ) : (
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`px-8 py-3 text-white rounded-lg transition
-    ${
-      loading
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-emerald-600 hover:bg-emerald-700"
-    }
-  `}
-          >
-            {loading ? "Đang xử lý..." : "Đăng tin ngay"}
-          </button>
+          <div>
+            <button
+              onClick={() => handleSubmit()}
+              disabled={loading}
+              className={`px-8 py-3 text-white rounded-lg transition
+        ${
+          loading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-emerald-600 hover:bg-emerald-700"
+        }`}
+            >
+              {loading ? "Đang xử lý..." : "Đăng tin ngay"}
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -121,57 +218,48 @@ function StepProgress({ step }) {
   ];
 
   return (
-    <div className="w-full flex justify-center mb-10">
+    <div className="w-full flex justify-center mb-12">
       <div className="flex items-center w-full max-w-3xl">
-        {steps.map((item, index) => {
-          const isActive = step === item.id;
-          const isCompleted = step > item.id;
-
-          return (
-            <div key={item.id} className="flex items-center flex-1">
-              {/* Circle */}
-              <div className="flex flex-col items-center w-full relative">
-                <div
-                  className={`
-                    w-10 h-10 flex items-center justify-center rounded-full
-                    text-sm font-semibold transition-all duration-300
-                    ${
-                      isCompleted
-                        ? "bg-emerald-500 text-white"
-                        : isActive
-                          ? "bg-emerald-500 text-white ring-4 ring-emerald-100"
-                          : "bg-gray-200 text-gray-500"
-                    }
-                  `}
-                >
-                  {isCompleted ? "✓" : item.id}
-                </div>
-
-                <span
-                  className={`mt-3 text-sm font-medium ${
-                    isActive || isCompleted ? "text-gray-900" : "text-gray-400"
-                  }`}
-                >
-                  {item.label}
-                </span>
+        {steps.map((item, index) => (
+          <React.Fragment key={item.id}>
+            {/* STEP */}
+            <div className="flex flex-col items-center w-32 relative">
+              <div
+                className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold
+                ${
+                  step >= item.id
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                {item.id}
               </div>
 
-              {/* Line */}
-              {index !== steps.length - 1 && (
-                <div
-                  className={`h-1 flex-1 mx-2 transition-all duration-300 ${
-                    step > item.id ? "bg-emerald-500" : "bg-gray-200"
-                  }`}
-                />
-              )}
+              <span
+                className={`mt-2 text-sm font-medium ${
+                  step >= item.id ? "text-gray-900" : "text-gray-400"
+                }`}
+              >
+                {item.label}
+              </span>
             </div>
-          );
-        })}
+
+            {/* LINE */}
+            {index < steps.length - 1 && (
+              <div
+                className={`flex-1 h-[2px] ${
+                  step > item.id ? "bg-emerald-500" : "bg-gray-200"
+                }`}
+              />
+            )}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
 }
-function StepBasic() {
+function StepBasic({ formData, updateField }) {
+  const [showRules, setShowRules] = useState(false);
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       {/* Header */}
@@ -194,6 +282,8 @@ function StepBasic() {
               Tiêu đề tin đăng *
             </label>
             <input
+              value={formData.title}
+              onChange={(e) => updateField("title", e.target.value)}
               placeholder="Ví dụ: Xe đạp Road Giant TCR Advanced 2022"
               className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
             />
@@ -206,12 +296,14 @@ function StepBasic() {
             </label>
             <textarea
               rows={6}
+              value={formData.description}
+              onChange={(e) => updateField("description", e.target.value)}
               placeholder="Viết về lịch sử sử dụng xe, tình trạng bảo dưỡng..."
               className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
             />
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <span>Tối thiểu 30 ký tự để được duyệt nhanh</span>
-              <span>0 / 3000 ký tự</span>
+              <span>{formData.description.length} / 3000 ký tự</span>
             </div>
           </div>
         </div>
@@ -226,6 +318,13 @@ function StepBasic() {
             <ul className="space-y-3 text-sm text-gray-700">
               <li>✔️ Mô tả trung thực giúp tăng 80% tỷ lệ tin tưởng.</li>
               <li>✔️ Giá cả hợp lý giúp cạnh tranh hơn.</li>
+              <li>
+                ✔️ Hình ảnh rõ nét từ nhiều góc giúp người mua dễ đánh giá.
+              </li>
+              <li>
+                ✔️ Cung cấp thông số kỹ thuật đầy đủ giúp tăng độ tin cậy.
+              </li>
+              <li>✔️ Xe được bảo dưỡng gần đây sẽ thu hút người mua hơn.</li>
             </ul>
           </div>
 
@@ -236,37 +335,99 @@ function StepBasic() {
               Thông tin của bạn được bảo mật. Chúng tôi chỉ chia sẻ thông tin
               khi giao dịch được xác thực.
             </p>
-            <button className="mt-3 text-emerald-600 text-sm font-semibold hover:underline">
+            <button
+              onClick={() => setShowRules(true)}
+              className="mt-3 text-emerald-600 text-sm font-semibold hover:underline"
+            >
               Xem quy tắc cộng đồng →
             </button>
           </div>
-
-          {/* Preview Box */}
-          <div className="border-2 border-dashed rounded-2xl p-6 text-center text-gray-400 text-sm">
-            Xem trước nhanh
-          </div>
         </div>
       </div>
+      {showRules && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-[560px] shadow-xl relative">
+            {/* Title */}
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-3xl">📜</span>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Quy tắc cộng đồng BikeMarket
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Để đảm bảo môi trường giao dịch minh bạch và an toàn cho mọi
+                  người.
+                </p>
+              </div>
+            </div>
+
+            {/* Rules */}
+            <div className="space-y-4 text-sm text-gray-700">
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Tin đăng phải <b>mô tả đúng tình trạng xe</b>, không được cung
+                  cấp thông tin sai lệch hoặc gây hiểu nhầm.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Hình ảnh phải là <b>ảnh thật của sản phẩm</b>, rõ ràng, không
+                  sử dụng hình ảnh lấy từ internet.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Không đăng bán các sản phẩm{" "}
+                  <b>bị cấm, hàng giả, hàng vi phạm pháp luật</b>.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Không đăng nhiều tin trùng lặp hoặc spam gây ảnh hưởng đến
+                  trải nghiệm người dùng.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Người bán chịu trách nhiệm về{" "}
+                  <b>nguồn gốc và tình trạng sản phẩm</b>
+                  khi giao dịch.
+                </p>
+              </div>
+            </div>
+
+            {/* Warning box */}
+            <div className="mt-6 bg-amber-50 border border-amber-200 p-4 rounded-lg text-sm text-amber-700">
+              ⚠️ Tin đăng vi phạm quy tắc có thể bị{" "}
+              <b>từ chối duyệt hoặc khóa tài khoản</b>.
+            </div>
+
+            {/* Button */}
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowRules(false)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium"
+              >
+                Đã hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function StepTechnical() {
-  const [selectedSize, setSelectedSize] = useState("M");
-  const [condition, setCondition] = useState("good");
-  const [price, setPrice] = useState("");
-  const handlePriceChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, ""); // chỉ giữ số
-
-    if (!rawValue) {
-      setPrice("");
-      return;
-    }
-
-    const formatted = Number(rawValue).toLocaleString("vi-VN");
-    setPrice(formatted);
-  };
-
+function StepTechnical({ formData, updateField }) {
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
       {/* ===== TITLE ===== */}
@@ -295,11 +456,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Danh mục xe <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn danh mục</option>
-                  <option>Road Bike</option>
-                  <option>MTB</option>
-                  <option>Gravel</option>
+                <select
+                  value={formData.category}
+                  onChange={(e) => updateField("category", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn danh mục</option>
+                  <option value="road">Road Bike</option>
+                  <option value="mtb">MTB</option>
+                  <option value="gravel">Gravel</option>
                 </select>
               </div>
 
@@ -307,11 +472,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Hãng xe <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn hãng</option>
-                  <option>Specialized</option>
-                  <option>Trek</option>
-                  <option>Giant</option>
+                <select
+                  value={formData.brand}
+                  onChange={(e) => updateField("brand", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn hãng</option>
+                  <option value="specialized">Specialized</option>
+                  <option value="trek">Trek</option>
+                  <option value="giant">Giant</option>
                 </select>
               </div>
             </div>
@@ -328,14 +497,14 @@ function StepTechnical() {
               {["XS", "S", "M", "L", "XL"].map((size) => (
                 <button
                   key={size}
-                  onClick={() => setSelectedSize(size)}
+                  onClick={() => updateField("size", size)}
                   className={`px-4 py-2 border rounded-lg transition
-                    ${
-                      selectedSize === size
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "hover:border-emerald-400"
-                    }
-                  `}
+      ${
+        formData.size === size
+          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+          : "hover:border-emerald-400"
+      }
+    `}
                 >
                   {size}
                 </button>
@@ -343,7 +512,7 @@ function StepTechnical() {
             </div>
           </div>
 
-          {/* 3️⃣ KHUNG & PHUỘC */}
+          {/* KHUNG & PHUỘC */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Wrench className="w-5 h-5 text-emerald-600" />
@@ -355,11 +524,15 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Chất liệu khung <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Chọn chất liệu</option>
-                  <option>Carbon</option>
-                  <option>Nhôm</option>
-                  <option>Thép</option>
+                <select
+                  value={formData.frameMaterial}
+                  onChange={(e) => updateField("frameMaterial", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn chất liệu</option>
+                  <option value="carbon">Carbon</option>
+                  <option value="aluminum">Nhôm</option>
+                  <option value="steel">Thép</option>
                 </select>
               </div>
 
@@ -367,10 +540,16 @@ function StepTechnical() {
                 <label className="text-sm font-medium">
                   Tình trạng nước sơn <span className="text-red-500">*</span>
                 </label>
-                <select className="mt-1 w-full border rounded-lg px-3 py-2">
-                  <option>Như mới</option>
-                  <option>Mòn nhẹ</option>
-                  <option>Cần sơn lại</option>
+                <select
+                  value={formData.paintCondition}
+                  onChange={(e) =>
+                    updateField("paintCondition", e.target.value)
+                  }
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="new">Như mới</option>
+                  <option value="light_scratch">Mòn nhẹ</option>
+                  <option value="repaint">Cần sơn lại</option>
                 </select>
               </div>
             </div>
@@ -385,15 +564,23 @@ function StepTechnical() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
+                value={formData.drivetrain}
+                onChange={(e) => updateField("drivetrain", e.target.value)}
                 className="border rounded-lg px-3 py-2"
                 placeholder="Ví dụ: Shimano 105 R7000"
               />
 
-              <select className="border rounded-lg px-3 py-2">
-                <option>Đánh giá tình trạng</option>
-                <option>Như mới</option>
-                <option>Mòn nhẹ</option>
-                <option>Cần thay</option>
+              <select
+                value={formData.drivetrainCondition}
+                onChange={(e) =>
+                  updateField("drivetrainCondition", e.target.value)
+                }
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Đánh giá tình trạng</option>
+                <option value="new">Như mới</option>
+                <option value="good">Mòn nhẹ</option>
+                <option value="bad">Cần thay</option>
               </select>
             </div>
           </div>
@@ -405,18 +592,32 @@ function StepTechnical() {
               <h3 className="font-semibold text-lg">Phanh & Bánh xe</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select className="border rounded-lg px-3 py-2">
-                <option>Chọn loại phanh</option>
-                <option>Phanh đĩa</option>
-                <option>Phanh vành</option>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input
+                value={formData.tireRim}
+                onChange={(e) => updateField("tireRim", e.target.value)}
+                placeholder="Ví dụ: Shimano RS100 / DT Swiss R470"
+                className="border rounded-lg px-3 py-2"
+              />
+              <select
+                value={formData.brakeType}
+                onChange={(e) => updateField("brakeType", e.target.value)}
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Chọn loại phanh</option>
+                <option value="disc">Phanh đĩa</option>
+                <option value="rim">Phanh vành</option>
               </select>
 
-              <select className="border rounded-lg px-3 py-2">
-                <option>Chọn tình trạng</option>
-                <option>Như mới</option>
-                <option>Mòn nhẹ</option>
-                <option>Cần thay</option>
+              <select
+                value={formData.brakeCondition}
+                onChange={(e) => updateField("brakeCondition", e.target.value)}
+                className="border rounded-lg px-3 py-2"
+              >
+                <option value="">Chọn tình trạng</option>
+                <option value="new">Như mới</option>
+                <option value="good">Mòn nhẹ</option>
+                <option value="replace">Cần thay</option>
               </select>
             </div>
           </div>
@@ -429,24 +630,24 @@ function StepTechnical() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <ConditionCard
-                active={condition === "new"}
-                onClick={() => setCondition("new")}
+                active={formData.overallCondition === "new"}
+                onClick={() => updateField("overallCondition", "new")}
                 icon={<CheckCircle className="w-6 h-6 text-emerald-600" />}
                 title="Như mới"
                 desc="Không trầy xước, linh kiện nguyên bản."
               />
 
               <ConditionCard
-                active={condition === "good"}
-                onClick={() => setCondition("good")}
+                active={formData.overallCondition === "good"}
+                onClick={() => updateField("overallCondition", "good")}
                 icon={<ThumbsUp className="w-6 h-6 text-amber-500" />}
                 title="Tốt"
                 desc="Có xước dăm nhẹ, hoạt động ổn định."
               />
 
               <ConditionCard
-                active={condition === "fair"}
-                onClick={() => setCondition("fair")}
+                active={formData.overallCondition === "fair"}
+                onClick={() => updateField("overallCondition", "fair")}
                 icon={<Wrench className="w-6 h-6 text-orange-500" />}
                 title="Khá"
                 desc="Có trầy rõ, cần bảo dưỡng nhẹ."
@@ -465,11 +666,11 @@ function StepTechnical() {
 
             <div className="flex">
               <input
-                type="text"
-                value={price}
-                onChange={handlePriceChange}
+                type="number"
+                value={formData.price}
+                onChange={(e) => updateField("price", Number(e.target.value))}
                 placeholder="0"
-                className="w-full border rounded-l-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500"
+                className="w-full border rounded-l-xl px-4 py-3 text-sm"
               />
               <span className="px-6 flex items-center bg-gray-100 border border-l-0 rounded-r-xl text-sm font-medium text-gray-600">
                 VND
@@ -492,17 +693,46 @@ function StepTechnical() {
               qua 3 tiêu chí:
             </p>
 
-            <ul className="space-y-4 text-sm">
-              {[
-                "Tính xác thực linh kiện",
-                "Tình trạng vật lý",
-                "Khả năng vận hành",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Xác thực linh kiện</b> – đảm bảo groupset, khung và phụ
+                  tùng đúng mô tả.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Tình trạng vật lý</b> – kiểm tra trầy xước, móp khung, nước
+                  sơn.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Khả năng vận hành</b> – đánh giá hệ thống truyền động và
+                  phanh.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Độ hao mòn linh kiện</b> – kiểm tra lốp, đĩa phanh, xích,
+                  cassette.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Tính an toàn khi sử dụng</b> – đảm bảo xe hoạt động ổn định
+                  khi vận hành.
+                </span>
+              </li>
             </ul>
 
             <div className="mt-5 bg-gray-50 p-3 rounded-lg text-xs text-gray-500 italic">
@@ -510,45 +740,86 @@ function StepTechnical() {
               định."
             </div>
           </div>
-
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-2">
-              <HelpCircle className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-700">
-                Bạn không biết cấu hình?
-              </h3>
-            </div>
-            <p className="text-sm text-blue-600">
-              Sử dụng công cụ tra cứu cấu hình theo đời xe (Model year).
-            </p>
-            <button className="mt-3 text-sm font-medium text-blue-700 hover:underline">
-              Tra cứu ngay →
-            </button>
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function StepImages() {
-  const [images, setImages] = useState([]);
-  const [video, setVideo] = useState(null);
+function StepImages({ formData, updateField }) {
+  const resizeImage = (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      img.onload = () => {
+        const MAX_WIDTH = 1200;
+
+        const scale = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            const resizedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+            });
+
+            resolve(resizedFile);
+          },
+          "image/jpeg",
+          0.8,
+        );
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+  const images = formData.images || [];
+  const video = formData.video;
+  React.useEffect(() => {
+    return () => {
+      images.forEach((img) => URL.revokeObjectURL(img.preview));
+      if (video?.preview) URL.revokeObjectURL(video.preview);
+    };
+  }, [images, video]);
+  const createPreview = (file) => ({
+    file,
+    preview: URL.createObjectURL(file),
+  });
 
   /* ================= IMAGE ================= */
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
 
-    const preview = files.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
+    if (images.length + files.length > 8) {
+      alert("Chỉ được upload tối đa 8 ảnh");
+      return;
+    }
 
-    setImages((prev) => [...prev, ...preview]);
+    const processedImages = await Promise.all(
+      files.map(async (file) => {
+        const resized = await resizeImage(file);
+
+        return {
+          file: resized,
+          preview: URL.createObjectURL(resized),
+        };
+      }),
+    );
+
+    updateField("images", [...images, ...processedImages]);
   };
 
   const removeImage = (indexToRemove) => {
-    setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+    URL.revokeObjectURL(images[indexToRemove].preview);
+
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+
+    updateField("images", updatedImages);
   };
 
   /* ================= VIDEO ================= */
@@ -556,14 +827,15 @@ function StepImages() {
     const file = e.target.files[0];
     if (!file) return;
 
-    setVideo({
-      file,
-      url: URL.createObjectURL(file),
-    });
+    updateField("video", createPreview(file));
   };
 
   const removeVideo = () => {
-    setVideo(null);
+    if (video?.preview) {
+      URL.revokeObjectURL(video.preview);
+    }
+
+    updateField("video", null);
   };
 
   return (
@@ -603,7 +875,7 @@ function StepImages() {
               {/* ===== THUMBNAILS ===== */}
               {images.length > 0 && (
                 <div className="flex gap-4 mt-6 flex-wrap">
-                  {images.map((img, index) => (
+                  {images.map((imgObj, index) => (
                     <div
                       key={index}
                       className="relative w-28 h-24 rounded-lg overflow-hidden border border-emerald-400 group"
@@ -624,8 +896,9 @@ function StepImages() {
                       </button>
 
                       <img
-                        src={img.url}
+                        src={imgObj.preview}
                         alt=""
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -675,8 +948,9 @@ function StepImages() {
                   </button>
 
                   <video
-                    src={video.url}
+                    src={video.preview}
                     controls
+                    preload="metadata"
                     className="w-full rounded-lg border"
                   />
                 </div>
@@ -691,7 +965,7 @@ function StepImages() {
             <div className="h-40 bg-gray-100 flex items-center justify-center">
               {images.length > 0 ? (
                 <img
-                  src={images[0].url}
+                  src={images?.[0]?.preview}
                   alt=""
                   className="w-full h-full object-cover"
                 />
@@ -702,18 +976,18 @@ function StepImages() {
 
             <div className="p-4 space-y-2">
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                ROAD BIKE
+                {formData.category || "CATEGORY"}
               </span>
 
               <h4 className="font-semibold text-sm">
-                Tên xe sẽ hiển thị ở đây
+                {formData.title || "Tên xe sẽ hiển thị ở đây"}
               </h4>
 
-              <p className="text-emerald-600 font-bold">45.000.000 VNĐ</p>
-
-              <div className="text-xs text-gray-500">
-                Quận 7, TP. Hồ Chí Minh
-              </div>
+              <p className="text-emerald-600 font-bold">
+                {formData.price
+                  ? formData.price.toLocaleString("vi-VN") + " VND"
+                  : "Giá sẽ hiển thị ở đây"}
+              </p>
             </div>
           </div>
         </div>

@@ -7,7 +7,9 @@ import {
 } from 'lucide-react';
 
 const Listings = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState(() => {
+  return sessionStorage.getItem('adminListingTab') || 'pending';
+});
   const [data, setData] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -30,12 +32,13 @@ const Listings = () => {
     setData(response.data);
   } catch (error) {
     console.error(`Lỗi fetch API cho tab ${tabId}:`, error);
-    setData([]); // Trả về mảng rỗng nếu lỗi để tránh crash giao diện
+    setData([]); 
   } finally {
     setIsLoading(false);
   }
 };
 useEffect(() => {
+  sessionStorage.setItem('adminListingTab', activeTab);
   fetchListData(activeTab);
 }, [activeTab]);
 
@@ -68,9 +71,9 @@ useEffect(() => {
     );
   };
 
-  // Hàm xử lý khi ảnh bị lỗi (QUAN TRỌNG)
+  // Hàm xử lý khi ảnh bị lỗi
   const handleImageError = (e) => {
-    e.target.src = "https://placehold.co/400x300?text=No+Image"; // Ảnh thay thế nếu link chính bị hỏng
+    e.target.src = "https://placehold.co/400x300?text=No+Image";
   };
 
   return (
@@ -84,18 +87,6 @@ useEffect(() => {
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center min-w-[100px]">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Cần duyệt</span>
-            <span className="text-xl font-bold text-[#111813]">
-              {isLoading ? '...' : data.length}
-            </span>
-          </div>
-          <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center min-w-[100px]">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hôm nay</span>
-            <span className="text-xl font-bold text-[#111813]">42</span>
-          </div>
-        </div>
       </div>
 
       {/* MAIN CONTENT CARD */}
@@ -115,7 +106,6 @@ useEffect(() => {
   >
     {tab.label}
     
-    {/* LOGIC MỚI: Chỉ hiển thị số lượng của Tab đang được chọn */}
     {activeTab === tab.id && !isLoading && (
       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 animate-in fade-in zoom-in">
         {data.length}
@@ -125,47 +115,38 @@ useEffect(() => {
 ))}
         </div>
 
-        {/* TOOLBAR */}
-        <div className="p-5 flex flex-col sm:flex-row gap-3 justify-between items-center bg-[#fcfdfd]">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo mã tin, tên xe, hoặc người bán..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-            />
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-[#637588]">
-              <Calendar size={16} /> Thời gian
-            </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-[#637588]">
-              <Filter size={16} /> Bộ lọc
-            </button>
-          </div>
-        </div>
+
 
         {/* TABLE */}
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
-                <th className="px-6 py-3 w-[50px]">
-                  <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Thông tin xe
                 </th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Thông tin xe</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Người bán</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider">Giá bán</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Inspector</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Trạng thái</th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider text-right">Hành động</th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Người bán
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-left">
+                  Giá bán
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
+                  Inspector
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-right">
+                  Hành động
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e7eb]">
-  {/* TRƯỜNG HỢP 1: ĐANG TẢI DỮ LIỆU */}
+  
   {isLoading ? (
     <tr>
-      <td colSpan="7" className="px-6 py-20 text-center">
+      <td colSpan="6" className="px-6 py-20 text-center">
         <div className="flex flex-col items-center gap-3">
           {/* Vòng xoay loading */}
           <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -174,9 +155,9 @@ useEffect(() => {
       </td>
     </tr>
   ) : data && data.length > 0 ? (
-    /* TRƯỜNG HỢP 2: CÓ DỮ LIỆU (HIỂN THỊ DANH SÁCH) */
-    data.map((item) => {
-      const isRiskyOrRejected = item.status === 'Từ chối'; // Tùy biến điều kiện làm mờ dòng
+ 
+  data.map((item) => {
+      const isRiskyOrRejected = item.listingStatus === 'Rejected';
 
       return (
         <tr
@@ -185,12 +166,9 @@ useEffect(() => {
             isRiskyOrRejected ? 'opacity-50 bg-gray-50/50 grayscale-[30%]' : ''
           }`}
         >
-          {/* 1. Checkbox */}
-          <td className="px-6 py-4">
-            <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-          </td>
+          {/* Đã xóa phần Checkbox ở đây */}
 
-          {/* 2. Thông tin xe */}
+          {/* 1. Thông tin xe (trước đó là mục 2) */}
           <td className="px-6 py-4">
             <div className="flex gap-4">
               <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-50">
@@ -212,7 +190,7 @@ useEffect(() => {
             </div>
           </td>
 
-          {/* 3. Người bán */}
+          {/* 2. Người bán */}
           <td className="px-6 py-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
@@ -225,30 +203,50 @@ useEffect(() => {
             </div>
           </td>
 
-          {/* 4. Giá bán */}
+          {/* 3. Giá bán */}
           <td className="px-6 py-4">
-            <div className="text-sm font-bold text-[#111813]">
+            <div className="text-sm font-bold text-[#111813] whitespace-nowrap">
               {item.price ? `${item.price.toLocaleString('vi-VN')} đ` : 'Liên hệ'}
             </div>
           </td>
 
-          {/* 5. Inspector */}
+          {/* 4. Inspector */}
           <td className="px-6 py-4 text-center">
             {renderBadge(item.inspectorName || 'Chưa có', item.inspectorName === 'Chưa có' ? 'gray' : 'purple')}
           </td>
 
-          {/* 6. Trạng thái */}
+          {/* 5. Trạng thái */}
           <td className="px-6 py-4 text-center">
             <div className="flex flex-col items-center gap-1">
-              {/* Badge động theo status từ API */}
-              {renderBadge(item.status === 1 ? 'Chờ duyệt' : 'Khác', item.status === 1 ? 'yellow' : 'blue')}
+              {(() => {
+                let text = 'Khác';
+                let color = 'blue';
+
+                if (item.listingStatus === 'PendingApproval') {
+                  text = 'Chờ duyệt';
+                  color = 'yellow';
+                } else if (item.listingStatus === 'Rejected') {
+                  text = 'Từ chối';
+                  color = 'red';
+                } else if (item.listingStatus === 'Active') {
+                  if (item.bikeStatus === 'PendingInspection') {
+                    text = 'Đang kiểm định';
+                    color = 'purple';
+                  } else if (item.bikeStatus === 'Available') {
+                    text = 'Đã công khai';
+                    color = 'green';
+                  }
+                }
+
+                return renderBadge(text, color);
+              })()}
               <span className="text-[10px] text-[#9ca3af] flex items-center gap-1">
                 <Clock size={10} /> {new Date(item.createdAt).toLocaleDateString('vi-VN')}
               </span>
             </div>
           </td>
 
-          {/* 7. Hành động */}
+          {/* 6. Hành động */}
           <td className="px-6 py-4 text-right">
             <div className="flex justify-end gap-2">
               <button 
@@ -266,7 +264,7 @@ useEffect(() => {
   ) : (
     /* TRƯỜNG HỢP 3: DỮ LIỆU RỖNG (EMPTY) */
     <tr>
-      <td colSpan="7" className="px-6 py-24 text-center">
+      <td colSpan="6" className="px-6 py-24 text-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
             <AlertCircle size={40} className="text-gray-300" />

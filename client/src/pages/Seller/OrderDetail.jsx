@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -26,60 +26,55 @@ export default function OrderDetail() {
     }));
   };
   const { id } = useParams();
-
-  // ===== MOCK DATA =====
-  const [order, setOrder] = useState({
-    id: id,
-    status: "confirmed",
-    product: "Trek Marlin 7 (2022) - Size M",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBYHKUb-OXY4LhuARv-D80YSszSzvNiTBpQuWHwV-gRzqpjWM-RxrxGvBn7v9zVwwXeKTuXWKRI7vcrF0Nvo75yMf-v4Qw4EZxoRP5keZ5YTumzmsOQyrp-C247lRr7DERCyY7NLVkXtQq08xDcsJorx6204U3Fk_5bf-aJ5lh0xWFGuESUg3lPCH9KXrFCl3kBq68n7BgLTqDqAOtUrHQNiKFTg1MtPnHZPzWWdDOMEsafN8wF4TBMerT50D6PnKWQ-9pPYkkNur2Q",
-    price: 12500000,
-    shipping: 150000,
-    serviceFee: -250000,
-    buyer: {
-      name: "Nguyễn Văn A",
-      join: "2 tháng trước",
-      phone: "0912 *** ***",
-      email: "nguyenvana@gmail.com",
-      avatar: "https://i.pravatar.cc/100",
-    },
-    address: {
-      name: "Nguyễn Văn A",
-      detail: "Số 15, Ngõ 285 Đội Cấn",
-      ward: "Phường Liễu Giai",
-      district: "Quận Ba Đình",
-      city: "Hà Nội",
-    },
-    note: "Giao giờ hành chính giúp mình nhé.",
-    date: "14:30 - 20/05/2024",
-  });
-
-  const total = order.price + order.shipping + order.serviceFee;
+  const [order, setOrder] = useState(null);
 
   const statusMap = {
-    confirmed: {
-      label: "Chờ xác nhận",
+    Paid: {
+      label: "Đã thanh toán",
       style: "bg-yellow-100 text-yellow-700",
     },
-    preparing: {
-      label: "Đang chuẩn bị",
+    Confirmed: {
+      label: "Đã xác nhận",
       style: "bg-blue-100 text-blue-700",
     },
-    shipping: {
+    Shipping: {
       label: "Đang giao",
       style: "bg-indigo-100 text-indigo-700",
     },
-    done: {
+    Completed: {
       label: "Hoàn thành",
       style: "bg-emerald-100 text-emerald-700",
     },
-    cancelled: {
-      label: "Đã hủy",
+    Cancelled: {
+      label: "Đã huỷ",
       style: "bg-gray-200 text-gray-600",
     },
   };
 
+  useEffect(() => {
+    const fetchOrder = async () => {
+      const res = await fetch(
+        `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/paid`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      console.log("ORDER DETAIL:", data);
+
+      setOrder(data.items[0]);
+    };
+
+    fetchOrder();
+  }, [id]);
+  if (!order) {
+    return <div className="p-10 text-gray-500">Loading...</div>;
+  }
+  const total = order.totalAmount || 0;
   return (
     <div className="space-y-6">
       {/* ===== BREADCRUMB ===== */}
@@ -148,29 +143,30 @@ export default function OrderDetail() {
 
             <div className="flex gap-4 items-center">
               <img
-                src={order.image}
+                src={order.items?.[0]?.image}
                 alt=""
                 className="w-24 h-24 object-cover rounded-lg"
               />
 
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <h4 className="font-semibold text-lg">{order.product}</h4>
+                  <h4 className="font-semibold text-lg">
+                    {order.items?.[0]?.bikeBrand}
+                  </h4>
                   <p className="font-bold text-lg">
-                    {order.price.toLocaleString()}đ
+                    {order.totalAmount?.toLocaleString("vi-VN")}đ
                   </p>
                 </div>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 items-center">
                   <span className="px-2 py-1 bg-gray-100 text-xs rounded">
-                    Mountain Bike
+                    {order.items?.[0]?.bikeCategory}
                   </span>
-                  <span className="px-2 py-1 bg-gray-100 text-xs rounded">
-                    Shimano Deore
+
+                  <span className="text-xs text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                   </span>
                 </div>
-
-                <p className="text-sm text-gray-500 mt-2">Tình trạng: 95%</p>
               </div>
             </div>
           </div>
@@ -182,19 +178,19 @@ export default function OrderDetail() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Giá sản phẩm</span>
-                <span>{order.price.toLocaleString()}đ</span>
+                <span>{order.totalAmount?.toLocaleString("vi-VN")} đ</span>
               </div>
 
-              <div className="flex justify-between text-red-500">
+              {/* <div className="flex justify-between text-red-500">
                 <span>Phí dịch vụ sàn</span>
                 <span>{order.serviceFee.toLocaleString()}đ</span>
-              </div>
+              </div> */}
             </div>
 
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
               <span className="text-emerald-600">Thực nhận</span>
               <span className="text-emerald-600">
-                {total.toLocaleString()}đ
+                {total.toLocaleString("vi-VN")} đ
               </span>
             </div>
 
@@ -222,24 +218,17 @@ export default function OrderDetail() {
 
             <div className="flex items-center gap-3">
               <img
-                src={order.buyer.avatar}
+                src="https://i.pravatar.cc/100"
                 className="w-12 h-12 rounded-full"
-                alt=""
               />
-              <div>
-                <p className="font-semibold">{order.buyer.name}</p>
-                <p className="text-sm text-gray-500">
-                  Tham gia: {order.buyer.join}
-                </p>
-              </div>
+            </div>
+            <div className="space-y-2 text-sm text-gray-600">
+              <p className="flex items-center gap-2">{order.receiverName}</p>
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
               <p className="flex items-center gap-2">
-                <Phone size={16} /> {order.buyer.phone}
-              </p>
-              <p className="flex items-center gap-2">
-                <Mail size={16} /> {order.buyer.email}
+                <Phone size={16} /> {order.receiverPhone}
               </p>
             </div>
           </div>
@@ -250,17 +239,8 @@ export default function OrderDetail() {
 
             <p className="flex items-start gap-2 text-sm text-gray-600">
               <MapPin size={16} className="mt-1 text-emerald-600" />
-              <span>
-                {order.address.detail},<br />
-                {order.address.ward}, {order.address.district},<br />
-                {order.address.city}
-              </span>
+              <span>{order.receiverAddress}</span>
             </p>
-
-            <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-600">
-              <p className="font-semibold mb-1">Ghi chú:</p>
-              {order.note}
-            </div>
           </div>
         </div>
       </div>

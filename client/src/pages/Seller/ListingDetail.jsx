@@ -69,16 +69,6 @@ const ListingDetail = () => {
             tin #{listing.id?.slice(0, 6)}
           </p>
         </div>
-
-        <div className="flex gap-3">
-          <button className="bg-red-100 text-red-600 px-4 py-2 rounded-lg">
-            Xóa tin
-          </button>
-
-          <button className="bg-black text-white px-4 py-2 rounded-lg">
-            Chỉnh sửa tin
-          </button>
-        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
@@ -160,10 +150,10 @@ const ListingDetail = () => {
               </div>
             </div>
 
-            <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg flex items-center justify-center gap-2">
+            {/* <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg flex items-center justify-center gap-2">
               <FileText size={18} />
               Xem báo cáo chi tiết
-            </button>
+            </button> */}
           </div>
 
           {/* TECHNICAL INFO */}

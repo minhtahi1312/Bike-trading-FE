@@ -516,7 +516,7 @@ function StepTechnical({ formData, updateField }) {
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Wrench className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-semibold text-lg">Khung & Phuộc</h3>
+              <h3 className="font-semibold text-lg">Khung & Sơn xe</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -589,7 +589,7 @@ function StepTechnical({ formData, updateField }) {
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Disc className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-semibold text-lg">Phanh & Bánh xe</h3>
+              <h3 className="font-semibold text-lg">Vành xe & Phanh</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

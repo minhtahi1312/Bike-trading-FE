@@ -29,16 +29,6 @@ export default function SellerHeader() {
           <Plus size={18} />
           Đăng tin mới
         </Link>
-
-        {/* Notification */}
-        <button className="relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition">
-          <Bell size={20} className="text-[#637588]" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
-
-        <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition">
-          <MessageSquare size={20} className="text-[#637588]" />
-        </button>
       </div>
     </header>
   );

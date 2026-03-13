@@ -13,27 +13,31 @@ import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import HomeInspector from "./pages/Inspector/HomeInspector";
 import InspectorLayout from "./layouts/InspectorLayout";
-import InspectionPage from './pages/Inspector/InspectionPage';
+import InspectionPage from "./pages/Inspector/InspectionPage";
 import InspectionResult from "./pages/Inspector/InspectionResult";
 import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
 import HistoryInspector from "./pages/Inspector/HistoryInspector";
-import InspectionHistoryDetail from './pages/Inspector/InspectionHistoryDetail';
-import InspectorProfile from './pages/Inspector/InspectorProfile';
+import InspectionHistoryDetail from "./pages/Inspector/InspectionHistoryDetail";
+import InspectorProfile from "./pages/Inspector/InspectorProfile";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
-import Users from './pages/Admin/Users';
-import Transactions from './pages/Admin/Transactions';
-import Categories from './pages/Admin/Categories';
-import ListingDetail from './pages/Admin/ListingDetail';
-import TransactionDetail from './pages/Admin/TransactionDetail';
-import Complaints from './pages/Admin/Complaints';
-import ComplaintDetail from './pages/Admin/ComplaintDetail';
+import Users from "./pages/Admin/Users";
+import Transactions from "./pages/Admin/Transactions";
+import Categories from "./pages/Admin/Categories";
+import ListingDetail from "./pages/Admin/ListingDetail";
+import TransactionDetail from "./pages/Admin/TransactionDetail";
+import Complaints from "./pages/Admin/Complaints";
+import ComplaintDetail from "./pages/Admin/ComplaintDetail";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
+
+import Wallet from "./pages/Seller/Wallet";
+import Withdraw from "./pages/Seller/Withdraw";
+import TransactionsPage from "./pages/Seller/TransactionsPage";
 
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
@@ -58,7 +62,6 @@ function App() {
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order/:id" element={<OrderDetail />} />
-
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
@@ -94,6 +97,10 @@ function App() {
           <Route path="listings/:id" element={<SellerListingDetail />} />
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
+
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="withdraw" element={<Withdraw />} />
+          <Route path="transactions" element={<TransactionsPage />} />
         </Route>
       </Routes>
 

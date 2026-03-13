@@ -1,12 +1,12 @@
-/* eslint-disable */
-import React from "react";
-import { Search, Pencil, Eye, Calendar, Heart } from "lucide-react";
+// /* eslint-disable */
+
+import { Search, Pencil, Eye, Calendar, Heart, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 
 export default function SellerListings() {
+  const [deleteId, setDeleteId] = useState(null);
   const navigate = useNavigate();
-
   const [listings, setListings] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -83,9 +83,24 @@ export default function SellerListings() {
     Active: "bg-emerald-100 text-emerald-700",
     Inactive: "bg-gray-200 text-gray-600",
     Rejected: "bg-red-100 text-red-700",
-
   };
+  const getVisiblePages = () => {
+    const pages = [];
+    const maxVisible = 5;
 
+    let start = Math.max(1, page - 2);
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
   return (
     <div className="space-y-6">
       {/* ===== HEADER ===== */}
@@ -94,7 +109,7 @@ export default function SellerListings() {
           Tin đăng của tôi
         </h1>
         <span className="text-sm text-gray-500">
-          Tổng số tin: {listings.length}
+          Tổng số trang: {totalPages}
         </span>
       </div>
 
@@ -107,10 +122,14 @@ export default function SellerListings() {
           />
           <input
             placeholder="Tìm kiếm theo tên xe..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg"
           />
         </div>
-
 
         <select
           value={status}
@@ -124,7 +143,6 @@ export default function SellerListings() {
           <option value="Draft">Bản nháp</option>
           <option value="PendingApproval">Chờ duyệt</option>
           <option value="Active">Đã duyệt</option>
-
         </select>
 
         <select
@@ -138,6 +156,16 @@ export default function SellerListings() {
       </div>
 
       {/* ===== LIST ===== */}
+      {loading && (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-28 bg-gray-100 animate-pulse rounded-xl"
+            />
+          ))}
+        </div>
+      )}
       <div className="space-y-4">
         {sortedListings.map((item) => (
           <div
@@ -146,7 +174,7 @@ export default function SellerListings() {
           >
             <img
               src={item.image}
-              alt={item.title}
+              alt={item.brand}
               className="w-40 h-28 object-cover rounded-lg"
             />
 
@@ -164,33 +192,29 @@ export default function SellerListings() {
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
                   <Calendar size={14} className="text-gray-400" />
-                  {item.date}
+                  {new Date(item.createdAt).toLocaleDateString()}
                 </span>
 
-                <span className="flex items-center gap-1">
-                  <Eye size={14} className="text-blue-500" />
-                  {item.views} lượt xem
-                </span>
-
-                <span className="flex items-center gap-1">
+                {/* <span className="flex items-center gap-1">
                   <Heart size={14} className="text-rose-500" />
                   {item.likes} quan tâm
-                </span>
+                </span> */}
               </div>
 
-              <p className="text-sm text-gray-600 line-clamp-2">{item.desc}</p>
+              <p className="text-sm text-gray-600 line-clamp-2">
+                {item.description}
+              </p>
             </div>
 
             <div className="flex flex-col items-end justify-between">
-
               <p className="font-bold text-emerald-600 text-lg">
                 {item.price
                   ? item.price.toLocaleString("vi-VN") + " đ"
                   : "Chưa có giá"}
               </p>
 
-              <div className="flex gap-2 justify-end"> 
-                 {item.status === "Draft" && (
+              <div className="flex gap-2 justify-end">
+                {item.status === "Draft" && (
                   <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
                     <Pencil size={14} /> Chỉnh sửa
                   </button>
@@ -204,20 +228,10 @@ export default function SellerListings() {
                     <Trash2 size={14} /> Xóa
                   </button>
                 )}
-              </div>
-               
 
-
-              <div className="flex gap-2">
-                <button className="border rounded-lg px-3 py-1 text-sm hover:bg-gray-50">
-                  Ẩn tin
-                </button>
-                <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
-                  <Pencil size={14} /> Chỉnh sửa
-                </button>
                 <button
                   onClick={() => navigate(`/seller/listings/${item.id}`)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
                 >
                   Xem chi tiết
                 </button>
@@ -226,6 +240,97 @@ export default function SellerListings() {
           </div>
         ))}
       </div>
+
+      {/* ===== PAGINATION ===== */}
+      <div className="flex justify-center items-center gap-2 pt-6">
+        {/* Prev */}
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-40"
+        >
+          {"<"}
+        </button>
+
+        {/* First page */}
+        {page > 3 && (
+          <>
+            <button
+              onClick={() => setPage(1)}
+              className="px-3 py-1 border rounded hover:bg-gray-100"
+            >
+              1
+            </button>
+            <span className="px-2">...</span>
+          </>
+        )}
+
+        {/* Middle pages */}
+        {getVisiblePages().map((p) => (
+          <button
+            key={p}
+            onClick={() => setPage(p)}
+            className={`px-3 py-1 border rounded ${
+              page === p ? "bg-emerald-500 text-white" : "hover:bg-gray-100"
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+
+        {/* Last page */}
+        {page < totalPages - 2 && (
+          <>
+            <span className="px-2">...</span>
+            <button
+              onClick={() => setPage(totalPages)}
+              className="px-3 py-1 border rounded hover:bg-gray-100"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Next */}
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-40"
+        >
+          {">"}
+        </button>
+      </div>
+
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+            <h3 className="text-lg font-bold mb-2">Xóa tin đăng</h3>
+
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc muốn xóa tin đăng này không?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+              >
+                Hủy
+              </button>
+
+              <button
+                onClick={() => {
+                  deleteListing(deleteId);
+                  setDeleteId(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

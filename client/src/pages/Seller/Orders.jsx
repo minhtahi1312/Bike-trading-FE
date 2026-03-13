@@ -4,13 +4,10 @@ import { Search, Filter, FileDown } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
-
 const PAGE_SIZE = 5;
 
 export default function SellerOrders() {
-
   const navigate = useNavigate();
-
 
   // ===== STATE =====
   const [orders, setOrders] = useState([]);
@@ -66,8 +63,9 @@ export default function SellerOrders() {
       const matchStatus = status === "all" || o.status === status;
 
       const matchSearch =
-        o.listingTitle?.toLowerCase().includes(search.toLowerCase()) ||
-        o.buyerName?.toLowerCase().includes(search.toLowerCase());
+        search === "" ||
+        o.receiverName?.toLowerCase().includes(search.toLowerCase()) ||
+        o.items?.[0]?.bikeBrand?.toLowerCase().includes(search.toLowerCase());
 
       return matchStatus && matchSearch;
     });
@@ -204,7 +202,6 @@ export default function SellerOrders() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500">
             <tr>
-              <th className="px-6 py-3 text-left">Mã đơn</th>
               <th className="px-6 py-3 text-left">Sản phẩm</th>
               <th className="px-6 py-3 text-left">Tên người mua</th>
               <th className="px-6 py-3 text-left">Ngày đặt</th>
@@ -217,44 +214,50 @@ export default function SellerOrders() {
           <tbody className="divide-y">
             {pageOrders.map((o) => (
               <tr key={o.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium">{o.id}</td>
-
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={o.image || "/no-image.png"}
-                      alt=""
+                      src={o.items?.[0]?.image}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
-                    <span className="font-medium">{o.listingTitle}</span>
+
+                    <div>
+                      <div className="font-medium">
+                        {o.items?.[0]?.bikeBrand}
+                      </div>
+
+                      <div className="text-xs text-gray-500">
+                        {o.items?.[0]?.bikeCategory}
+                      </div>
+                    </div>
                   </div>
                 </td>
 
-                <td className="px-6 py-4">{o.buyerName}</td>
+                <td className="px-6 py-4">
+                  <div className="font-medium">{o.receiverName}</div>
+                  <div className="text-xs text-gray-500">{o.receiverPhone}</div>
+                </td>
 
                 <td className="px-6 py-4 text-gray-500">
-                  {new Date(o.createdAt).toLocaleString()}
+                  {new Date(o.createdAt).toLocaleDateString("vi-VN")}
                 </td>
 
                 <td className="px-6 py-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      statusMap[o.status]?.style
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusMap[o.status]?.style}`}
                   >
-                    {statusMap[o.status]?.label || o.status}
+                    {statusMap[o.status]?.label}
                   </span>
                 </td>
 
                 <td className="px-6 py-4 text-right font-semibold">
-                  {o.price?.toLocaleString()} đ
+                  {o.totalAmount?.toLocaleString("vi-VN")} đ
                 </td>
 
-
-                <td className="px-6 py-4 text-right space-x-2">
+                <td className="px-6 py-4 text-right">
                   <button
                     onClick={() => navigate(`/seller/orders/${o.id}`)}
-                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg"
+                    className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-sm"
                   >
                     Chi tiết
                   </button>
@@ -285,7 +288,6 @@ export default function SellerOrders() {
                       Hoàn thành
                     </button>
                   )}
-
                 </td>
               </tr>
             ))}

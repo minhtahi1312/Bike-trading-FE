@@ -119,6 +119,8 @@ const ListingDetail = () => {
 
         {/* RIGHT */}
         <div className="space-y-6">
+
+
           {/* INSPECTION */}
           <div className="bg-white p-6 rounded-xl shadow relative overflow-hidden">
             <ShieldCheck

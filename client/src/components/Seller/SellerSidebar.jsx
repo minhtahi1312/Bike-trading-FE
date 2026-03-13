@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   FileText,
   ShoppingCart,
+  MessageCircle,
   Wallet,
   LogOut,
   Bike,

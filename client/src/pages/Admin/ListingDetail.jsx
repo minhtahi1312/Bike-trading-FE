@@ -83,6 +83,34 @@ const ListingDetail = () => {
 
   // Lấy dữ liệu xe đầu tiên (vì API trả về mảng bikes)
   const bikeInfo = listingData.bikes && listingData.bikes.length > 0 ? listingData.bikes[0] : null;
+
+  // --- HÀM MAP TRẠNG THÁI DỰA TRÊN THÔNG SỐ CỦA BẠN ---
+  const getDetailStatusDisplay = (listStatus, bikeStatus) => {
+    // 1. Chờ duyệt
+    if (listStatus === 2) {
+      return { text: 'Chờ duyệt', bg: 'bg-yellow-100', textCol: 'text-yellow-700', dot: 'bg-yellow-500' };
+    }
+    // 2. Bị từ chối
+    if (listStatus === 5) {
+      return { text: 'Bị từ chối', bg: 'bg-red-100', textCol: 'text-red-700', dot: 'bg-red-500' };
+    }
+    // 3. Xử lý logic gộp của Đang kiểm định và Đã công khai
+    if (listStatus === 3) {
+      if (bikeStatus === 1) {
+        return { text: 'Đang kiểm định', bg: 'bg-purple-100', textCol: 'text-purple-700', dot: 'bg-purple-500' };
+      }
+      if (bikeStatus === 2) {
+        return { text: 'Đã công khai', bg: 'bg-emerald-100', textCol: 'text-emerald-700', dot: 'bg-emerald-500' };
+      }
+    }
+    
+    // Mặc định phòng hờ lỗi data
+    return { text: 'Chưa xác định', bg: 'bg-gray-100', textCol: 'text-gray-700', dot: 'bg-gray-500' };
+  };
+
+  // Khởi tạo config màu sắc và text
+  const statusConfig = getDetailStatusDisplay(listingData.status, bikeInfo?.status);
+
   return (
     <div className="font-display text-[#111813] bg-gray-50/50 min-h-screen pb-10">
       
@@ -102,12 +130,10 @@ const ListingDetail = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 ${
-               listingData.status === 1 ? 'bg-yellow-100 text-yellow-700' : 'bg-emerald-100 text-emerald-700'
-            }`}>
-               <span className={`w-2 h-2 rounded-full animate-pulse ${listingData.status === 1 ? 'bg-yellow-500' : 'bg-emerald-500'}`}></span>
-                  {listingData.status === 1 ? 'Đang chờ duyệt' : 'Đã duyệt'}
+<div className="flex items-center gap-3">
+            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 ${statusConfig.bg} ${statusConfig.textCol}`}>
+               <span className={`w-2 h-2 rounded-full animate-pulse ${statusConfig.dot}`}></span>
+               {statusConfig.text}
             </div>
         </div>
       </div>
@@ -234,6 +260,7 @@ const ListingDetail = () => {
         <div className="lg:col-span-1 space-y-6">
            
            {/* 1. Quyết định duyệt tin */}
+           {listingData.status === 2 && (
            <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
               <div className="bg-emerald-600 p-4 text-white">
                  <h3 className="font-bold flex items-center gap-2">
@@ -269,8 +296,7 @@ const ListingDetail = () => {
                  </div>
               </div>
            </div>
-
-           {/* 2. Thông tin người bán */}
+         )}
            {/* 2. Thông tin người bán */}
 <div className="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-sm">
    <h3 className="font-bold text-[#111813] mb-4 border-b border-gray-100 pb-2">Thông tin người bán</h3>

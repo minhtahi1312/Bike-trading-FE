@@ -15,11 +15,13 @@ import {
 
 export default function CreateListing() {
   const [step, setStep] = useState(1);
+
   const handleSubmit = () => {
     // Fake validate
     if (!title || !price || images.length === 0) {
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
+
     }
 
     // Fake API call
@@ -32,26 +34,7 @@ export default function CreateListing() {
   return (
     <div className="max-w-6xl mx-auto py-10 space-y-8">
       {/* ===== STEP INDICATOR ===== */}
-      <div className="flex justify-center gap-10">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                step >= s
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {s}
-            </div>
-            <span className="text-sm font-medium">
-              {s === 1 && "Thông tin"}
-              {s === 2 && "Kỹ thuật"}
-              {s === 3 && "Hình ảnh"}
-            </span>
-          </div>
-        ))}
-      </div>
+      <StepProgress step={step} className="mb-10" />
 
       {/* ===== STEP CONTENT ===== */}
       {step === 1 && <StepBasic />}
@@ -79,12 +62,14 @@ export default function CreateListing() {
             Tiếp theo →
           </button>
         ) : (
+
           <button
             onClick={handleSubmit}
             className="px-8 py-3 bg-emerald-600 text-white rounded-lg"
           >
             Đăng tin ngay
           </button>
+
         )}
       </div>
     </div>
@@ -99,57 +84,46 @@ function StepProgress({ step }) {
   ];
 
   return (
-    <div className="w-full flex justify-center mb-10">
+    <div className="w-full flex justify-center mb-12">
       <div className="flex items-center w-full max-w-3xl">
-        {steps.map((item, index) => {
-          const isActive = step === item.id;
-          const isCompleted = step > item.id;
-
-          return (
-            <div key={item.id} className="flex items-center flex-1">
-              {/* Circle */}
-              <div className="flex flex-col items-center w-full relative">
-                <div
-                  className={`
-                    w-10 h-10 flex items-center justify-center rounded-full
-                    text-sm font-semibold transition-all duration-300
-                    ${
-                      isCompleted
-                        ? "bg-emerald-500 text-white"
-                        : isActive
-                          ? "bg-emerald-500 text-white ring-4 ring-emerald-100"
-                          : "bg-gray-200 text-gray-500"
-                    }
-                  `}
-                >
-                  {isCompleted ? "✓" : item.id}
-                </div>
-
-                <span
-                  className={`mt-3 text-sm font-medium ${
-                    isActive || isCompleted ? "text-gray-900" : "text-gray-400"
+        {steps.map((item, index) => (
+          <React.Fragment key={item.id}>
+            {/* STEP */}
+            <div className="flex flex-col items-center w-32 relative">
+              <div
+                className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold
+                ${step >= item.id
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-200 text-gray-500"
                   }`}
-                >
-                  {item.label}
-                </span>
+              >
+                {item.id}
               </div>
 
-              {/* Line */}
-              {index !== steps.length - 1 && (
-                <div
-                  className={`h-1 flex-1 mx-2 transition-all duration-300 ${
-                    step > item.id ? "bg-emerald-500" : "bg-gray-200"
+              <span
+                className={`mt-2 text-sm font-medium ${step >= item.id ? "text-gray-900" : "text-gray-400"
                   }`}
-                />
-              )}
+              >
+                {item.label}
+              </span>
             </div>
-          );
-        })}
+
+            {/* LINE */}
+            {index < steps.length - 1 && (
+              <div
+                className={`flex-1 h-[2px] ${step > item.id ? "bg-emerald-500" : "bg-gray-200"
+                  }`}
+              />
+            )}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
 }
+
 function StepBasic() {
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       {/* Header */}
@@ -221,6 +195,13 @@ function StepBasic() {
             <ul className="space-y-3 text-sm text-gray-700">
               <li>✔️ Mô tả trung thực giúp tăng 80% tỷ lệ tin tưởng.</li>
               <li>✔️ Giá cả hợp lý giúp cạnh tranh hơn.</li>
+              <li>
+                ✔️ Hình ảnh rõ nét từ nhiều góc giúp người mua dễ đánh giá.
+              </li>
+              <li>
+                ✔️ Cung cấp thông số kỹ thuật đầy đủ giúp tăng độ tin cậy.
+              </li>
+              <li>✔️ Xe được bảo dưỡng gần đây sẽ thu hút người mua hơn.</li>
             </ul>
           </div>
 
@@ -231,17 +212,94 @@ function StepBasic() {
               Thông tin của bạn được bảo mật. Chúng tôi chỉ chia sẻ thông tin
               khi giao dịch được xác thực.
             </p>
-            <button className="mt-3 text-emerald-600 text-sm font-semibold hover:underline">
+            <button
+              onClick={() => setShowRules(true)}
+              className="mt-3 text-emerald-600 text-sm font-semibold hover:underline"
+            >
               Xem quy tắc cộng đồng →
             </button>
           </div>
-
-          {/* Preview Box */}
-          <div className="border-2 border-dashed rounded-2xl p-6 text-center text-gray-400 text-sm">
-            Xem trước nhanh
-          </div>
         </div>
       </div>
+      {showRules && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-[560px] shadow-xl relative">
+            {/* Title */}
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-3xl">📜</span>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Quy tắc cộng đồng BikeMarket
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Để đảm bảo môi trường giao dịch minh bạch và an toàn cho mọi
+                  người.
+                </p>
+              </div>
+            </div>
+
+            {/* Rules */}
+            <div className="space-y-4 text-sm text-gray-700">
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Tin đăng phải <b>mô tả đúng tình trạng xe</b>, không được cung
+                  cấp thông tin sai lệch hoặc gây hiểu nhầm.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Hình ảnh phải là <b>ảnh thật của sản phẩm</b>, rõ ràng, không
+                  sử dụng hình ảnh lấy từ internet.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Không đăng bán các sản phẩm{" "}
+                  <b>bị cấm, hàng giả, hàng vi phạm pháp luật</b>.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Không đăng nhiều tin trùng lặp hoặc spam gây ảnh hưởng đến
+                  trải nghiệm người dùng.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-emerald-500 text-lg">✔</span>
+                <p>
+                  Người bán chịu trách nhiệm về{" "}
+                  <b>nguồn gốc và tình trạng sản phẩm</b>
+                  khi giao dịch.
+                </p>
+              </div>
+            </div>
+
+            {/* Warning box */}
+            <div className="mt-6 bg-amber-50 border border-amber-200 p-4 rounded-lg text-sm text-amber-700">
+              ⚠️ Tin đăng vi phạm quy tắc có thể bị{" "}
+              <b>từ chối duyệt hoặc khóa tài khoản</b>.
+            </div>
+
+            {/* Button */}
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowRules(false)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium"
+              >
+                Đã hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -313,10 +371,9 @@ function StepTechnical() {
                   key={size}
                   onClick={() => setSelectedSize(size)}
                   className={`px-4 py-2 border rounded-lg transition
-                    ${
-                      selectedSize === size
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "hover:border-emerald-400"
+                    ${selectedSize === size
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "hover:border-emerald-400"
                     }
                   `}
                 >
@@ -451,17 +508,46 @@ function StepTechnical() {
               qua 3 tiêu chí:
             </p>
 
-            <ul className="space-y-4 text-sm">
-              {[
-                "Tính xác thực linh kiện",
-                "Tình trạng vật lý",
-                "Khả năng vận hành",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Xác thực linh kiện</b> – đảm bảo groupset, khung và phụ
+                  tùng đúng mô tả.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Tình trạng vật lý</b> – kiểm tra trầy xước, móp khung, nước
+                  sơn.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Khả năng vận hành</b> – đánh giá hệ thống truyền động và
+                  phanh.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Độ hao mòn linh kiện</b> – kiểm tra lốp, đĩa phanh, xích,
+                  cassette.
+                </span>
+              </li>
+
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
+                <span>
+                  <b>Tính an toàn khi sử dụng</b> – đảm bảo xe hoạt động ổn định
+                  khi vận hành.
+                </span>
+              </li>
             </ul>
 
             <div className="mt-5 bg-gray-50 p-3 rounded-lg text-xs text-gray-500 italic">
@@ -469,26 +555,12 @@ function StepTechnical() {
               định."
             </div>
           </div>
-
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-2">
-              <HelpCircle className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-700">
-                Bạn không biết cấu hình?
-              </h3>
-            </div>
-            <p className="text-sm text-blue-600">
-              Sử dụng công cụ tra cứu cấu hình theo đời xe (Model year).
-            </p>
-            <button className="mt-3 text-sm font-medium text-blue-700 hover:underline">
-              Tra cứu ngay →
-            </button>
-          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 function StepImages() {
   const [images, setImages] = useState([]);
@@ -500,6 +572,7 @@ function StepImages() {
       file,
       url: URL.createObjectURL(file),
     }));
+
 
     setImages((prev) => [...prev, ...preview]);
   };
@@ -519,6 +592,7 @@ function StepImages() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* ================= LEFT ================= */}
         <div className="lg:col-span-2 space-y-6">
+
           {/* Upload Box */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -526,6 +600,7 @@ function StepImages() {
               <span className="text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
                 Ảnh đầu tiên là ảnh đại diện chính
               </span>
+
             </div>
 
             <label className="border-2 border-dashed rounded-xl h-60 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
@@ -568,6 +643,7 @@ function StepImages() {
                   </div>
                 ))}
 
+
                 <label className="w-32 h-24 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer">
                   <ImagePlus className="w-6 h-6 text-gray-400" />
                   <input
@@ -575,6 +651,7 @@ function StepImages() {
                     multiple
                     className="hidden"
                     onChange={handleUpload}
+
                   />
                 </label>
               </div>
@@ -589,7 +666,7 @@ function StepImages() {
             <div className="h-40 bg-gray-100 flex items-center justify-center">
               {images[0] ? (
                 <img
-                  src={images[0].url}
+                  src={images?.[0]?.preview || images?.[0]?.url}
                   alt=""
                   className="w-full h-full object-cover"
                 />
@@ -600,18 +677,18 @@ function StepImages() {
 
             <div className="p-4 space-y-2">
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                ROAD BIKE
+                {formData.category || "CATEGORY"}
               </span>
 
               <h4 className="font-semibold text-sm">
-                Tên xe sẽ hiển thị ở đây
+                {formData.title || "Tên xe sẽ hiển thị ở đây"}
               </h4>
 
-              <p className="text-emerald-600 font-bold">45.000.000 VNĐ</p>
-
-              <div className="text-xs text-gray-500">
-                Quận 7, TP. Hồ Chí Minh
-              </div>
+              <p className="text-emerald-600 font-bold">
+                {formData.price
+                  ? formData.price.toLocaleString("vi-VN") + " VND"
+                  : "Giá sẽ hiển thị ở đây"}
+              </p>
             </div>
           </div>
 
@@ -647,10 +724,9 @@ function ConditionCard({ active, onClick, icon, title, desc }) {
     <div
       onClick={onClick}
       className={`rounded-xl p-5 text-center cursor-pointer transition border
-        ${
-          active
-            ? "border-emerald-500 bg-emerald-50"
-            : "hover:border-emerald-400"
+        ${active
+          ? "border-emerald-500 bg-emerald-50"
+          : "hover:border-emerald-400"
         }
       `}
     >

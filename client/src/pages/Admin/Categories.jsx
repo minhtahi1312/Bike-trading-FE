@@ -7,26 +7,24 @@ import {
 const Categories = () => {
   const [activeTab, setActiveTab] = useState('brands'); // brands, types, groupsets
 
-  // Mock Data: Thương hiệu
-  const brands = [
-    { id: 1, name: "Giant", origin: "Taiwan", count: "1,240 xe", logo: "https://placehold.co/100x100/111813/white?text=G", active: true },
-    { id: 2, name: "Trek", origin: "USA", count: "856 xe", logo: "https://placehold.co/100x100/000000/white?text=T", active: true },
-    { id: 3, name: "Specialized", origin: "USA", count: "632 xe", logo: "https://placehold.co/100x100/d63031/white?text=S", active: true },
-    { id: 4, name: "Cannondale", origin: "USA", count: "410 xe", logo: "https://placehold.co/100x100/74b9ff/white?text=C", active: false },
-    { id: 5, name: "Pinarello", origin: "Italy", count: "320 xe", logo: "https://placehold.co/100x100/2d3436/white?text=P", active: true },
+  // Mock Data: Thương hiệu 
+const brands = [
+    { id: 1, name: "Giant", total: "2,090 tin", count: "1,240 xe", sold: "850 xe" },
+    { id: 2, name: "Trek", total: "1,456 tin", count: "856 xe", sold: "600 xe" },
+    { id: 3, name: "Specialized", total: "1,052 tin", count: "632 xe", sold: "420 xe" },
+    { id: 4, name: "Cannondale", total: "560 tin", count: "410 xe", sold: "150 xe" },
+    { id: 5, name: "Pinarello", total: "440 tin", count: "320 xe", sold: "120 xe" },
   ];
 
-  // Mock Data: Loại xe
   const types = [
-    { id: 1, name: "Road Bike", desc: "Xe đạp đua đường trường", count: "4,500 xe", active: true },
-    { id: 2, name: "Mountain Bike (MTB)", desc: "Xe đạp địa hình", count: "3,200 xe", active: true },
-    { id: 3, name: "Touring Bike", desc: "Xe đạp phượt", count: "800 xe", active: false },
+    { id: 1, name: "Road Bike", total: "6,600 tin", count: "4,500 xe", sold: "2,100 xe" },
+    { id: 2, name: "Mountain Bike (MTB)", total: "5,000 tin", count: "3,200 xe", sold: "1,800 xe" },
+    { id: 3, name: "Touring Bike", total: "1,150 tin", count: "800 xe", sold: "350 xe" },
   ];
 
-  // Mock Data: Groupset
   const groupsets = [
-    { id: 1, name: "Shimano Dura-Ace", type: "Road", count: "500 sp", active: true },
-    { id: 2, name: "SRAM Red eTap", type: "Road", count: "350 sp", active: true },
+    { id: 1, name: "Shimano Dura-Ace", total: "820 tin", count: "500 sp", sold: "320 sp" },
+    { id: 2, name: "SRAM Red eTap", total: "560 tin", count: "350 sp", sold: "210 sp" },
   ];
 
   // Toggle Switch Component
@@ -47,58 +45,28 @@ const Categories = () => {
       <tbody className="divide-y divide-[#e5e7eb]">
         {data.map((item, index) => (
           <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
-            <td className="px-6 py-4 text-sm font-bold text-[#637588] w-16 text-center">
+            <td className="px-6 py-4 text-sm font-bold text-[#637588] text-center w-[5%]">
               {index + 1 < 10 ? `0${index + 1}` : index + 1}
-            </td>
-            
-            {/* Cột Logo / Icon */}
-            <td className="px-6 py-4 w-24">
-              {activeTab === 'brands' ? (
-                 <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
-                    <img src={item.logo} alt={item.name} className="w-full h-full object-cover" />
-                 </div>
-              ) : (
-                 <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    {activeTab === 'types' ? <Layers size={20} /> : <Settings size={20} />}
-                 </div>
-              )}
             </td>
 
             {/* Cột Tên */}
-            <td className="px-6 py-4">
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-[#111813]">{item.name}</span>
-                {item.origin && <span className="text-xs font-medium text-[#637588] mt-0.5">{item.origin}</span>}
-                {item.desc && <span className="text-xs font-medium text-[#637588] mt-0.5">{item.desc}</span>}
-                {item.type && <span className="text-xs font-medium text-[#637588] mt-0.5">{item.type}</span>}
-              </div>
+            <td className="px-6 py-4 w-[35%] text-sm font-bold text-[#111813]">
+               {item.name}
             </td>
 
-            {/* Cột Số lượng */}
-            <td className="px-6 py-4 text-sm font-bold text-[#111813]">
+            {/* Cột Tổng tin đăng (MỚI) */}
+            <td className="px-6 py-4 text-sm font-bold text-[#111813] text-center w-[20%]">
+              {item.total}
+            </td>
+
+            {/* Cột Số lượng SP (Tin đang hiển thị) */}
+            <td className="px-6 py-4 text-sm font-bold text-[#111813] text-center w-[20%]">
               {item.count}
             </td>
 
-            {/* Cột Trạng thái */}
-            <td className="px-6 py-4">
-              <div className="flex items-center gap-3">
-                 <ToggleSwitch active={item.active} />
-                 <span className={`text-xs font-bold ${item.active ? 'text-emerald-600' : 'text-gray-400'}`}>
-                    {item.active ? 'Hiển thị' : 'Đã ẩn'}
-                 </span>
-              </div>
-            </td>
-
-            {/* Cột Hành động */}
-            <td className="px-6 py-4 text-right">
-              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                    <Edit2 size={16} />
-                 </button>
-                 <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                    <Trash2 size={16} />
-                 </button>
-              </div>
+            {/* Cột Đã bán (Chữ màu xanh nổi bật) */}
+            <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-center w-[20%]">
+              {item.sold}
             </td>
           </tr>
         ))}
@@ -189,16 +157,13 @@ const Categories = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">#</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">
-                  {activeTab === 'brands' ? 'Logo' : 'Icon'}
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center w-[5%]">#</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[35%]">
                    {activeTab === 'brands' ? 'Tên thương hiệu' : 'Tên danh mục'}
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Số lượng SP</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-right">Hành động</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center w-[20%]">Tổng tin đăng</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center w-[20%]">Số lượng SP</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center w-[20%]">Đã bán</th>
               </tr>
             </thead>
             {renderTableContent()}

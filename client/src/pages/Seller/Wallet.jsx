@@ -4,13 +4,10 @@ import {
   TrendingUp,
   ShoppingCart,
   Download,
-  Wallet,
 } from "lucide-react";
-
-import { useNavigate } from "react-router-dom";
+import { Wallet } from "lucide-react";
 
 export default function WalletPage() {
-  const navigate = useNavigate();
   const data = [
     {
       id: "#ORD-9921",
@@ -35,13 +32,15 @@ export default function WalletPage() {
   const totalRevenue = data.reduce((sum, item) => sum + item.price, 0);
   const totalFee = totalRevenue * 0.05;
   const totalProfit = totalRevenue - totalFee;
+  const withdrawn = 50000000; // demo tiền đã rút
+  const balance = totalProfit - withdrawn;
 
   const formatCurrency = (value) => value.toLocaleString("vi-VN") + "₫";
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div>
         <div>
           <h1 className="text-2xl font-bold">Quản lý Tài chính</h1>
           <p className="text-gray-500 text-sm">
@@ -49,13 +48,13 @@ export default function WalletPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => navigate("/seller/withdraw")}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
-        >
-          <Wallet size={18} />
-          Rút tiền
-        </button>
+        {/* Số dư khả dụng */}
+        <div className="text-right">
+          <p className="text-xs text-gray-500">Số dư khả dụng</p>
+          <p className="text-lg font-bold text-emerald-600">
+            {formatCurrency(balance)}
+          </p>
+        </div>
       </div>
 
       {/* Stats */}

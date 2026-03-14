@@ -72,7 +72,8 @@ export default function SellerListings() {
   const statusMap = {
     Draft: "Bản nháp",
     PendingApproval: "Chờ duyệt",
-    Active: "Đã duyệt",
+    PendingInspection: "Chờ kiểm định",
+    Active: "Công khai",
     Inactive: "Ngừng hiển thị",
     Rejected: "Bị từ chối",
   };
@@ -80,6 +81,7 @@ export default function SellerListings() {
   const statusStyle = {
     Draft: "bg-gray-100 text-gray-700",
     PendingApproval: "bg-yellow-100 text-yellow-700",
+    PendingInspection: "bg-blue-100 text-blue-700",
     Active: "bg-emerald-100 text-emerald-700",
     Inactive: "bg-gray-200 text-gray-600",
     Rejected: "bg-red-100 text-red-700",
@@ -101,6 +103,28 @@ export default function SellerListings() {
 
     return pages;
   };
+
+  const getDisplayStatus = (listingStatus, bikeStatus) => {
+    if (listingStatus === "Draft") return "Draft";
+
+    if (
+      listingStatus === "PendingApproval" &&
+      bikeStatus === "PendingInspection"
+    )
+      return "PendingApproval";
+
+    if (listingStatus === "Active" && bikeStatus === "PendingInspection")
+      return "PendingInspection";
+
+    if (listingStatus === "Active" && bikeStatus === "Available")
+      return "Active";
+
+    if (listingStatus === "Rejected" && bikeStatus === "Disabled")
+      return "Rejected";
+
+    return listingStatus;
+  };
+
   return (
     <div className="space-y-6">
       {/* ===== HEADER ===== */}
@@ -167,78 +191,85 @@ export default function SellerListings() {
         </div>
       )}
       <div className="space-y-4">
-        {sortedListings.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white border rounded-xl p-4 flex gap-4"
-          >
-            <img
-              src={item.image}
-              alt={item.brand}
-              className="w-40 h-28 object-cover rounded-lg"
-            />
+        {sortedListings.map((item) => {
+          const displayStatus = getDisplayStatus(
+            item.status,
+            item.bike?.status,
+          );
 
-            <div className="flex-1 flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`text-xs font-semibold px-2 py-1 rounded-full ${statusStyle[item.status]}`}
-                >
-                  {statusMap[item.status]}
-                </span>
-              </div>
+          return (
+            <div
+              key={item.id}
+              className="bg-white border rounded-xl p-4 flex gap-4"
+            >
+              <img
+                src={item.image}
+                alt={item.brand}
+                className="w-40 h-28 object-cover rounded-lg"
+              />
 
-              <h3 className="font-bold text-gray-900">{item.title}</h3>
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-semibold px-2 py-1 rounded-full ${statusStyle[displayStatus]}`}
+                  >
+                    {statusMap[displayStatus]}
+                  </span>
+                </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} className="text-gray-400" />
-                  {new Date(item.createdAt).toLocaleDateString()}
-                </span>
+                <h3 className="font-bold text-gray-900">{item.title}</h3>
 
-                {/* <span className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Calendar size={14} className="text-gray-400" />
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </span>
+
+                  {/* <span className="flex items-center gap-1">
                   <Heart size={14} className="text-rose-500" />
                   {item.likes} quan tâm
                 </span> */}
+                </div>
+
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {item.description}
+                </p>
               </div>
 
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {item.description}
-              </p>
-            </div>
+              <div className="flex flex-col items-end justify-between">
+                <p className="font-bold text-emerald-600 text-lg">
+                  {item.price
+                    ? item.price.toLocaleString("vi-VN") + " đ"
+                    : "Chưa có giá"}
+                </p>
 
-            <div className="flex flex-col items-end justify-between">
-              <p className="font-bold text-emerald-600 text-lg">
-                {item.price
-                  ? item.price.toLocaleString("vi-VN") + " đ"
-                  : "Chưa có giá"}
-              </p>
+                <div className="flex gap-2 justify-end">
+                  {item.status === "Draft" && (
+                    <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
+                      <Pencil size={14} /> Chỉnh sửa
+                    </button>
+                  )}
 
-              <div className="flex gap-2 justify-end">
-                {item.status === "Draft" && (
-                  <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
-                    <Pencil size={14} /> Chỉnh sửa
-                  </button>
-                )}
+                  {item.status === "Draft" && (
+                    <button
+                      onClick={() => setDeleteId(item.id)}
+                      className="border border-red-300 text-red-600 rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-red-50"
+                    >
+                      <Trash2 size={14} /> Xóa
+                    </button>
+                  )}
 
-                {item.status === "Draft" && (
                   <button
-                    onClick={() => setDeleteId(item.id)}
-                    className="border border-red-300 text-red-600 rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-red-50"
+                    onClick={() => navigate(`/seller/listings/${item.id}`)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
                   >
-                    <Trash2 size={14} /> Xóa
+                    Xem chi tiết
                   </button>
-                )}
-
-                <button
-                  onClick={() => navigate(`/seller/listings/${item.id}`)}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Xem chi tiết
-                </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ===== PAGINATION ===== */}

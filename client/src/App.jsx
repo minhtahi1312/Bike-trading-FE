@@ -97,6 +97,7 @@ function App() {
           <Route path="listings/:id" element={<SellerListingDetail />} />
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
+          <Route path="edit-listing/:id" element={<CreateListing />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />

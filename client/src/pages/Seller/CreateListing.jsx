@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 import {
   Bike,
   Ruler,
@@ -39,6 +40,50 @@ export default function CreateListing() {
     video: null,
   });
 
+  const { id } = useParams();
+  useEffect(() => {
+    if (!id) return;
+
+    const token = localStorage.getItem("accessToken");
+
+    fetch(
+      `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings/${id}/details`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("EDIT DATA:", data);
+
+        setFormData({
+          title: data.title || "",
+          description: data.description || "",
+          category: data.bike?.category || "",
+          brand: data.bike?.brand || "",
+          size: data.bike?.frameSize || "",
+          frameMaterial: data.bike?.frameMaterial || "",
+          paintCondition: data.bike?.paint || "",
+          drivetrain: data.bike?.groupset || "",
+          drivetrainCondition: data.bike?.operating || "",
+          tireRim: data.bike?.tireRim || "",
+          brakeType: data.bike?.brakeType || "",
+          brakeCondition: data.bike?.brakeCondition || "",
+          overallCondition: data.bike?.overall || "",
+          price: data.bike?.price || "",
+          bikeId: data.bike?.id || null,
+          images:
+            data.bike?.medias?.map((img) => ({
+              file: null,
+              preview: img.url,
+            })) || [],
+          video: null,
+        });
+      });
+  }, [id]);
+
   const updateField = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -50,15 +95,18 @@ export default function CreateListing() {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const handleSubmit = async () => {
+    const isEdit = !!id;
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
 
       // 1️⃣ CREATE LISTING
       const listingRes = await fetch(
-        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings",
+        isEdit
+          ? `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings/${id}`
+          : "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings",
         {
-          method: "POST",
+          method: isEdit ? "PUT" : "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -72,55 +120,86 @@ export default function CreateListing() {
       );
 
       const listingData = await listingRes.json();
-      const listingId = listingData.id;
+      const listingId = isEdit ? id : listingData.id;
 
       // 2️⃣ CREATE BIKE
-      const bikeRes = await fetch(
-        "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "x-listing-id": listingId,
-          },
-          body: JSON.stringify({
-            category: formData.category,
-            brand: formData.brand,
-            frameSize: formData.size,
-            frameMaterial: formData.frameMaterial,
-            paint: formData.paintCondition,
-            groupset: formData.drivetrain,
-            operating: formData.drivetrainCondition,
-            tireRim: formData.tireRim,
-            brakeType: formData.brakeType,
-            overall: formData.overallCondition,
-            price: Number(formData.price),
-          }),
-        },
-      );
+      // 2️⃣ CREATE BIKE
+      let bikeId = formData.bikeId;
 
-      const bikeData = await bikeRes.json();
-      console.log("bikeData", bikeData);
-
-      const bikeId = bikeData.id;
-
-      // 3️⃣ UPLOAD IMAGES
-      for (const img of formData.images) {
-        const imgForm = new FormData();
-        imgForm.append("file", img.file);
-
-        await fetch(
-          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-image",
+      if (!bikeId) {
+        // CREATE BIKE
+        const bikeRes = await fetch(
+          "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes",
           {
             method: "POST",
             headers: {
+              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
-              "x-bike-id": bikeId,
+              "x-listing-id": listingId,
             },
-            body: imgForm,
+            body: JSON.stringify({
+              category: formData.category,
+              brand: formData.brand,
+              frameSize: formData.size,
+              frameMaterial: formData.frameMaterial,
+              paint: formData.paintCondition,
+              groupset: formData.drivetrain,
+              operating: formData.drivetrainCondition,
+              tireRim: formData.tireRim,
+              brakeType: formData.brakeType,
+              overall: formData.overallCondition,
+              price: Number(formData.price),
+            }),
           },
         );
+
+        const bikeData = await bikeRes.json();
+        bikeId = bikeData.id;
+      } else {
+        // UPDATE BIKE
+        await fetch(
+          `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/${bikeId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              category: formData.category,
+              brand: formData.brand,
+              frameSize: formData.size,
+              frameMaterial: formData.frameMaterial,
+              paint: formData.paintCondition,
+              groupset: formData.drivetrain,
+              operating: formData.drivetrainCondition,
+              tireRim: formData.tireRim,
+              brakeType: formData.brakeType,
+              overall: formData.overallCondition,
+              price: Number(formData.price),
+            }),
+          },
+        );
+      }
+
+      // 3️⃣ UPLOAD IMAGES
+      if (formData.images.length > 0) {
+        for (const img of formData.images) {
+          const imgForm = new FormData();
+          imgForm.append("file", img.file);
+
+          await fetch(
+            "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/upload-image",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "x-bike-id": bikeId,
+              },
+              body: imgForm,
+            },
+          );
+        }
       }
 
       // 4️⃣ UPLOAD VIDEO
@@ -141,7 +220,7 @@ export default function CreateListing() {
         );
       }
 
-      toast.success("Đăng tin thành công");
+      toast.success(isEdit ? "Cập nhật tin thành công" : "Đăng tin thành công");
       navigate("/seller/listings");
     } catch (error) {
       console.error(error);
@@ -668,7 +747,7 @@ function StepTechnical({ formData, updateField }) {
               <input
                 type="number"
                 value={formData.price}
-                onChange={(e) => updateField("price", Number(e.target.value))}
+                onChange={(e) => updateField("price", e.target.value)}
                 placeholder="0"
                 className="w-full border rounded-l-xl px-4 py-3 text-sm"
               />
@@ -985,7 +1064,7 @@ function StepImages({ formData, updateField }) {
 
               <p className="text-emerald-600 font-bold">
                 {formData.price
-                  ? formData.price.toLocaleString("vi-VN") + " VND"
+                  ? Number(formData.price).toLocaleString("vi-VN") + " VND"
                   : "Giá sẽ hiển thị ở đây"}
               </p>
             </div>

@@ -245,7 +245,12 @@ export default function SellerListings() {
 
                 <div className="flex gap-2 justify-end">
                   {item.status === "Draft" && (
-                    <button className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50">
+                    <button
+                      onClick={() =>
+                        navigate(`/seller/edit-listing/${item.id}`)
+                      }
+                      className="border rounded-lg px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-50"
+                    >
                       <Pencil size={14} /> Chỉnh sửa
                     </button>
                   )}

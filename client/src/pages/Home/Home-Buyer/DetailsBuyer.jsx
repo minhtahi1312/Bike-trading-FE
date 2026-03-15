@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
-// Đảm bảo đường dẫn này trỏ đúng đến file chứa hàm getBikeDetail của bạn
+import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import { addCartItem, getBikeDetail } from '../../../services/axiosClient';
-import { useNavigate } from 'react-router-dom';
-const BikeMarketDetail = () => {
-    const { id } = useParams(); // Lấy ID từ URL (VD: /bike-market/123 -> id = 123)
-    const navigate = useNavigate();
 
-    // SỬA LỖI: Sử dụng useState thay vì useActionState
+const BikeMarketDetail = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    
+    // 1. CÁC STATE CỦA COMPONENT
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeIndex, setActiveIndex] = useState(0); // THÊM STATE ĐỂ LƯU VỊ TRÍ ẢNH ĐANG XEM
+
+    // 2. FETCH DỮ LIỆU
     useEffect(() => {
         const fetchListingDetail = async () => {
             if (!id) return;
 
             try {
                 setLoading(true);
-                // GIẢ SỬ: Bạn đổi hàm API thành getListingDetail hoặc truyền đúng endpoint của Listing
                 const data = await getBikeDetail(id);
-                console.log("👉 DỮ LIỆU TỪ API TRẢ VỀ:", data); // Thêm dòng này!                // Nếu API trả về Listing object chứa Bike object bên trong (ví dụ: data.bike)
-                // Bạn có thể cần setBike(data.bike) tùy vào cấu trúc JSON của Backend
+                console.log("👉 DỮ LIỆU TỪ API TRẢ VỀ:", data);
                 setBike(data);
-
                 setError(null);
             } catch (err) {
                 console.error("Lỗi khi tải thông tin từ Listing ID:", err);
@@ -35,22 +34,18 @@ const BikeMarketDetail = () => {
         fetchListingDetail();
     }, [id]);
 
+    // 3. XỬ LÝ GIỎ HÀNG
     const handleAddCartItem = async () => {
         try {
-            // Gọi API để thêm vào giỏ hàng
             await addCartItem(bike.bikes[0].id);
             alert('Đã thêm vào giỏ hàng!');
         } catch (err) {  
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
-                        alert('Xe đã có trong giỏ hàng');
-
-           } 
-    
+            alert('Xe đã có trong giỏ hàng');
+        } 
     };
 
-
-
-    // 1. Hiển thị trạng thái đang tải
+    // 4. KIỂM TRA TRẠNG THÁI LOADING & ERROR
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f6] dark:bg-[#102216]">
@@ -62,7 +57,6 @@ const BikeMarketDetail = () => {
         );
     }
 
-    // 2. Hiển thị khi có lỗi
     if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f6] dark:bg-[#102216]">
@@ -74,7 +68,6 @@ const BikeMarketDetail = () => {
         );
     }
 
-    // 3. Hiển thị khi không tìm thấy dữ liệu xe
     if (!bike) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f6] dark:bg-[#102216]">
@@ -83,15 +76,19 @@ const BikeMarketDetail = () => {
         );
     }
 
-    // --- RENDER GIAO DIỆN CHÍNH ---
+    // 5. KHAI BÁO BIẾN CHO HÌNH ẢNH (Phải đặt Ở ĐÂY, sau khi đã chắc chắn có 'bike')
+    const medias = bike?.bikes?.[0]?.medias || [];
+    const activeMedia = medias[activeIndex] || {};
+    const isActiveVideo = activeMedia.videoUrl || activeMedia.video;
+
     // --- RENDER GIAO DIỆN CHÍNH ---
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
                 <div className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth bg-[#f6f8f6] dark:bg-[#102216] 
-                    [&::-webkit-scrollbar]:!hidden 
-                    [-ms-overflow-style:none] 
-                    [scrollbar-width:none]">
+                    [&::-webkit-scrollbar]:!hidden 
+                    [-ms-overflow-style:none] 
+                    [scrollbar-width:none]">
                     <div className="max-w-[1200px] mx-auto flex flex-col gap-6">
 
                         {/* Header / Actions */}
@@ -117,45 +114,52 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-4 shadow-sm">
                                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 mb-4 relative group">
 
-                                        {/* HIỂN THỊ MAIN MEDIA: Nếu media đầu tiên là video thì hiện <video>, ngược lại hiện ảnh */}
-                                        {(bike?.bikes?.[0]?.medias?.[0]?.videoUrl || bike?.bikes?.[0]?.medias?.[0]?.video) ? (
+                                        {/* HIỂN THỊ MAIN MEDIA DỰA VÀO STATE ACTIVEINDEX */}
+                                        {isActiveVideo ? (
                                             <video
-                                                src={bike?.bikes?.[0]?.medias?.[0]?.videoUrl || bike?.bikes?.[0]?.medias?.[0]?.video}
+                                                key={isActiveVideo} // Giúp React load lại video mới khi click
+                                                src={isActiveVideo}
                                                 controls
+                                                autoPlay
                                                 className="absolute inset-0 w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${bike?.bikes?.[0]?.medias?.[1]?.image || bike?.bikes?.[0]?.medias?.[0]?.image || ''}")` }}></div>
+                                            <div 
+                                                className="absolute inset-0 bg-cover bg-center transition-all duration-300" 
+                                                style={{ backgroundImage: `url("${activeMedia.image || ''}")` }}
+                                            ></div>
                                         )}
 
                                         <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm flex items-center gap-2 z-10">
                                             <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-                                            1/{bike?.bikes?.[0]?.medias?.length || 0}
+                                            {activeIndex + 1}/{medias.length || 0}
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 gap-4">
-                                        {(bike?.bikes?.[0]?.medias || []).slice(0, 4).map((media, index) => {
-                                            // Kiểm tra xem phần tử này có phải video không
+                                        {medias.slice(0, 4).map((media, index) => {
                                             const isVideo = media.videoUrl || media.video;
 
                                             return (
                                                 <div
                                                     key={index}
-                                                    className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity relative ${index === 0 ? 'border-2 border-[#2bee6c]' : ''}`}
+                                                    onClick={() => setActiveIndex(index)} // CLICK SẼ CHUYỂN ẢNH Ở ĐÂY
+                                                    className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all relative ${
+                                                        activeIndex === index ? 'border-2 border-[#2bee6c] scale-[1.02] shadow-md' : 'opacity-70'
+                                                    }`}
                                                     style={{ backgroundImage: `url("${media.image || ''}")` }}
                                                 >
-                                                    {/* NẾU LÀ VIDEO: Hiện icon Play ở giữa ảnh thu nhỏ */}
+                                                    {/* NẾU LÀ VIDEO: Hiện icon Play */}
                                                     {isVideo && (
                                                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                                                             <span className="material-symbols-outlined text-white text-3xl drop-shadow-md">play_circle</span>
                                                         </div>
                                                     )}
 
-                                                    {/* NẾU LÀ ẢNH CUỐI CÙNG VÀ CÒN NHIỀU ẢNH KHÁC: Hiện lớp phủ +số lượng */}
-                                                    {index === 3 && bike?.bikes?.[0]?.medias?.length > 4 && (
+                                                    {/* NẾU LÀ ẢNH CUỐI CÙNG VÀ CÒN NHIỀU ẢNH KHÁC */}
+                                                    {index === 3 && medias.length > 4 && (
                                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg text-white font-bold text-lg">
-                                                            +{bike?.bikes?.[0]?.medias?.length - 4}
+                                                            +{medias.length - 4}
                                                         </div>
                                                     )}
                                                 </div>
@@ -245,6 +249,7 @@ const BikeMarketDetail = () => {
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vận hành</div>
                                                 <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.operating || 'N/A'}</div>
+                                                
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vành / Lốp</div>
                                                 <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.tireRim || 'N/A'}</div>
 
@@ -253,12 +258,8 @@ const BikeMarketDetail = () => {
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Tổng thể</div>
                                                 <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.overall || 'N/A'}</div>
-
                                             </div>
                                         </div>
-
-
-
                                     </div>
                                 </div>
 
@@ -270,7 +271,5 @@ const BikeMarketDetail = () => {
         </div>
     );
 };
-
-
 
 export default BikeMarketDetail;

@@ -3,7 +3,7 @@ import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist } fro
 import { toast } from "react-toastify";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { ChartColumnStacked, ChevronLeft, ChevronRight, Heart, MapPinCheckInside, RulerDimensionLine, ShieldCheck, SlidersHorizontal, Trello } from "lucide-react";
 export default function Homebuyer() {
   const [sortBy, setSortBy] = useState("Mới nhất");
   const [verifiedOnly, setVerifiedOnly] = useState(true);
@@ -89,7 +89,7 @@ export default function Homebuyer() {
         listingId: item.id,
         id: item.bikeId,
         name: item.title || "Chưa có tên xe",
-
+        
         price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
 
         size: item.size || "N/A",
@@ -101,6 +101,10 @@ export default function Homebuyer() {
 
         condition: item.overall || "N/A",
         newTag: item.isNew || false,
+
+        // Thêm brand và category ở đây nè:
+        brand: item.brand || "Chưa xác định",
+        category: item.category || "Chưa xác định",
       }));
 
       console.log("✅ Seller listings loaded:", formattedBikes);
@@ -117,6 +121,17 @@ export default function Homebuyer() {
   const handleWishlistClick = () => {
     navigate('/homebuyer/wishlist');
   };
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = () => setIsFilterOpen(false);
+    if (isFilterOpen) {
+      window.addEventListener("click", handleClickOutside);
+    }
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [isFilterOpen]);
   return (
     <div className="bg-background-light dark:bg-background-dark text-[#111813] overflow-x-hidden">
       {/* Header */}
@@ -256,32 +271,86 @@ export default function Homebuyer() {
             {/* Main Area */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               {/* Filters Bar */}
-              <div className="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between  z-30">
+              <div className="relative z-[50] bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between  z-30">
                 <div className="flex flex-wrap gap-2 items-center">
-                  <button className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f4f2] hover:bg-primary/20 rounded-lg text-sm font-medium text-[#111813] border border-transparent hover:border-primary transition-all">
+                  {/* <button className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f4f2] hover:bg-primary/20 rounded-lg text-sm font-medium text-[#111813] border border-transparent hover:border-primary transition-all">
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
                       <SlidersHorizontal strokeWidth={3} />
                     </span>
                     Bộ lọc
-                  </button>
-                  <div className="h-6 w-px bg-gray-200 mx-1 hidden md:block"></div>
-                  {/* <label className="flex items-center gap-2 cursor-pointer bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 hover:border-primary transition-all">
-                    <div className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={verifiedOnly}
-                        onChange={(e) => setVerifiedOnly(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                  </button> */}
+                  <div className="relative z-[30] bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between z-30">
+                    {/* Nút Bộ lọc & Dropdown */}
+                    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${isFilterOpen ? "bg-primary/20 border-primary text-primary" : "bg-[#f0f4f2] border-transparent text-[#111813] hover:bg-primary/20"
+                          }`}
+                      >
+                        <SlidersHorizontal size={18} strokeWidth={2.5} />
+                        Bộ lọc
+                        <span className={`material-symbols-outlined transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} style={{ fontSize: "16px" }}>
+                          expand_more
+                        </span>
+                      </button>
+
+                     
+                      {isFilterOpen && (
+                        <div className="absolute top-full left-0 mt-2 w-[450px] bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-[9999] flex gap-6">
+
+                          {/* Cột Thương hiệu */}
+                          <div className="flex-1">
+                            <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Thương hiệu</div>
+                            <div className="flex flex-col gap-1">
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Tất cả</button>
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Trek</button>
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Giant</button>
+                            </div>
+                          </div>
+
+                          {/* Đường kẻ dọc ngăn cách */}
+                          <div className="w-px bg-gray-100"></div>
+
+                          {/* Cột Danh mục */}
+                          <div className="flex-1">
+                            <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Danh mục</div>
+                            <div className="flex flex-col gap-1">
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Xe Road</button>
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Xe MTB</button>
+                              <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors">Xe điện</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-[#111813] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-primary filled" style={{ fontSize: "16px" }}>
-                        <ShieldCheck strokeWidth={3} />
-                      </span>
-                      Đã kiểm định
-                    </span>
-                  </label> */}
+
+                    <div className="h-6 w-px bg-gray-200 mx-1 hidden md:block"></div>
+
+                    {/* Các nút filter nhanh phía sau (Road, MTB, Touring) */}
+                    {/* <div className="flex gap-2">
+                      {["Road", "MTB", "Touring"].map(item => (
+                        <button key={item} className="px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-sm hover:border-primary hover:text-primary transition-colors bg-white">
+                          {item}
+                        </button>
+                      ))}
+                    </div> */}
+
+                    {/* Phần sắp xếp (Giữ nguyên) */}
+                    {/* <div className="flex items-center gap-2 ml-auto">
+                      <span className="text-sm text-[#61896f]">Sắp xếp:</span>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="form-select bg-transparent border-none text-sm font-bold text-[#111813] focus:ring-0 p-0 pr-8 cursor-pointer"
+                      >
+                        <option>Mới nhất</option>
+                        <option>Giá thấp đến cao</option>
+                        <option>Giá cao đến thấp</option>
+                      </select>
+                    </div> */}
+                  </div>
+                  <div className="h-6 w-px bg-gray-200 mx-1 hidden md:block"></div>
+
                   <div className="hidden sm:flex gap-2">
                     <button className="px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-sm hover:border-primary hover:text-primary transition-colors bg-white">
                       Road
@@ -332,7 +401,7 @@ export default function Homebuyer() {
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">
                         {bike.verified && (
-                          <div className="absolute top-3 left-3 z-10 bg-primary text-[#111813] text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                          <div className="absolute top-3 left-3 z-[10] bg-primary text-[#111813] text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
                             <span className="material-symbols-outlined filled" style={{ fontSize: "14px" }}>
                               <ShieldCheck strokeWidth={3} />
                             </span>
@@ -372,15 +441,15 @@ export default function Homebuyer() {
                         <div className="flex items-center gap-4 text-xs text-[#61896f] py-2">
                           <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                              <RulerDimensionLine strokeWidth={1.25} />
+                             <Trello  strokeWidth={1.25} />
                             </span>
-                            Size {bike.size}
+                            Size {bike.brand}
                           </div>
                           <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                              <MapPinCheckInside strokeWidth={1.25} />
+                              <ChartColumnStacked strokeWidth={1.25} />
                             </span>
-                            {bike.location}
+                            {bike.category}
                           </div>
                         </div>
 

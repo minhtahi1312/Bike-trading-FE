@@ -27,7 +27,6 @@ const CheckoutPage = () => {
   };
 
   const handleCheckout = async () => {
-    // 1. Chuẩn bị request body từ state
     const requestBody = {
       receiverName: formData.receiverName,
       receiverPhone: formData.receiverPhone,
@@ -37,16 +36,20 @@ const CheckoutPage = () => {
     try {
       const result = await CheckOut(requestBody);
       console.log("Thanh toán thành công!", result);
-      const orders= await getMyOrder(); // Giả sử bạn có hàm này để lấy ID đơn hàng vừa tạo
-      // Chuyển hướng sang trang thanh toán sau khi tạo đơn thành công
-      const orderId = orders[0].id; // Lấy ID của đơn hàng vừa tạo (giả sử là phần tử đầu tiên trong mảng)
-      // navigate(`/homebuyer/payment/${orderId}`);
-      const urlQR = await getPayos(orderId);
-      console.log("URL QR Code:", urlQR.data.checkoutUrl);
-  window.location.href = urlQR.data.checkoutUrl;
-    
+
+      const orders = await getMyOrder();
+      const orderId = orders[0].id;
+      // const urlQR = await getPayos(orderId);
+      // console.log("URL QR Code:", urlQR.data.checkoutUrl);
+      // window.location.href = urlQR.data.checkoutUrl;
+      // Đã sửa biến ở đây
+      navigate(`/homebuyer/payment/${orderId}`);
+
+      // Lưu ý: Các lệnh dưới đây có thể không cần thiết nếu bạn đã navigate sang trang khác
+      // const urlQR = await getPayos(orderId);
+
     } catch (error) {
-      console.error("Lỗi khi thanh toán", error); 
+      console.error("Lỗi khi thanh toán", error);
       alert("Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.");
     }
   };
@@ -123,6 +126,8 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
+
+
 
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-[#111813]">Địa chỉ chi tiết (Số nhà, tên đường)</label>

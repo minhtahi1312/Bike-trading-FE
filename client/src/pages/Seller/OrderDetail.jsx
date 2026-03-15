@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,14 +7,25 @@ import {
   XCircle,
   Phone,
   Mail,
-  MessageCircle,
   MapPin,
   Info,
 } from "lucide-react";
 
 export default function OrderDetail() {
-  const { id } = useParams();
+  const handleConfirm = () => {
+    setOrder((prev) => ({
+      ...prev,
+      status: "preparing",
+    }));
+  };
 
+  const handleCancel = () => {
+    setOrder((prev) => ({
+      ...prev,
+      status: "confirmed",
+    }));
+  };
+  const { id } = useParams();
   const [order, setOrder] = useState(null);
 
   const statusMap = {
@@ -28,7 +39,7 @@ export default function OrderDetail() {
     },
     Shipping: {
       label: "Đang giao",
-      style: "bg-blue-100 text-blue-700",
+      style: "bg-indigo-100 text-indigo-700",
     },
     Completed: {
       label: "Hoàn thành",
@@ -88,9 +99,11 @@ export default function OrderDetail() {
             <h1 className="text-2xl font-extrabold">Đơn hàng #{order.id}</h1>
 
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusMap[order.status].style}`}
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                statusMap[order.status]?.style || ""
+              }`}
             >
-              {statusMap[order.status].label}
+              {statusMap[order.status]?.label}
             </span>
           </div>
 
@@ -98,18 +111,28 @@ export default function OrderDetail() {
         </div>
 
         <div className="flex gap-3">
-          <button className="border border-red-300 text-red-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-50">
-            <XCircle size={18} />
-            Hủy đơn
-          </button>
+          {order.status === "confirmed" && (
+            <>
+              <button
+                onClick={handleCancel}
+                className="border border-red-300 text-red-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-50"
+              >
+                <XCircle size={18} />
+                Hủy đơn
+              </button>
 
-          <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
-            <CheckCircle size={18} />
-            Xác nhận đơn hàng
-          </button>
+              <button
+                onClick={handleConfirm}
+                className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-600"
+              >
+                <CheckCircle size={18} />
+                Xác nhận đơn hàng
+              </button>
+            </>
+          )}
         </div>
       </div>
-
+      <SellerOrderStepper status={order.status} />
       {/* ===== MAIN GRID ===== */}
       <div className="grid grid-cols-3 gap-6">
         {/* ===== LEFT ===== */}
@@ -159,7 +182,6 @@ export default function OrderDetail() {
               </div>
 
               {/* <div className="flex justify-between text-red-500">
-
                 <span>Phí dịch vụ sàn</span>
                 <span>{order.serviceFee.toLocaleString()}đ</span>
               </div> */}
@@ -209,11 +231,6 @@ export default function OrderDetail() {
                 <Phone size={16} /> {order.receiverPhone}
               </p>
             </div>
-
-            <button className="w-full bg-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200">
-              <MessageCircle size={16} />
-              Chat với Người mua
-            </button>
           </div>
 
           {/* ADDRESS */}

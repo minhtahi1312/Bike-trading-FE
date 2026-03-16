@@ -172,10 +172,11 @@ export default function OrderDetail() {
             <h1 className="text-2xl font-bold">Đơn hàng #{order.orderId}</h1>
 
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
                 statusMap[order.orderStatus]?.style
               }`}
             >
+              <span className="w-2 h-2 rounded-full bg-current"></span>
               {statusMap[order.orderStatus]?.label}
             </span>
           </div>
@@ -191,7 +192,7 @@ export default function OrderDetail() {
             <button
               disabled={actionLoading}
               onClick={confirmOrder}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50"
             >
               <CheckCircle size={16} />
               Xác nhận đơn
@@ -202,10 +203,10 @@ export default function OrderDetail() {
             <button
               disabled={actionLoading}
               onClick={shippingOrder}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50"
             >
               <Truck size={16} />
-              Giao cho vận chuyển
+              Giao hàng
             </button>
           )}
 
@@ -213,7 +214,7 @@ export default function OrderDetail() {
             <button
               disabled={actionLoading}
               onClick={completeOrder}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50"
             >
               <CheckCircle size={16} />
               Hoàn tất
@@ -308,17 +309,6 @@ export default function OrderDetail() {
               </div>
             </div>
           </div>
-
-          {/* VIDEO */}
-          {order.videos?.length > 0 && (
-            <div className="bg-white p-6 rounded-xl shadow">
-              <h3 className="font-semibold mb-4">Video</h3>
-
-              <video controls className="rounded-lg w-full">
-                <source src={order.videos[0]} />
-              </video>
-            </div>
-          )}
         </div>
 
         {/* RIGHT */}

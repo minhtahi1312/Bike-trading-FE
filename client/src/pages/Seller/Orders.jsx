@@ -268,8 +268,9 @@ export default function SellerOrders() {
 
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${statusMap[o.status]?.style}`}
+                      className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full ${statusMap[o.status]?.style}`}
                     >
+                      <span className="w-2 h-2 rounded-full bg-current"></span>
                       {statusMap[o.status]?.label}
                     </span>
                   </td>

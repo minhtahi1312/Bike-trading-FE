@@ -10,34 +10,21 @@ import {
 
 export default function SellerOrderStepper({ status }) {
   const steps = [
-    {
-      key: "Paid",
-      label: "Đã đặt hàng",
-      icon: <ShoppingCart size={18} />,
-    },
-    {
-      key: "Confirmed",
-      label: "Chờ xác nhận",
-      icon: <ClipboardCheck size={18} />,
-    },
-    {
-      key: "Preparing",
-      label: "Đang chuẩn bị",
-      icon: <Package size={18} />,
-    },
-    {
-      key: "Shipping",
-      label: "Đang giao",
-      icon: <Truck size={18} />,
-    },
-    {
-      key: "Completed",
-      label: "Hoàn tất",
-      icon: <CheckCircle size={18} />,
-    },
+    { key: "Ordered", label: "Đã đặt hàng", icon: <ShoppingCart size={15} /> },
+    { key: "Paid", label: "Chờ xác nhận", icon: <ClipboardCheck size={15} /> },
+    { key: "Confirmed", label: "Đang chuẩn bị", icon: <Package size={15} /> },
+    { key: "Shipping", label: "Đang giao", icon: <Truck size={15} /> },
+    { key: "Completed", label: "Hoàn tất", icon: <CheckCircle size={15} /> },
   ];
 
-  const currentIndex = steps.findIndex((s) => s.key === status);
+  const statusIndex = {
+    Paid: 1,
+    Confirmed: 2,
+    Shipping: 3,
+    Completed: 4,
+  };
+
+  const currentIndex = statusIndex[status] ?? 0;
 
   return (
     <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-between relative">

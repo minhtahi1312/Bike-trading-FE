@@ -63,23 +63,23 @@ export default function SellerOrders() {
 
   // ===== STATUS MAP =====
   const statusMap = {
-    2: {
+    Paid: {
       label: "Đã thanh toán",
       style: "bg-yellow-50 text-yellow-700 border border-yellow-200",
     },
-    3: {
+    Confirmed: {
       label: "Đã xác nhận",
       style: "bg-blue-50 text-blue-700 border border-blue-200",
     },
-    4: {
+    Shipping: {
       label: "Đang giao",
       style: "bg-indigo-50 text-indigo-700 border border-indigo-200",
     },
-    5: {
+    Completed: {
       label: "Hoàn thành",
       style: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
-    6: {
+    Cancelled: {
       label: "Đã huỷ",
       style: "bg-gray-100 text-gray-600 border border-gray-200",
     },
@@ -232,58 +232,65 @@ export default function SellerOrders() {
           </thead>
 
           <tbody className="divide-y">
-            {pageOrders.map((o) => (
-              <tr key={o.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={o.items?.[0]?.image}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
+            {pageOrders.map((o) => {
+              console.log("ITEMS:", o.items);
+              return (
+                <tr key={o.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={o.items?.[0]?.image}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
 
-                    <div>
-                      <div className="font-medium">
-                        {o.items?.[0]?.bikeBrand}
-                      </div>
+                      <div>
+                        <div className="font-medium">
+                          {o.items?.[0]?.bikeBrand}
+                        </div>
 
-                      <div className="text-xs text-gray-500">
-                        {o.items?.[0]?.bikeCategory}
+                        <div className="text-xs text-gray-500">
+                          {o.items?.[0]?.bikeCategory}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <td className="px-6 py-4">
-                  <div className="font-medium">{o.receiverName}</div>
-                  <div className="text-xs text-gray-500">{o.receiverPhone}</div>
-                </td>
+                  <td className="px-6 py-4">
+                    <div className="font-medium">{o.receiverName}</div>
+                    <div className="text-xs text-gray-500">
+                      {o.receiverPhone}
+                    </div>
+                  </td>
 
-                <td className="px-6 py-4 text-gray-500">
-                  {new Date(o.createdAt).toLocaleDateString("vi-VN")}
-                </td>
+                  <td className="px-6 py-4 text-gray-500">
+                    {new Date(o.createdAt).toLocaleDateString("vi-VN")}
+                  </td>
 
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${statusMap[o.status]?.style}`}
-                  >
-                    {statusMap[o.status]?.label}
-                  </span>
-                </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${statusMap[o.status]?.style}`}
+                    >
+                      {statusMap[o.status]?.label}
+                    </span>
+                  </td>
 
-                <td className="px-6 py-4 text-right font-semibold">
-                  {o.totalAmount?.toLocaleString("vi-VN")} đ
-                </td>
+                  <td className="px-6 py-4 text-right font-semibold">
+                    {o.totalAmount?.toLocaleString("vi-VN")} đ
+                  </td>
 
-                <td className="px-6 py-4 text-right space-x-2">
-                  <button
-                    onClick={() => navigate(`/seller/orders/${o.id}`)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition"
-                  >
-                    Xem chi tiết
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <button
+                      onClick={() =>
+                        navigate(`/seller/orders/${o.items?.[0]?.id}`)
+                      }
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition"
+                    >
+                      Xem chi tiết
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

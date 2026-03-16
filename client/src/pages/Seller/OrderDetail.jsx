@@ -1,32 +1,126 @@
+/* eslint-disable */
 import React, { useEffect, useState } from "react";
 import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   ArrowLeft,
-  CheckCircle,
-  XCircle,
   Phone,
-  Mail,
   MapPin,
   Info,
+  Truck,
+  CheckCircle,
 } from "lucide-react";
 
 export default function OrderDetail() {
-  const handleConfirm = () => {
-    setOrder((prev) => ({
-      ...prev,
-      status: "preparing",
-    }));
+  const { id } = useParams();
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const API =
+    "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net";
+
+  const token = localStorage.getItem("accessToken");
+
+  const fetchOrder = async () => {
+    try {
+      const res = await fetch(`${API}/api/seller/orders/item/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!data) return;
+      console.log("order data:", data);
+      setOrder(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCancel = () => {
-    setOrder((prev) => ({
-      ...prev,
-      status: "confirmed",
-    }));
+  useEffect(() => {
+    fetchOrder();
+  }, [id]);
+
+  const confirmOrder = async () => {
+    try {
+      setActionLoading(true);
+
+      const res = await fetch(`${API}/api/seller/orders/confirm`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          orderId: order.orderId,
+        },
+      });
+
+      const data = await res.json();
+      console.log("confirm response:", data);
+
+      if (!res.ok) throw new Error();
+
+      toast.success("Đã xác nhận đơn hàng");
+
+      await fetchOrder();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
   };
-  const { id } = useParams();
-  const [order, setOrder] = useState(null);
+
+  const shippingOrder = async () => {
+    try {
+      setActionLoading(true);
+
+      const res = await fetch(`${API}/api/seller/orders/shipping`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          orderId: order.orderId,
+        },
+      });
+
+      if (!res.ok) throw new Error();
+
+      toast.success("Đã giao cho vận chuyển");
+
+      await fetchOrder();
+    } catch {
+      toast.error("Không thể cập nhật trạng thái");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const completeOrder = async () => {
+    try {
+      setActionLoading(true);
+
+      const res = await fetch(`${API}/api/seller/orders/complete`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          orderId: order.orderId,
+        },
+      });
+
+      if (!res.ok) throw new Error();
+
+      toast.success("Đơn hàng đã hoàn tất");
+
+      await fetchOrder();
+    } catch {
+      toast.error("Cập nhật thất bại");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const statusMap = {
     Paid: {
@@ -42,129 +136,143 @@ export default function OrderDetail() {
       style: "bg-indigo-100 text-indigo-700",
     },
     Completed: {
-      label: "Hoàn thành",
+      label: "Hoàn tất",
       style: "bg-emerald-100 text-emerald-700",
-    },
-    Cancelled: {
-      label: "Đã huỷ",
-      style: "bg-gray-200 text-gray-600",
     },
   };
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      const res = await fetch(
-        `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/paid`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-
-      console.log("ORDER DETAIL:", data);
-
-      setOrder(data.items[0]);
-    };
-
-    fetchOrder();
-  }, [id]);
-  if (!order) {
-    return <div className="p-10 text-gray-500">Loading...</div>;
+  if (loading) {
+    return <div className="p-10">Đang tải...</div>;
   }
-  const total = order.totalAmount || 0;
+
+  if (!order) {
+    return <div className="p-10 text-red-500">Không tìm thấy đơn</div>;
+  }
+
   return (
     <div className="space-y-6">
-      {/* ===== BREADCRUMB ===== */}
+      {/* BREADCRUMB */}
       <div className="text-sm text-gray-500 flex items-center gap-2">
-        <Link
-          to="/seller/orders"
-          className="flex items-center gap-1 hover:text-emerald-600"
-        >
+        <Link to="/seller/orders" className="flex items-center gap-1">
           <ArrowLeft size={16} />
           Quay lại danh sách
         </Link>
+
         <span>/</span>
+
         <span className="text-gray-700 font-medium">
-          Chi tiết đơn hàng #{order.id}
+          Chi tiết đơn hàng #{order.orderId}
         </span>
       </div>
 
-      {/* ===== HEADER ===== */}
-      <div className="flex justify-between items-start flex-wrap gap-4">
+      {/* HEADER */}
+      <div className="flex justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-extrabold">Đơn hàng #{order.id}</h1>
+            <h1 className="text-2xl font-bold">Đơn hàng #{order.orderId}</h1>
 
             <span
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                statusMap[order.status]?.style || ""
+                statusMap[order.orderStatus]?.style
               }`}
             >
-              {statusMap[order.status]?.label}
+              {statusMap[order.orderStatus]?.label}
             </span>
           </div>
 
-          <p className="text-sm text-gray-500 mt-1">Đặt lúc: {order.date}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Đặt lúc: {new Date(order.createdAt).toLocaleString("vi-VN")}
+          </p>
         </div>
 
+        {/* ACTION BUTTON */}
         <div className="flex gap-3">
-          {order.status === "confirmed" && (
-            <>
-              <button
-                onClick={handleCancel}
-                className="border border-red-300 text-red-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-50"
-              >
-                <XCircle size={18} />
-                Hủy đơn
-              </button>
+          {order.orderStatus === "Paid" && (
+            <button
+              disabled={actionLoading}
+              onClick={confirmOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+            >
+              <CheckCircle size={16} />
+              Xác nhận đơn
+            </button>
+          )}
 
-              <button
-                onClick={handleConfirm}
-                className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-600"
-              >
-                <CheckCircle size={18} />
-                Xác nhận đơn hàng
-              </button>
-            </>
+          {order.orderStatus === "Confirmed" && (
+            <button
+              disabled={actionLoading}
+              onClick={shippingOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+            >
+              <Truck size={16} />
+              Giao cho vận chuyển
+            </button>
+          )}
+
+          {order.orderStatus === "Shipping" && (
+            <button
+              disabled={actionLoading}
+              onClick={completeOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-sm rounded-md flex items-center gap-2"
+            >
+              <CheckCircle size={16} />
+              Hoàn tất
+            </button>
           )}
         </div>
       </div>
-      <SellerOrderStepper status={order.status} />
-      {/* ===== MAIN GRID ===== */}
+
+      {/* STEPPER */}
+
+      <SellerOrderStepper status={order.orderStatus} />
+
+      {/* GRID */}
       <div className="grid grid-cols-3 gap-6">
-        {/* ===== LEFT ===== */}
+        {/* LEFT */}
         <div className="col-span-2 space-y-6">
           {/* PRODUCT */}
-          <div className="bg-white rounded-xl shadow p-6">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h3 className="font-semibold mb-4">Sản phẩm</h3>
 
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-5">
               <img
-                src={order.items?.[0]?.image}
-                alt=""
-                className="w-24 h-24 object-cover rounded-lg"
+                src={order.images?.[0]}
+                className="w-32 h-32 object-cover rounded-xl border"
               />
 
               <div className="flex-1">
-                <div className="flex justify-between">
-                  <h4 className="font-semibold text-lg">
-                    {order.items?.[0]?.bikeBrand}
-                  </h4>
-                  <p className="font-bold text-lg">
-                    {order.totalAmount?.toLocaleString("vi-VN")}đ
-                  </p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-lg">
+                      {order.listingTitle} - Size {order.frameSize}
+                    </h4>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      Màu sắc: {order.paint} • Tình trạng: {order.operating}
+                    </p>
+                  </div>
+
+                  <span className="font-bold text-xl text-emerald-600">
+                    {order.totalAmount?.toLocaleString("vi-VN")} đ
+                  </span>
                 </div>
 
-                <div className="flex gap-2 mt-2 items-center">
-                  <span className="px-2 py-1 bg-gray-100 text-xs rounded">
-                    {order.items?.[0]?.bikeCategory}
+                {/* TAGS */}
+                <div className="flex gap-2 mt-3 flex-wrap text-xs">
+                  <span className="bg-gray-100 px-2 py-1 rounded">
+                    {order.bikeCategory}
                   </span>
 
-                  <span className="text-xs text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                  <span className="bg-gray-100 px-2 py-1 rounded">
+                    {order.groupset}
+                  </span>
+
+                  <span className="bg-gray-100 px-2 py-1 rounded">
+                    {order.brakeType}
+                  </span>
+
+                  <span className="bg-gray-100 px-2 py-1 rounded">
+                    {order.frameMaterial}
                   </span>
                 </div>
               </div>
@@ -172,65 +280,59 @@ export default function OrderDetail() {
           </div>
 
           {/* PAYMENT */}
-          <div className="bg-white rounded-xl shadow p-6 space-y-4">
+          <div className="bg-white p-6 rounded-xl shadow space-y-4">
             <h3 className="font-semibold">Thanh toán</h3>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Giá sản phẩm</span>
-                <span>{order.totalAmount?.toLocaleString("vi-VN")} đ</span>
-              </div>
-
-              {/* <div className="flex justify-between text-red-500">
-                <span>Phí dịch vụ sàn</span>
-                <span>{order.serviceFee.toLocaleString()}đ</span>
-              </div> */}
+            <div className="flex justify-between text-sm">
+              <span>Giá sản phẩm</span>
+              <span>{order.unitPrice.toLocaleString("vi-VN")} đ</span>
             </div>
 
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
-              <span className="text-emerald-600">Thực nhận</span>
+              <span className="text-emerald-600">Tổng tiền</span>
               <span className="text-emerald-600">
-                {total.toLocaleString("vi-VN")} đ
+                {order?.totalAmount?.toLocaleString("vi-VN")} đ
               </span>
             </div>
 
-            {/* PAYMENT METHOD BOX */}
-            <div className="mt-4 bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
               <Info className="text-blue-600 mt-1" size={18} />
+
               <div className="text-sm text-blue-800">
-                <p className="font-semibold">
-                  Phương thức: Thanh toán qua ví BikeMarket
-                </p>
-                <p>
-                  Số tiền sẽ được chuyển vào ví của bạn sau khi người mua xác
-                  nhận đã nhận hàng (tối đa 3 ngày).
+                <p className="font-medium">Thanh toán qua ví BikeMarket</p>
+
+                <p className="text-blue-700 mt-1">
+                  Số tiền sẽ được giữ trong hệ thống cho đến khi đơn hàng hoàn
+                  tất.
                 </p>
               </div>
             </div>
           </div>
+
+          {/* VIDEO */}
+          {order.videos?.length > 0 && (
+            <div className="bg-white p-6 rounded-xl shadow">
+              <h3 className="font-semibold mb-4">Video</h3>
+
+              <video controls className="rounded-lg w-full">
+                <source src={order.videos[0]} />
+              </video>
+            </div>
+          )}
         </div>
 
-        {/* ===== RIGHT ===== */}
+        {/* RIGHT */}
         <div className="space-y-6">
           {/* BUYER */}
           <div className="bg-white p-6 rounded-xl shadow space-y-4">
             <h3 className="font-semibold">Người mua</h3>
 
-            <div className="flex items-center gap-3">
-              <img
-                src="https://i.pravatar.cc/100"
-                className="w-12 h-12 rounded-full"
-              />
-            </div>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p className="flex items-center gap-2">{order.receiverName}</p>
-            </div>
+            <p className="text-sm">{order.receiverName}</p>
 
-            <div className="space-y-2 text-sm text-gray-600">
-              <p className="flex items-center gap-2">
-                <Phone size={16} /> {order.receiverPhone}
-              </p>
-            </div>
+            <p className="flex items-center gap-2 text-sm text-gray-600">
+              <Phone size={16} />
+              {order.receiverPhone}
+            </p>
           </div>
 
           {/* ADDRESS */}
@@ -239,7 +341,22 @@ export default function OrderDetail() {
 
             <p className="flex items-start gap-2 text-sm text-gray-600">
               <MapPin size={16} className="mt-1 text-emerald-600" />
-              <span>{order.receiverAddress}</span>
+              {order.receiverAddress}
+            </p>
+          </div>
+
+          {/* LISTING */}
+          <div className="bg-white p-6 rounded-xl shadow space-y-3">
+            <h3 className="font-semibold">Lưu ý xử lý đơn hàng</h3>
+
+            <p className="text-sm text-gray-600">
+              Vui lòng chuẩn bị sản phẩm đúng như mô tả trong tin đăng và đóng
+              gói cẩn thận trước khi giao cho đơn vị vận chuyển.
+            </p>
+
+            <p className="text-sm text-gray-600">
+              Sau khi người mua xác nhận đã nhận hàng, số tiền sẽ được chuyển
+              vào ví BikeMarket của bạn trong vòng 1–3 ngày làm việc.
             </p>
           </div>
         </div>

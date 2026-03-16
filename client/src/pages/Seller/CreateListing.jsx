@@ -688,7 +688,7 @@ function StepTechnical({ formData, updateField }) {
                 <option value="rim">Phanh vành</option>
               </select>
 
-              <select
+              {/* <select
                 value={formData.brakeCondition}
                 onChange={(e) => updateField("brakeCondition", e.target.value)}
                 className="border rounded-lg px-3 py-2"
@@ -697,7 +697,7 @@ function StepTechnical({ formData, updateField }) {
                 <option value="new">Như mới</option>
                 <option value="good">Mòn nhẹ</option>
                 <option value="replace">Cần thay</option>
-              </select>
+              </select> */}
             </div>
           </div>
 

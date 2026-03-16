@@ -1,39 +1,86 @@
-export default function SellerOrderStepper({ status = "pending" }) {
+/* eslint-disable */
+import React from "react";
+import {
+  ShoppingCart,
+  ClipboardCheck,
+  Package,
+  Truck,
+  CheckCircle,
+} from "lucide-react";
+
+export default function SellerOrderStepper({ status }) {
   const steps = [
-    { id: "pending", label: "Pending" },
-    { id: "inspecting", label: "Inspecting" },
-    { id: "approved", label: "Approved" },
-    { id: "sold", label: "Sold" },
+    {
+      key: "Paid",
+      label: "Đã đặt hàng",
+      icon: <ShoppingCart size={18} />,
+    },
+    {
+      key: "Confirmed",
+      label: "Chờ xác nhận",
+      icon: <ClipboardCheck size={18} />,
+    },
+    {
+      key: "Preparing",
+      label: "Đang chuẩn bị",
+      icon: <Package size={18} />,
+    },
+    {
+      key: "Shipping",
+      label: "Đang giao",
+      icon: <Truck size={18} />,
+    },
+    {
+      key: "Completed",
+      label: "Hoàn tất",
+      icon: <CheckCircle size={18} />,
+    },
   ];
 
-  const currentIndex = steps.findIndex((s) => s.id === status);
+  const currentIndex = steps.findIndex((s) => s.key === status);
 
   return (
-    <div className="flex items-center gap-4">
-      {steps.map((step, index) => (
-        <div key={step.id} className="flex items-center">
+    <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-between relative">
+      {steps.map((step, index) => {
+        const active = index <= currentIndex;
+
+        return (
           <div
-            className={`w-8 h-8 flex items-center justify-center rounded-full text-sm
-            ${
-              index <= currentIndex
-                ? "bg-emerald-500 text-white"
-                : "bg-gray-200 text-gray-500"
-            }`}
+            key={index}
+            className="flex-1 flex flex-col items-center relative"
           >
-            {index + 1}
-          </div>
+            {/* LINE */}
+            {index !== steps.length - 1 && (
+              <div
+                className={`absolute top-4 left-1/2 w-full h-[3px] ${
+                  index < currentIndex ? "bg-emerald-500" : "bg-gray-200"
+                }`}
+              />
+            )}
 
-          <span className="ml-2 text-sm">{step.label}</span>
-
-          {index < steps.length - 1 && (
+            {/* ICON */}
             <div
-              className={`w-10 h-[2px] mx-2 ${
-                index < currentIndex ? "bg-emerald-500" : "bg-gray-200"
+              className={`z-10 w-10 h-10 flex items-center justify-center rounded-full shadow
+              ${
+                active
+                  ? "bg-emerald-500 text-white"
+                  : "bg-gray-200 text-gray-500"
               }`}
-            />
-          )}
-        </div>
-      ))}
+            >
+              {step.icon}
+            </div>
+
+            {/* LABEL */}
+            <span
+              className={`mt-2 text-xs font-semibold ${
+                active ? "text-emerald-600" : "text-gray-400"
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

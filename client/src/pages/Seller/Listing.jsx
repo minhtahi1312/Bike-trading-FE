@@ -231,8 +231,9 @@ export default function SellerListings() {
               <div className="flex-1 flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${statusStyle[displayStatus]}`}
+                    className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${statusStyle[displayStatus]}`}
                   >
+                    <span className="w-2 h-2 rounded-full bg-current"></span>
                     {statusMap[displayStatus]}
                   </span>
                 </div>

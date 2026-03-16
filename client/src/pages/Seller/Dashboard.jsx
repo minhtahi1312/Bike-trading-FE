@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from "react";
-import { Eye, Package, Wallet, MessageCircle } from "lucide-react";
+import { Eye, Package, Wallet, ShoppingBag } from "lucide-react";
 
 export default function Dashboard() {
   const stats = [
@@ -26,10 +26,10 @@ export default function Dashboard() {
       color: "text-emerald-600 bg-emerald-100",
     },
     {
-      label: "Tin nhắn chưa đọc",
-      value: 3,
-      note: "",
-      icon: MessageCircle,
+      label: "Tin đang bán",
+      value: 9,
+      note: "+1 hôm nay",
+      icon: ShoppingBag,
       color: "text-purple-600 bg-purple-100",
     },
   ];
@@ -61,25 +61,6 @@ export default function Dashboard() {
       price: "5.500.000đ",
       image:
         "https://lh3.googleusercontent.com/aida-public/AB6AXuDWpGkVnTEPfv8gdWtc9TJaCylIYisxHbAwLbRtYl51H4NEdTH6E3L0W4sQ-kI1Ye1HAaCnV4vZI3ZeWhTaNA9GNGbrq--I3Dkj9Qf0DuKafAk98sYnI8wyLGCSA0Q3OmHDRHZxPa2JFijEeBsSXH55lMzaZOqRDJdjaqCsEo3fxb-JNFYS7J-ywLYryRsbL7s4I0KNB5Ow04ALBtlVjo7b5N3l-yL5F12ehMeDJjryfGdCopCgSbCYjXvgm8hpL2phwnySpeK6fZ_O",
-    },
-  ];
-
-  const messages = [
-    {
-      id: 1,
-      name: "Minh Hoàng",
-      avatar: "https://i.pravatar.cc/100?img=12",
-      time: "5p trước",
-      unread: true,
-      content: "Xe này còn fix giá không shop?",
-    },
-    {
-      id: 2,
-      name: "Thu Hà",
-      avatar: "https://i.pravatar.cc/100?img=32",
-      time: "1h trước",
-      unread: true,
-      content: "Đã gửi yêu cầu đặt hàng",
     },
   ];
 
@@ -123,6 +104,48 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ===== CHART ===== */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h3 className="font-bold text-lg text-gray-900 mb-6">
+          Đơn hàng 7 ngày qua
+        </h3>
+
+        <div className="relative h-48">
+          {/* GRID LINES */}
+          <div className="absolute inset-0 flex flex-col justify-between text-xs text-gray-300">
+            {[5, 4, 3, 2, 1].map((g) => (
+              <div key={g} className="flex items-center gap-2">
+                <span className="w-4 text-gray-400">{g}</span>
+                <div className="flex-1 border-t border-gray-200"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* BARS */}
+          <div className="absolute inset-0 flex items-end justify-between gap-4 px-6">
+            {[1, 2, 1, 3, 4, 2, 5].map((v, i) => (
+              <div key={i} className="flex flex-col items-center flex-1 group">
+                {/* VALUE */}
+                <span className="text-xs text-gray-500 mb-1 opacity-0 group-hover:opacity-100 transition">
+                  {v} đơn
+                </span>
+
+                {/* BAR */}
+                <div
+                  className="w-full bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-md transition-all duration-300 group-hover:from-emerald-600 group-hover:to-emerald-500"
+                  style={{ height: `${v * 28}px` }}
+                />
+
+                {/* DAY */}
+                <span className="text-xs text-gray-400 mt-2">
+                  {["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ===== CONTENT GRID ===== */}
@@ -194,74 +217,63 @@ export default function Dashboard() {
 
         {/* ===== CỘT PHẢI: FEATURED + MESSAGES ===== */}
         <div className="flex flex-col gap-6">
-          {/* FEATURED */}
+          {/* LISTING STATUS */}
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <h3 className="font-bold text-lg mb-4 text-gray-900">
-              Tin nổi bật của bạn
+              Trạng thái tin đăng
             </h3>
 
-            <div className="rounded-lg overflow-hidden mb-3">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAETyWklrNRjlP7ABOOjXV-lVYWeQMcA8nf_O6mGW8ZDpxmwEKv6kk2gFnY41tvpQfOYbY3VQdumO-1AtqhP8cbqw_OZrVr3qvV9MtsGenfBKRZZCyCVR1zqQCWgD4b4VMEHAlpD8nITEyG-N5kRO7dnSFUHzA6AORKVobwoRWipsKx-BErxZSrSxgJNpOupv4X-H-K9CifPwhuBwvdPvtW4srueBcy4k62lXIJDP-WUQv1UhbY0dKelv4PkLBGQm5Z5IZeM8LsKchH"
-                className="w-full h-40 object-cover"
-              />
-            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-medium">Đã duyệt</span>
+                <span className="bg-emerald-100 text-emerald-700 text-sm font-semibold px-3 py-1 rounded-full">
+                  12
+                </span>
+              </div>
 
-            <p className="font-semibold text-gray-900">
-              Specialized Rockhopper
-            </p>
-            <p className="text-emerald-600 font-bold mt-1">18.000.000đ</p>
-            <p className="text-xs text-gray-500 mt-1">
-              1.2k lượt xem · 2 ngày trước
-            </p>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-medium">Chờ duyệt</span>
+                <span className="bg-yellow-100 text-yellow-700 text-sm font-semibold px-3 py-1 rounded-full">
+                  3
+                </span>
+              </div>
 
-            <div className="flex gap-2 mt-4">
-              <button className="flex-1 border rounded-lg py-2 text-sm font-medium hover:bg-gray-50">
-                Chỉnh sửa
-              </button>
-              <button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 text-sm font-semibold">
-                Đẩy tin
-              </button>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-medium">Bị từ chối</span>
+                <span className="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">
+                  1
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* MESSAGES */}
+          {/* RECENT LISTINGS */}
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-gray-900">Tin nhắn mới</h3>
-              <span className="text-sm font-semibold text-emerald-600">
-                {messages.length}
-              </span>
-            </div>
+            <h3 className="font-bold text-lg mb-4 text-gray-900">
+              Tin đăng gần đây
+            </h3>
 
             <div className="flex flex-col gap-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <img
-                    src={msg.avatar}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Trek Marlin 7</span>
+                <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  Đã duyệt
+                </span>
+              </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {msg.name}
-                      </p>
-                      <span className="text-xs text-gray-400">{msg.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">
-                      {msg.content}
-                    </p>
-                  </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Giant Escape 3</span>
+                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                  Chờ duyệt
+                </span>
+              </div>
 
-                  {msg.unread && (
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                  )}
-                </div>
-              ))}
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Specialized Allez</span>
+                <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                  Bị từ chối
+                </span>
+              </div>
             </div>
           </div>
         </div>

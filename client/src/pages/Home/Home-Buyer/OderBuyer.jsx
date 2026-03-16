@@ -52,7 +52,7 @@ export default function OrderBuyer() {
 
   const getStatusInfo = (status) => {
     switch (String(status)) {
-      case "Pending":
+
       case "Paid":
         return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Confirmed":
@@ -106,8 +106,8 @@ export default function OrderBuyer() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                    ? "border-[#111813] dark:border-primary text-[#111813] dark:text-primary font-semibold"
-                    : "border-transparent text-gray-500 hover:text-[#111813] dark:hover:text-white"
+                  ? "border-[#111813] dark:border-primary text-[#111813] dark:text-primary font-semibold"
+                  : "border-transparent text-gray-500 hover:text-[#111813] dark:hover:text-white"
                   }`}
               >
                 {tab.name}
@@ -128,13 +128,40 @@ export default function OrderBuyer() {
                 <section key={order?.id} className="group bg-surface-light dark:bg-surface-dark rounded-xl border border-primary/40 dark:border-primary/30 p-4 md:p-5 shadow-sm hover:shadow-md transition-all duration-200">
                   <div className="flex flex-col md:flex-row gap-5">
 
-                    {/* Hình ảnh mô phỏng */}
-                    <div className="shrink-0 relative">
-                      <div className="w-full md:w-[160px] aspect-[4/3] rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-4xl text-gray-400">pedal_bike</span>
+                    <div className="shrink-0 relative group">
+                      <div className="w-full md:w-[160px] aspect-[4/3] rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+
+                        {(order?.thumbnail || order?.orderItems?.[0]?.thumbnail) ? (
+                          <img
+                            src={order.thumbnail || order.orderItems[0].thumbnail}
+                            alt="Sản phẩm"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "https://via.placeholder.com/160x120?text=No+Image";
+                            }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="material-symbols-outlined text-4xl text-gray-400">pedal_bike</span>
+                            <span className="text-[10px] text-gray-400">No Image Data</span>
+                          </div>
+                        )}
                       </div>
-                      <div className={`absolute top-2 left-2 text-xs font-bold px-2 py-1 rounded backdrop-blur-sm ${statusInfo.colorClass}`}>
-                        {statusInfo.text}
+
+
+                      <div className={`absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase shadow-sm backdrop-blur-sm 
+    ${order?.status === 'Shipping' ? 'bg-blue-500/80 text-white' :
+                          order?.status === 'Completed' ? 'bg-green-500/80 text-white' :
+                            order?.status === 'Cancelled' ? 'bg-red-500/80 text-white' :
+                              'bg-yellow-500/80 text-white'}`} // Màu vàng (Paid) sẽ thành màu mặc định
+                      >
+                        {order?.status === 'Shipping' && 'Đang giao'}
+                        {order?.status === 'Completed' && 'Hoàn tất'}
+                        {order?.status === 'Cancelled' && 'Đã hủy'}
+
+                        {/* Nếu KHÔNG PHẢI 3 trạng thái trên, thì mặc định hiển thị "Chờ xác nhận" */}
+                        {!['Shipping', 'Completed', 'Cancelled'].includes(order?.status) && 'Chờ xác nhận'}
                       </div>
                     </div>
 

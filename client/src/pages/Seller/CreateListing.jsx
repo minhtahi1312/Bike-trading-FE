@@ -20,10 +20,17 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  CATEGORY_OPTIONS,
+  getCategoryLabel,
+  BRAND_OPTIONS,
+} from "../../utils/format";
+
 export default function CreateListing() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    categoryGroup: "",
     category: "",
     brand: "",
     size: "",
@@ -39,7 +46,8 @@ export default function CreateListing() {
     images: [],
     video: null,
   });
-
+  const [customBrand, setCustomBrand] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const { id } = useParams();
   useEffect(() => {
     if (!id) return;
@@ -138,8 +146,8 @@ export default function CreateListing() {
               "x-listing-id": listingId,
             },
             body: JSON.stringify({
-              category: formData.category,
-              brand: formData.brand,
+              category: getApiCategory(formData.categoryUI),
+              brand: formData.brand === "other" ? customBrand : formData.brand,
               frameSize: formData.size,
               frameMaterial: formData.frameMaterial,
               paint: formData.paintCondition,
@@ -166,7 +174,7 @@ export default function CreateListing() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              category: formData.category,
+              category: getApiCategory(formData.categoryUI),
               brand: formData.brand,
               frameSize: formData.size,
               frameMaterial: formData.frameMaterial,
@@ -241,7 +249,14 @@ export default function CreateListing() {
       )}
 
       {step === 2 && (
-        <StepTechnical formData={formData} updateField={updateField} />
+        <StepTechnical
+          formData={formData}
+          updateField={updateField}
+          customBrand={customBrand}
+          setCustomBrand={setCustomBrand}
+          customCategory={customCategory}
+          setCustomCategory={setCustomCategory}
+        />
       )}
 
       {step === 3 && (
@@ -506,7 +521,14 @@ function StepBasic({ formData, updateField }) {
   );
 }
 
-function StepTechnical({ formData, updateField }) {
+function StepTechnical({
+  formData,
+  updateField,
+  customCategory,
+  setCustomCategory,
+  customBrand,
+  setCustomBrand,
+}) {
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
       {/* ===== TITLE ===== */}
@@ -540,11 +562,23 @@ function StepTechnical({ formData, updateField }) {
                   onChange={(e) => updateField("category", e.target.value)}
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
-                  <option value="">Chọn danh mục</option>
-                  <option value="road">Road Bike</option>
-                  <option value="mtb">MTB</option>
-                  <option value="gravel">Gravel</option>
+                  <option value="">Chọn danh mục xe</option>
+
+                  {CATEGORY_OPTIONS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
                 </select>
+                {formData.category === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập danh mục xe..."
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
 
               <div>
@@ -557,10 +591,22 @@ function StepTechnical({ formData, updateField }) {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="">Chọn hãng</option>
-                  <option value="specialized">Specialized</option>
-                  <option value="trek">Trek</option>
-                  <option value="giant">Giant</option>
+
+                  {BRAND_OPTIONS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
                 </select>
+                {formData.brand === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập hãng xe..."
+                    value={customBrand}
+                    onChange={(e) => setCustomBrand(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -1055,7 +1101,7 @@ function StepImages({ formData, updateField }) {
 
             <div className="p-4 space-y-2">
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                {formData.category || "CATEGORY"}
+                {getCategoryLabel(formData.category)}
               </span>
 
               <h4 className="font-semibold text-sm">

@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Play, ShieldCheck, CheckCircle } from "lucide-react";
 import { XCircle } from "lucide-react";
+import { getCategoryLabel, getBrandLabel } from "../../utils/format";
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -363,11 +364,12 @@ const ListingDetail = () => {
 
             <div className="text-sm text-gray-700 space-y-2">
               <p>
-                <strong>Thương hiệu:</strong> {listing.bike?.brand}
+                <strong>Hãng xe:</strong> {getBrandLabel(listing.bike?.brand)}
               </p>
 
               <p>
-                <strong>Danh mục:</strong> {listing.bike?.category}
+                <strong>Danh mục:</strong>{" "}
+                {getCategoryLabel(listing.bike?.category)}
               </p>
 
               <p>

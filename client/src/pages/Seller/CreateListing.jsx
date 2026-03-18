@@ -20,10 +20,22 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  CATEGORY_OPTIONS,
+  getCategoryLabel,
+  BRAND_OPTIONS,
+  FRAME_OPTIONS,
+  PAINT_OPTIONS,
+  DRIVETRAIN_CONDITION_OPTIONS,
+  RIM_OPTIONS,
+  BRAKE_OPTIONS,
+} from "../../utils/format";
+
 export default function CreateListing() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    categoryGroup: "",
     category: "",
     brand: "",
     size: "",
@@ -39,7 +51,9 @@ export default function CreateListing() {
     images: [],
     video: null,
   });
-
+  const [customBrand, setCustomBrand] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
+  const [customRim, setCustomRim] = useState("");
   const { id } = useParams();
   useEffect(() => {
     if (!id) return;
@@ -138,14 +152,18 @@ export default function CreateListing() {
               "x-listing-id": listingId,
             },
             body: JSON.stringify({
-              category: formData.category,
-              brand: formData.brand,
+              category:
+                formData.category === "other"
+                  ? customCategory
+                  : formData.category,
+              brand: formData.brand === "other" ? customBrand : formData.brand,
               frameSize: formData.size,
               frameMaterial: formData.frameMaterial,
               paint: formData.paintCondition,
               groupset: formData.drivetrain,
               operating: formData.drivetrainCondition,
-              tireRim: formData.tireRim,
+              tireRim:
+                formData.tireRim === "other" ? customRim : formData.tireRim,
               brakeType: formData.brakeType,
               overall: formData.overallCondition,
               price: Number(formData.price),
@@ -166,7 +184,7 @@ export default function CreateListing() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              category: formData.category,
+              category: getApiCategory(formData.categoryUI),
               brand: formData.brand,
               frameSize: formData.size,
               frameMaterial: formData.frameMaterial,
@@ -241,7 +259,16 @@ export default function CreateListing() {
       )}
 
       {step === 2 && (
-        <StepTechnical formData={formData} updateField={updateField} />
+        <StepTechnical
+          formData={formData}
+          updateField={updateField}
+          customBrand={customBrand}
+          setCustomBrand={setCustomBrand}
+          customCategory={customCategory}
+          setCustomCategory={setCustomCategory}
+          customRim={customRim}
+          setCustomRim={setCustomRim}
+        />
       )}
 
       {step === 3 && (
@@ -506,7 +533,16 @@ function StepBasic({ formData, updateField }) {
   );
 }
 
-function StepTechnical({ formData, updateField }) {
+function StepTechnical({
+  formData,
+  updateField,
+  customCategory,
+  setCustomCategory,
+  customBrand,
+  setCustomBrand,
+  customRim,
+  setCustomRim,
+}) {
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
       {/* ===== TITLE ===== */}
@@ -540,11 +576,23 @@ function StepTechnical({ formData, updateField }) {
                   onChange={(e) => updateField("category", e.target.value)}
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
-                  <option value="">Chọn danh mục</option>
-                  <option value="road">Road Bike</option>
-                  <option value="mtb">MTB</option>
-                  <option value="gravel">Gravel</option>
+                  <option value="">Chọn danh mục xe</option>
+
+                  {CATEGORY_OPTIONS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
                 </select>
+                {formData.category === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập danh mục xe..."
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
 
               <div>
@@ -557,10 +605,22 @@ function StepTechnical({ formData, updateField }) {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="">Chọn hãng</option>
-                  <option value="specialized">Specialized</option>
-                  <option value="trek">Trek</option>
-                  <option value="giant">Giant</option>
+
+                  {BRAND_OPTIONS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
                 </select>
+                {formData.brand === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập hãng xe..."
+                    value={customBrand}
+                    onChange={(e) => setCustomBrand(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -569,7 +629,9 @@ function StepTechnical({ formData, updateField }) {
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Ruler className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-semibold text-lg">Kích thước khung (Size)</h3>
+              <h3 className="font-semibold text-lg">
+                Kích thước khung (Size)<span className="text-red-500">*</span>
+              </h3>
             </div>
 
             <div className="flex gap-3">
@@ -609,9 +671,12 @@ function StepTechnical({ formData, updateField }) {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="">Chọn chất liệu</option>
-                  <option value="carbon">Carbon</option>
-                  <option value="aluminum">Nhôm</option>
-                  <option value="steel">Thép</option>
+
+                  {FRAME_OPTIONS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -626,86 +691,129 @@ function StepTechnical({ formData, updateField }) {
                   }
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
-                  <option value="new">Như mới</option>
-                  <option value="light_scratch">Mòn nhẹ</option>
-                  <option value="repaint">Cần sơn lại</option>
+                  {PAINT_OPTIONS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
           </div>
 
-          {/* 4️⃣ HỆ THỐNG TRUYỀN ĐỘNG */}
-          <div className="bg-white border rounded-xl p-6 shadow-sm">
+          {/* ===== HỆ THỐNG TRUYỀN ĐỘNG ===== */}
+          <div className="bg-white border rounded-xl p-6 shadow-sm mt-6">
+            {/* HEADER */}
             <div className="flex items-center gap-2 mb-4">
               <Cog className="w-5 h-5 text-emerald-600" />
               <h3 className="font-semibold text-lg">Hệ thống truyền động</h3>
             </div>
 
+            {/* CONTENT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                value={formData.drivetrain}
-                onChange={(e) => updateField("drivetrain", e.target.value)}
-                className="border rounded-lg px-3 py-2"
-                placeholder="Ví dụ: Shimano 105 R7000"
-              />
+              {/* INPUT */}
+              <div>
+                <label className="text-sm font-medium">
+                  Hệ thống truyền động <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={formData.drivetrain}
+                  onChange={(e) => updateField("drivetrain", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  placeholder="Ví dụ: Shimano 105 R7000"
+                />
+              </div>
 
-              <select
-                value={formData.drivetrainCondition}
-                onChange={(e) =>
-                  updateField("drivetrainCondition", e.target.value)
-                }
-                className="border rounded-lg px-3 py-2"
-              >
-                <option value="">Đánh giá tình trạng</option>
-                <option value="new">Như mới</option>
-                <option value="good">Mòn nhẹ</option>
-                <option value="bad">Cần thay</option>
-              </select>
+              {/* SELECT */}
+              <div>
+                <label className="text-sm font-medium">
+                  Tình trạng truyền động <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.drivetrainCondition}
+                  onChange={(e) =>
+                    updateField("drivetrainCondition", e.target.value)
+                  }
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Đánh giá tình trạng</option>
+
+                  {DRIVETRAIN_CONDITION_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-
           {/* 5️⃣ PHANH & BÁNH XE */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
+            {/* HEADER */}
             <div className="flex items-center gap-2 mb-4">
               <Disc className="w-5 h-5 text-emerald-600" />
               <h3 className="font-semibold text-lg">Vành xe & Phanh</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                value={formData.tireRim}
-                onChange={(e) => updateField("tireRim", e.target.value)}
-                placeholder="Ví dụ: Shimano RS100 / DT Swiss R470"
-                className="border rounded-lg px-3 py-2"
-              />
-              <select
-                value={formData.brakeType}
-                onChange={(e) => updateField("brakeType", e.target.value)}
-                className="border rounded-lg px-3 py-2"
-              >
-                <option value="">Chọn loại phanh</option>
-                <option value="disc">Phanh đĩa</option>
-                <option value="rim">Phanh vành</option>
-              </select>
+            {/* CONTENT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* VÀNH XE */}
+              <div>
+                <label className="text-sm font-medium">
+                  Vành xe <span className="text-red-500">*</span>
+                </label>
 
-              <select
-                value={formData.brakeCondition}
-                onChange={(e) => updateField("brakeCondition", e.target.value)}
-                className="border rounded-lg px-3 py-2"
-              >
-                <option value="">Chọn tình trạng</option>
-                <option value="new">Như mới</option>
-                <option value="good">Mòn nhẹ</option>
-                <option value="replace">Cần thay</option>
-              </select>
+                <select
+                  value={formData.tireRim}
+                  onChange={(e) => updateField("tireRim", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn vành xe</option>
+
+                  {RIM_OPTIONS.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+
+                {/* 👇 HIỆN INPUT KHI CHỌN KHÁC */}
+                {formData.tireRim === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập vành xe..."
+                    value={customRim}
+                    onChange={(e) => setCustomRim(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
+              </div>
+
+              {/* PHANH */}
+              <div>
+                <label className="text-sm font-medium">
+                  Phanh xe <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.brakeType}
+                  onChange={(e) => updateField("brakeType", e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Chọn loại phanh</option>
+
+                  {BRAKE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           {/* 6️⃣ TỔNG QUAN XE */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
-            <h3 className="font-semibold text-lg mb-4">
-              Tổng quan xe (Seller tự đánh giá)
-            </h3>
+            <h3 className="font-semibold text-lg mb-4">Tổng quan xe</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <ConditionCard
@@ -1055,7 +1163,7 @@ function StepImages({ formData, updateField }) {
 
             <div className="p-4 space-y-2">
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                {formData.category || "CATEGORY"}
+                {getCategoryLabel(formData.category)}
               </span>
 
               <h4 className="font-semibold text-sm">

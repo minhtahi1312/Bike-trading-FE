@@ -1,14 +1,26 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Eye, Heart, ShieldCheck, CheckCircle, FileText } from "lucide-react";
+import { Play, ShieldCheck, CheckCircle } from "lucide-react";
 import { XCircle } from "lucide-react";
+import {
+  getCategoryLabel,
+  getBrandLabel,
+  getFrameLabel,
+  getPaintLabel,
+  getDrivetrainConditionLabel,
+  getBrakeLabel,
+  getRimLabel,
+  getOverallLabel,
+} from "../../utils/format";
 
 const ListingDetail = () => {
   const { id } = useParams();
 
   const [listing, setListing] = useState(null);
-  const [activeImage, setActiveImage] = useState(0);
+  const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const bikeStatus = listing?.bike?.status;
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -26,7 +38,10 @@ const ListingDetail = () => {
 
         const medias = data.bike?.medias || [];
 
-        data.images = medias.map((media) => media.image).filter(Boolean);
+        data.media = medias.map((m) => ({
+          type: m.videoUrl ? "video" : "image",
+          url: m.videoUrl || m.image,
+        }));
 
         setListing(data);
 
@@ -56,9 +71,8 @@ const ListingDetail = () => {
     );
   }
 
-  const images = listing.images || [];
-  const status = listing.status;
   const inspection = listing.bike?.inspection || {};
+  const media = listing.media || [];
   const renderInspectionItem = (label, value) => (
     <div className="flex justify-between items-center text-sm">
       <span className="text-gray-600">{label}</span>
@@ -74,6 +88,30 @@ const ListingDetail = () => {
       )}
     </div>
   );
+  const getDisplayStatus = (listingStatus, bikeStatus) => {
+    if (listingStatus === "Draft") return "Draft";
+
+    if (
+      listingStatus === "PendingApproval" &&
+      bikeStatus === "PendingInspection"
+    )
+      return "PendingApproval";
+
+    if (listingStatus === "Active" && bikeStatus === "PendingInspection")
+      return "PendingInspection";
+
+    if (listingStatus === "Active" && bikeStatus === "Available")
+      return "Active";
+
+    if (listingStatus === "Active" && bikeStatus === "Sold") return "Sold";
+
+    if (listingStatus === "Rejected" && bikeStatus === "Disabled")
+      return "Rejected";
+
+    return listingStatus;
+  };
+  const images = listing.images || [];
+  const status = getDisplayStatus(listing?.status, bikeStatus);
   const renderStatusMessage = () => {
     if (status === "Draft") {
       return (
@@ -146,8 +184,13 @@ const ListingDetail = () => {
     },
 
     Active: {
-      label: "Đã duyệt",
+      label: "Công khai",
       color: "bg-green-100 text-green-700",
+    },
+
+    Sold: {
+      label: "Đã bán",
+      color: "bg-purple-100 text-purple-700",
     },
 
     Rejected: {
@@ -156,7 +199,7 @@ const ListingDetail = () => {
     },
   };
 
-  const statusBadge = statusConfig[listing.status];
+  const statusBadge = statusConfig[status];
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* HEADER */}
@@ -183,29 +226,72 @@ const ListingDetail = () => {
         <div className="col-span-2 space-y-6">
           {/* GALLERY */}
           <div className="bg-white p-4 rounded-xl shadow">
-            {images.length > 0 ? (
+            {media.length > 0 ? (
               <>
-                <img
-                  src={images?.[activeImage]}
-                  className="w-full h-[400px] object-cover rounded-lg"
-                  alt=""
-                />
+                {media[activeMedia]?.type === "video" ? (
+                  <video
+                    controls
+                    className="w-full h-[400px] object-cover rounded-lg"
+                  >
+                    <source src={media[activeMedia].url} type="video/mp4" />
+                  </video>
+                ) : (
+                  <img
+                    src={media[activeMedia]?.url}
+                    className="w-full h-[400px] object-cover rounded-lg"
+                    alt=""
+                  />
+                )}
 
                 <div className="flex gap-3 mt-4">
-                  {images.map((img, index) => (
-                    <img
+                  {media.map((item, index) => (
+                    <div
                       key={index}
-                      src={img}
-                      onClick={() => setActiveImage(index)}
-                      className={`w-24 h-20 object-cover rounded-lg cursor-pointer border-2 ${
-                        activeImage === index
+                      onClick={() => setActiveMedia(index)}
+                      className={`relative w-24 h-20 rounded-lg overflow-hidden cursor-pointer border-2 ${
+                        activeMedia === index
                           ? "border-green-500"
                           : "border-transparent"
                       }`}
-                      alt=""
-                    />
+                    >
+                      {item.type === "video" ? (
+                        <>
+                          <video className="w-full h-full object-cover">
+                            <source src={item.url} type="video/mp4" />
+                          </video>
+
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <Play className="text-white" size={24} />
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={item.url}
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
+                      )}
+                    </div>
                   ))}
                 </div>
+                {listing.videos && listing.videos.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-gray-600 mb-2">
+                      Video xe
+                    </h3>
+
+                    {listing.videos.map((video, index) => (
+                      <video
+                        key={index}
+                        controls
+                        className="w-full rounded-lg border"
+                      >
+                        <source src={video} type="video/mp4" />
+                        Trình duyệt không hỗ trợ video
+                      </video>
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <div className="w-full h-[400px] flex items-center justify-center bg-gray-100 rounded-lg">
@@ -227,7 +313,7 @@ const ListingDetail = () => {
         {/* RIGHT */}
         <div className="space-y-6">
           {/* INSPECTION */}
-          {status === "Active" ? (
+          {status === "Active" || status === "Sold" ? (
             <div className="bg-white p-6 rounded-xl shadow relative overflow-hidden">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <ShieldCheck className="text-emerald-500" size={20} />
@@ -262,6 +348,15 @@ const ListingDetail = () => {
                 <p className="text-right font-bold text-emerald-600">
                   {inspection.score || 0}/100
                 </p>
+                <div className="mt-4 border-t pt-3">
+                  <p className="text-sm text-gray-600 mb-1">Đánh giá</p>
+
+                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+                    {inspection.comment && inspection.comment.trim() !== ""
+                      ? inspection.comment
+                      : "Không có nhận xét"}
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
@@ -278,11 +373,12 @@ const ListingDetail = () => {
 
             <div className="text-sm text-gray-700 space-y-2">
               <p>
-                <strong>Thương hiệu:</strong> {listing.bike?.brand}
+                <strong>Hãng xe:</strong> {getBrandLabel(listing.bike?.brand)}
               </p>
 
               <p>
-                <strong>Danh mục:</strong> {listing.bike?.category}
+                <strong>Danh mục:</strong>{" "}
+                {getCategoryLabel(listing.bike?.category)}
               </p>
 
               <p>
@@ -290,26 +386,32 @@ const ListingDetail = () => {
               </p>
 
               <p>
-                <strong>Tình trạng:</strong> {listing.bike?.overall}
+                <strong>Tình trạng xe:</strong>{" "}
+                {getOverallLabel(listing.bike?.overall)}
               </p>
               <p>
-                <strong>Sơn xe:</strong> {listing.bike?.paint}
+                <strong>Sơn xe:</strong> {getPaintLabel(listing.bike?.paint)}
               </p>
 
               <p>
-                <strong>Khung:</strong> {listing.bike?.frameMaterial}
+                <strong>Khung:</strong>{" "}
+                {getFrameLabel(listing.bike?.frameMaterial)}
               </p>
 
               <p>
                 <strong>Hệ thống truyền động:</strong> {listing.bike?.groupset}
               </p>
-
               <p>
-                <strong>Phanh:</strong> {listing.bike?.brakeType}
+                <strong>Tình trạng truyền động:</strong>{" "}
+                {getDrivetrainConditionLabel(listing.bike?.operating)}
               </p>
 
               <p>
-                <strong>Vành xe:</strong> {listing.bike?.tireRim}
+                <strong>Phanh:</strong> {getBrakeLabel(listing.bike?.brakeType)}
+              </p>
+
+              <p>
+                <strong>Vành xe:</strong> {getRimLabel(listing.bike?.tireRim)}
               </p>
             </div>
           </div>

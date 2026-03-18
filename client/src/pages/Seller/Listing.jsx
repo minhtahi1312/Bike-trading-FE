@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 export default function SellerListings() {
+  const [bikeStatusMap, setBikeStatusMap] = useState({});
   const [deleteId, setDeleteId] = useState(null);
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
@@ -46,7 +47,31 @@ export default function SellerListings() {
       alert("Xóa thất bại");
     }
   };
+  useEffect(() => {
+    const fetchBikeStatus = async () => {
+      const map = {};
 
+      for (const listing of listings) {
+        const res = await fetch(
+          `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/bikes/by-listing/${listing.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          },
+        );
+
+        const data = await res.json();
+        map[listing.id] = data.items?.[0]?.status;
+      }
+
+      setBikeStatusMap(map);
+    };
+
+    if (listings.length) {
+      fetchBikeStatus();
+    }
+  }, [listings]);
   useEffect(() => {
     setLoading(true);
 
@@ -74,6 +99,7 @@ export default function SellerListings() {
     PendingApproval: "Chờ duyệt",
     PendingInspection: "Chờ kiểm định",
     Active: "Công khai",
+    Sold: "Đã bán",
     Inactive: "Ngừng hiển thị",
     Rejected: "Bị từ chối",
   };
@@ -83,19 +109,14 @@ export default function SellerListings() {
     PendingApproval: "bg-yellow-100 text-yellow-700",
     PendingInspection: "bg-blue-100 text-blue-700",
     Active: "bg-emerald-100 text-emerald-700",
+    Sold: "bg-purple-100 text-purple-700",
     Inactive: "bg-gray-200 text-gray-600",
     Rejected: "bg-red-100 text-red-700",
   };
   const getVisiblePages = () => {
     const pages = [];
-    const maxVisible = 5;
-
-    let start = Math.max(1, page - 2);
-    let end = Math.min(totalPages, start + maxVisible - 1);
-
-    if (end - start < maxVisible - 1) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, page + 2);
 
     for (let i = start; i <= end; i++) {
       pages.push(i);
@@ -118,6 +139,7 @@ export default function SellerListings() {
 
     if (listingStatus === "Active" && bikeStatus === "Available")
       return "Active";
+    if (listingStatus === "Active" && bikeStatus === "Sold") return "Sold";
 
     if (listingStatus === "Rejected" && bikeStatus === "Disabled")
       return "Rejected";
@@ -192,10 +214,8 @@ export default function SellerListings() {
       )}
       <div className="space-y-4">
         {sortedListings.map((item) => {
-          const displayStatus = getDisplayStatus(
-            item.status,
-            item.bike?.status,
-          );
+          const bikeStatus = bikeStatusMap[item.id];
+          const displayStatus = getDisplayStatus(item.status, bikeStatus);
 
           return (
             <div
@@ -211,8 +231,9 @@ export default function SellerListings() {
               <div className="flex-1 flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${statusStyle[displayStatus]}`}
+                    className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${statusStyle[displayStatus]}`}
                   >
+                    <span className="w-2 h-2 rounded-full bg-current"></span>
                     {statusMap[displayStatus]}
                   </span>
                 </div>
@@ -289,11 +310,11 @@ export default function SellerListings() {
         </button>
 
         {/* First page */}
-        {page > 3 && (
+        {page > 4 && (
           <>
             <button
               onClick={() => setPage(1)}
-              className="px-3 py-1 border rounded hover:bg-gray-100"
+              className="px-3 py-1 border rounded hover:bg-emerald-50 transition"
             >
               1
             </button>
@@ -306,8 +327,8 @@ export default function SellerListings() {
           <button
             key={p}
             onClick={() => setPage(p)}
-            className={`px-3 py-1 border rounded ${
-              page === p ? "bg-emerald-500 text-white" : "hover:bg-gray-100"
+            className={`px-3 py-1 border rounded transition ${
+              page === p ? "bg-emerald-500 text-white" : "hover:bg-emerald-50"
             }`}
           >
             {p}
@@ -320,7 +341,7 @@ export default function SellerListings() {
             <span className="px-2">...</span>
             <button
               onClick={() => setPage(totalPages)}
-              className="px-3 py-1 border rounded hover:bg-gray-100"
+              className="px-3 py-1 border rounded hover:bg-emerald-50 transition"
             >
               {totalPages}
             </button>

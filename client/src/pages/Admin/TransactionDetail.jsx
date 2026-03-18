@@ -13,7 +13,7 @@ const TransactionDetail = () => {
   const transaction = {
     id: decodeURIComponent(id || '#BM-83920'), 
     date: '24/05/2024 - 14:30',
-    status: 'deposit', // deposit, completed, cancelled
+    status: 'deposit', 
     currentStep: 2,
     buyer: {
       name: 'Nguyễn Văn An',

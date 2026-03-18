@@ -26,7 +26,20 @@ export default function MergedInspectionPage() {
   const { id } = useParams();
   const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
-  // --- STATE QUẢN LÝ UI ---
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const showToast = (message, type = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(
+      () => setToast({ show: false, message: "", type: "info" }),
+      3000,
+    );
+  };
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -103,22 +116,55 @@ export default function MergedInspectionPage() {
   };
 
   const handleComplete = async () => {
-    // Ngăn chặn bấm nhiều lần
     if (isSubmitting) return;
-
-    // Validate điểm số hợp lệ
     if (formData.score < 0 || formData.score > 100) {
-      alert("Điểm số phải nằm trong khoảng 0 - 100.");
+      showToast("Điểm số phải nằm trong khoảng 0 - 100.");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      console.log(" Đang gửi dữ liệu API:", formData);
       const response = await axiosClient.post(
         "/api/inspector/approve-bike",
         formData,
+        { headers: { "x-bike-id": bike.realId } },
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        showToast("Đã phê duyệt xe thành công!", "success");
+        setTimeout(() => navigate(`/inspector/result/${id}`), 1000);
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Có lỗi xảy ra!";
+      showToast(errorMsg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleReject = () => {
+    // Nếu chưa nhập comment, hiện Toast báo lỗi (thay vì alert)
+    if (!formData.comment || formData.comment.trim() === "") {
+      showToast("Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!");
+      return;
+    }
+
+    // Nếu đã nhập, copy nội dung vào state của Modal và mở Modal
+    setRejectReason(formData.comment);
+    setIsRejectModalOpen(true);
+  };
+
+  // --- HÀM 2: Bấm nút Xác nhận trong Modal (Gọi API thực sự) ---
+  const handleConfirmReject = async () => {
+    if (!rejectReason.trim()) {
+      showToast("Vui lòng nhập lý do từ chối cụ thể.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axiosClient.post(
+        "/api/inspector/reject-bike",
+        { comment: rejectReason },
         {
           headers: {
             "x-bike-id": bike.realId,
@@ -126,22 +172,22 @@ export default function MergedInspectionPage() {
         },
       );
 
-      // Nếu gọi thành công
       if (response.status === 200 || response.status === 201) {
-        console.log(" Đánh giá thành công!");
-        navigate(`/inspector/result/${id}`);
+        showToast("Đã từ chối xe thành công.", "success");
+        setIsRejectModalOpen(false);
+        // Đợi 1.5s để hiện Toast rồi mới chuyển trang
+        setTimeout(() => navigate("/inspector/HomeInspector"), 1500);
       }
     } catch (error) {
-      console.error(" Lỗi khi gửi API:", error);
-      const errorMsg =
-        error.response?.data?.message ||
-        "Có lỗi xảy ra khi duyệt xe. Vui lòng thử lại!";
-      alert(errorMsg);
+      console.error("Lỗi khi Reject xe:", error);
+      const errorMsg = error.response?.data?.message || "Không thể từ chối xe.";
+      showToast(errorMsg, "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // --- GIỮ NGUYÊN PHẦN LOADING VÀ CHECK BIKE ---
   if (loading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-white">
@@ -463,7 +509,7 @@ export default function MergedInspectionPage() {
             {/* Nút Hoàn tất chính */}
             <button
               onClick={handleComplete}
-              disabled={isSubmitting} // Khóa nút
+              disabled={isSubmitting}
               className={`w-full text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all 
                 ${
                   isSubmitting
@@ -482,15 +528,27 @@ export default function MergedInspectionPage() {
 
             {/* Nút Từ chối */}
             <button
-              // onClick={() => { /* Thêm logic từ chối vào đây */ }}
-              className="w-full bg-red-50 hover:bg-red-100 border border-red-400 text-red-600 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+              onClick={handleReject}
+              disabled={isSubmitting}
+              className={`w-full border text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all 
+    ${
+      isSubmitting
+        ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+        : "bg-red-50 hover:bg-red-100 border-red-400 text-red-600"
+    }`}
             >
-              <X size={18} /> Từ chối
+              {isSubmitting ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <>
+                  <X size={18} /> Từ chối
+                </>
+              )}
             </button>
           </div>
         </aside>
       </main>
-      {/* --- POPUP PHÓNG TO ẢNH (CHÈN Ở ĐÂY LÀ CHUẨN NHẤT) --- */}
+      {/* --- POPUP PHÓNG TO ẢNH  --- */}
       {isFullscreen && (
         <div
           className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center backdrop-blur-sm"
@@ -540,6 +598,85 @@ export default function MergedInspectionPage() {
           {/* Nhãn của ảnh */}
           <div className="absolute bottom-10 text-white text-sm font-bold bg-black/60 px-6 py-2.5 rounded-full border border-white/10 backdrop-blur-md">
             {bike.media[activeMediaIndex]?.label}
+          </div>
+        </div>
+      )}
+      {toast.show && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[10001] animate-in slide-in-from-top duration-300">
+          <div
+            className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-2xl border ${
+              toast.type === "error"
+                ? "bg-red-50 border-red-200 text-red-700"
+                : "bg-emerald-50 border-emerald-200 text-emerald-700"
+            }`}
+          >
+            {toast.type === "error" ? (
+              <AlertCircle size={20} />
+            ) : (
+              <CheckCircle2 size={20} />
+            )}
+            <span className="text-sm font-bold">{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL XÁC NHẬN TỪ CHỐI (Hiện ở giữa màn hình) --- */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          {/* Lớp nền mờ */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => !isSubmitting && setIsRejectModalOpen(false)}
+          ></div>
+
+          {/* Khung nội dung Modal */}
+          <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 text-red-600 mb-4">
+                <div className="p-2 bg-red-50 rounded-full">
+                  <AlertCircle size={24} />
+                </div>
+                <h3 className="text-xl font-black">Xác nhận từ chối</h3>
+              </div>
+
+              <p className="text-sm text-gray-500 mb-4">
+                Lý do từ chối xe <strong>{bike.name}</strong>:
+              </p>
+
+              <textarea
+                autoFocus
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Nhập lý do cụ thể..."
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] resize-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 p-4 bg-gray-50 border-t border-gray-100">
+              <button
+                disabled={isSubmitting}
+                onClick={() => setIsRejectModalOpen(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                disabled={isSubmitting || !rejectReason.trim()}
+                onClick={handleConfirmReject}
+                className={`flex-[2] px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all 
+                  ${
+                    isSubmitting || !rejectReason.trim()
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
+                  }`}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  "Xác nhận từ chối"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

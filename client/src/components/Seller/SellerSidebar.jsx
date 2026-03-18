@@ -1,9 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   LayoutDashboard,
   FileText,
   ShoppingCart,
-  MessageCircle,
   Wallet,
   LogOut,
   Bike,
@@ -25,6 +25,16 @@ const menu = [
 ];
 
 export default function SellerSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    toast.success("Đăng xuất thành công");
+
+    navigate("/", { replace: true });
+  };
   return (
     <aside className="w-64 hidden md:flex flex-col border-r border-[#e5e7eb] bg-white">
       {/* LOGO */}
@@ -97,12 +107,15 @@ export default function SellerSidebar() {
             S
           </div>
           <div>
-            <p className="text-sm font-bold text-[#111813]">Seller</p>
+            <p className="text-sm font-bold text-[#111813]">Trần Anh Tuấn</p>
             <p className="text-xs text-[#637588]">Cửa hàng</p>
           </div>
         </div>
 
-        <button className="mt-4 flex items-center gap-3 text-sm text-[#637588] hover:text-red-600">
+        <button
+          onClick={handleLogout}
+          className="mt-4 flex items-center gap-3 text-sm text-[#637588] hover:text-red-600"
+        >
           <LogOut size={18} />
           Đăng xuất
         </button>

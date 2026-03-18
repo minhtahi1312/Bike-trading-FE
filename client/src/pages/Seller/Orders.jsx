@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getCategoryLabel, getBrandLabel } from "../../utils/format";
 
 const PAGE_SIZE = 5;
 
@@ -245,11 +246,11 @@ export default function SellerOrders() {
 
                       <div>
                         <div className="font-medium">
-                          {o.items?.[0]?.bikeBrand}
+                          {getBrandLabel(o.items?.[0]?.bikeBrand)}
                         </div>
 
                         <div className="text-xs text-gray-500">
-                          {o.items?.[0]?.bikeCategory}
+                          {getCategoryLabel(o.items?.[0]?.bikeCategory)}
                         </div>
                       </div>
                     </div>

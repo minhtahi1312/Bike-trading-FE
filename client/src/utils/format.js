@@ -69,3 +69,68 @@ export const getBrandLabel = (value) => {
   const found = BRAND_OPTIONS.find((b) => b.value === value);
   return found?.label || value; // fallback nếu là custom
 };
+
+export const FRAME_OPTIONS = [
+  { value: "carbon", label: "Carbon" },
+  { value: "aluminum", label: "Nhôm" },
+  { value: "steel", label: "Thép" },
+];
+
+export const getFrameLabel = (value) => {
+  const found = FRAME_OPTIONS.find((f) => f.value === value);
+  return found?.label || value;
+};
+
+export const PAINT_OPTIONS = [
+  { value: "new", label: "Như mới" },
+  { value: "light_scratch", label: "Mòn nhẹ" },
+  { value: "repaint", label: "Cần sơn lại" },
+];
+
+export const getPaintLabel = (value) => {
+  const found = PAINT_OPTIONS.find((p) => p.value === value);
+  return found?.label || value;
+};
+
+export const DRIVETRAIN_CONDITION_OPTIONS = [
+  { value: "new", label: "Như mới" },
+  { value: "good", label: "Mòn nhẹ" },
+  { value: "bad", label: "Cần thay" },
+];
+
+export const getDrivetrainConditionLabel = (value) => {
+  return (
+    DRIVETRAIN_CONDITION_OPTIONS.find((o) => o.value === value)?.label || value
+  );
+};
+
+export const RIM_OPTIONS = [
+  { value: "shimano_rs100", label: "Shimano RS100" },
+  { value: "dt_r470", label: "DT Swiss R470" },
+  { value: "fulcrum_racing", label: "Fulcrum Racing" },
+  { value: "zipp_303", label: "Zipp 303" },
+  { value: "other", label: "Khác" },
+];
+
+export const BRAKE_OPTIONS = [
+  { value: "disc", label: "Phanh đĩa" },
+  { value: "rim", label: "Phanh vành" },
+];
+
+export const getRimLabel = (value) => {
+  return RIM_OPTIONS.find((o) => o.value === value)?.label || value;
+};
+
+export const getBrakeLabel = (value) => {
+  return BRAKE_OPTIONS.find((o) => o.value === value)?.label || value;
+};
+
+export const OVERALL_OPTIONS = [
+  { value: "new", label: "Như mới" },
+  { value: "good", label: "Tốt" },
+  { value: "fair", label: "Khá" },
+];
+
+export const getOverallLabel = (value) => {
+  return OVERALL_OPTIONS.find((o) => o.value === value)?.label || value;
+};

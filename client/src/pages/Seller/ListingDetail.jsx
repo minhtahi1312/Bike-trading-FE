@@ -2,7 +2,16 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Play, ShieldCheck, CheckCircle } from "lucide-react";
 import { XCircle } from "lucide-react";
-import { getCategoryLabel, getBrandLabel } from "../../utils/format";
+import {
+  getCategoryLabel,
+  getBrandLabel,
+  getFrameLabel,
+  getPaintLabel,
+  getDrivetrainConditionLabel,
+  getBrakeLabel,
+  getRimLabel,
+  getOverallLabel,
+} from "../../utils/format";
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -377,26 +386,32 @@ const ListingDetail = () => {
               </p>
 
               <p>
-                <strong>Tình trạng:</strong> {listing.bike?.overall}
+                <strong>Tình trạng xe:</strong>{" "}
+                {getOverallLabel(listing.bike?.overall)}
               </p>
               <p>
-                <strong>Sơn xe:</strong> {listing.bike?.paint}
+                <strong>Sơn xe:</strong> {getPaintLabel(listing.bike?.paint)}
               </p>
 
               <p>
-                <strong>Khung:</strong> {listing.bike?.frameMaterial}
+                <strong>Khung:</strong>{" "}
+                {getFrameLabel(listing.bike?.frameMaterial)}
               </p>
 
               <p>
                 <strong>Hệ thống truyền động:</strong> {listing.bike?.groupset}
               </p>
-
               <p>
-                <strong>Phanh:</strong> {listing.bike?.brakeType}
+                <strong>Tình trạng truyền động:</strong>{" "}
+                {getDrivetrainConditionLabel(listing.bike?.operating)}
               </p>
 
               <p>
-                <strong>Vành xe:</strong> {listing.bike?.tireRim}
+                <strong>Phanh:</strong> {getBrakeLabel(listing.bike?.brakeType)}
+              </p>
+
+              <p>
+                <strong>Vành xe:</strong> {getRimLabel(listing.bike?.tireRim)}
               </p>
             </div>
           </div>

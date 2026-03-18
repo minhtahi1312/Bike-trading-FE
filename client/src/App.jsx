@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { Toaster } from "react-hot-toast";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Admin/Dashboard";
 import Listings from "./pages/Admin/Listings";
@@ -49,6 +49,7 @@ import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />

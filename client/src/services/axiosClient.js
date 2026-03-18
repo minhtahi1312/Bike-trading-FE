@@ -1,19 +1,247 @@
   import axios from "axios";
 
-  const axiosClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+/**
+ * ===== AXIOS INSTANCE SETUP =====
+ */
+const axiosClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "https://localhost:7161",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 10000, // 10 seconds
+});
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  console.log("Token đang gửi đi:", token);
+  
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-  axiosClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem("accessToken");
-    console.log("Token đang gửi đi:", token);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  // Bắt buộc phải return config để Axios tiếp tục gửi request đi
+  return config; 
+});
+/**
+ * ===== RESPONSE INTERCEPTOR =====
+ * Xử lý lỗi, token expiry, etc.
+ */
+axiosClient.interceptors.response.use(
+  (response) => {
+    // Success
+    return response;
+  },
+  (error) => {
+    // Handle 401 - token expired
+    if (error.response?.status === 401) {
+      console.warn("⚠️  Token expired, logging out...");
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login";
     }
-    return config;
-  });
+
+    console.error("❌ API Error:", {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+      url: error.config?.url,
+    });
+
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * ===== CART API =====
+ */
+
+
+const getCart = async () => {
+  const response = await axiosClient.get(`/api/Cart`);
+  return response.data;
+}
+const getCartItems = async () => {
+
+  const response = await axiosClient.get(`/api/CartItem`);
+  return response.data;
+};
+
+const addCartItem = async (bikeId) => {
+  const response = await axiosClient.post(`/api/CartItem/${bikeId}`);
+  return response.data;
+};
+
+const deleteCartItem = async (cartItemId) => {
+  const response = await axiosClient.delete(`/api/CartItem/${cartItemId}`);
+  return response.data;
+};
+
+const toggleCartItem = async (cartItemId) => {
+  const response = await axiosClient.patch(`/api/CartItem/toggle/${cartItemId}`);
+  return response.data;
+};
+
+const validateCart = async (cartId) => {
+  const response = await axiosClient.get(`/api/CartItem/validate/${cartId}`);
+  return response.data;
+};
+
+/**
+ * ===== WISHLIST API =====
+ */
+const getWishlist = async () => {
+  try {
+    const response = await axiosClient.get(`/api/Wishlist`);
+    console.log("✅ GET /api/Wishlist success", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ getWishlist failed:", error.message);
+    throw error;
+  }
+};
+
+const addToWishlist = async (bikeId) => {
+  try {
+    // Điểm mấu chốt: Thêm {} vào tham số thứ 2 để báo cho backend biết body không bị lỗi
+    const response = await axiosClient.post(`/api/Wishlist/${bikeId}`, {});
+
+    console.log("✅ POST /api/Wishlist/{bikeId} success", response.data);
+    return response.data;
+  } catch (error) {
+    // Mình đổi error.message thành error.response?.data để in ra lỗi chi tiết từ backend (nếu có)
+    console.error("❌ addToWishlist failed:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const removeFromWishlist = async (bikeId) => {
+  try {
+    const response = await axiosClient.delete(`/api/Wishlist/${bikeId}`);
+    console.log("✅ DELETE /api/Wishlist/{bikeId} success", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ removeFromWishlist failed:", error.message);
+    throw error;
+  }
+};
+
+/**
+ * ===== SELLER/LISTINGS API =====
+ */
+const getSellerListings = async () => {
+  try {
+    const response = await axiosClient.get(`/api/buyer/listings`);
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ getSellerListings failed:", error.message);
+    throw error;
+  }
+};
+////////////////////
+
+const isBuying = async () => {
+  try {
+    const cart = await getCart(); // Lấy thông tin cart hiện tại
+    const response = await axiosClient.get(`/api/CartItem/validate/${cart.id}`);
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ isBuying failed:", error.message);
+    throw error;
+  }
+};
+
+///////////////
+const CheckOut = async (data) => {
+  try {
+
+    const response = await axiosClient.post(`/api/Order/checkout`, data);
+
+    console.log("✅ POST /api/Order/checkout success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ CheckOut failed:", error.message);
+    throw error;
+  }
+};
+
+/* API Orders */
+const getOrder = async (id) => {
+  try {
+    const response = await axiosClient.get(`/api/Order/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getMyOrder = async (id) => {
+  try {
+    // Truyền trực tiếp tham số id vào đường dẫn
+    const response = await axiosClient.get(`/api/Order/my-orders`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+    throw error;
+  }
+};
+
+const getBikeDetail = async (id) => {
+  try {
+
+    const response = await axiosClient.get(`/api/buyer/listings/${id}`, {
+      // params: { id: listingId }
+    });
+    console.log("data", response.data);
+    // Nếu API trả về một mảng, hãy lấy phần tử đầu tiên để có Object Listing
+    if (Array.isArray(response.data)) {
+      return response.data[0];
+    }
+    return response.data?.data || response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getPayos = async (id) => {
+  try {
+    const response = await axiosClient.post(`/api/payos/checkout`, { orderId: id });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const cancelOrder = async (id) => {
+  try {
+    
+    const response = await axiosClient.post(`/api/Order/${id}/cancel`);
+    return response.data;
+  } catch (error) {
+    console.error(`Lỗi hủy đơn ${id}:`, error);
+    throw error; 
+  }
+};
+/**
+ * ===== EXPORTS =====
+ */
+export {
+  cancelOrder,
+  getPayos,
+  getBikeDetail,
+  getCart,
+  getCartItems,
+  addCartItem,
+  deleteCartItem,
+  toggleCartItem,
+  validateCart,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  getSellerListings,
+  isBuying,
+  CheckOut,
+  getOrder,
+  getMyOrder
+};
 
   export default axiosClient;

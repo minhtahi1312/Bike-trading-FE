@@ -13,32 +13,38 @@ import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
 import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import HomeInspector from "./pages/Inspector/HomeInspector";
 import InspectorLayout from "./layouts/InspectorLayout";
-import InspectionPage from './pages/Inspector/InspectionPage';
+import InspectionPage from "./pages/Inspector/InspectionPage";
 import InspectionResult from "./pages/Inspector/InspectionResult";
 import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
 import HistoryInspector from "./pages/Inspector/HistoryInspector";
-import InspectionHistoryDetail from './pages/Inspector/InspectionHistoryDetail';
-import InspectorProfile from './pages/Inspector/InspectorProfile';
+import InspectionHistoryDetail from "./pages/Inspector/InspectionHistoryDetail";
+import InspectorProfile from "./pages/Inspector/InspectorProfile";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
-import Users from './pages/Admin/Users';
-import Transactions from './pages/Admin/Transactions';
-import Categories from './pages/Admin/Categories';
-import ListingDetail from './pages/Admin/ListingDetail';
-import TransactionDetail from './pages/Admin/TransactionDetail';
-import Complaints from './pages/Admin/Complaints';
-import ComplaintDetail from './pages/Admin/ComplaintDetail';
+import Users from "./pages/Admin/Users";
+import Transactions from "./pages/Admin/Transactions";
+import Categories from "./pages/Admin/Categories";
+import ListingDetail from "./pages/Admin/ListingDetail";
+import TransactionDetail from "./pages/Admin/TransactionDetail";
+import Complaints from "./pages/Admin/Complaints";
+import ComplaintDetail from "./pages/Admin/ComplaintDetail";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
 
+import Wallet from "./pages/Seller/Wallet";
+import Withdraw from "./pages/Seller/Withdraw";
+import TransactionsPage from "./pages/Seller/TransactionsPage";
+
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
-import CarDetail from "./pages/Home/Home-Buyer/Details/CarDetail";
+import BikeDetailPage from "./pages/Home/Home-Buyer/DetailsBuyer";
 import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
+import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
+import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
 
 function App() {
   return (
@@ -51,9 +57,11 @@ function App() {
           <Route index element={<Homebuyer />} />
           <Route path="wishlist" element={<Wishlistbuyer />} />
           <Route path="cart" element={<CartBuyer />} />
-          <Route path="payment" element={<PaymentBuyer />} />
-          <Route path="details/:id" element={<CarDetail />} />
+          <Route path="payment/:id" element={<PaymentBuyer />} />
+          <Route path="details/:id" element={<BikeDetailPage />} />
           <Route path="order" element={<OderBuyer />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="order/:id" element={<OrderDetail />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/inspector" element={<InspectorLayout />}>
@@ -89,6 +97,11 @@ function App() {
           <Route path="listings/:id" element={<SellerListingDetail />} />
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
+          <Route path="edit-listing/:id" element={<CreateListing />} />
+
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="withdraw" element={<Withdraw />} />
+          <Route path="transactions" element={<TransactionsPage />} />
         </Route>
       </Routes>
 

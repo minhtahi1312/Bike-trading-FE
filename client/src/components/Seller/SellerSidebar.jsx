@@ -13,8 +13,15 @@ const menu = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/seller/dashboard" },
   { icon: FileText, label: "Tin đăng", path: "/seller/listings" },
   { icon: ShoppingCart, label: "Đơn hàng", path: "/seller/orders" },
-  { icon: MessageCircle, label: "Tin nhắn", path: "/seller/messages" },
-  { icon: Wallet, label: "Ví tiền", path: "/seller/wallet" },
+
+  {
+    icon: Wallet,
+    label: "Ví tiền",
+    children: [
+      { label: "Tài chính", path: "/seller/wallet" },
+      { label: "Lịch sử giao dịch", path: "/seller/transactions" },
+    ],
+  },
 ];
 
 export default function SellerSidebar() {
@@ -34,22 +41,53 @@ export default function SellerSidebar() {
 
       {/* MENU */}
       <nav className="flex-1 px-4 space-y-1">
-        {menu.map((item, i) => (
-          <NavLink
-            key={i}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
-                isActive
-                  ? "bg-emerald-50 text-emerald-700 font-semibold"
-                  : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium"
-              }`
-            }
-          >
-            <item.icon size={20} />
-            {item.label}
-          </NavLink>
-        ))}
+        {menu.map((item, i) => {
+          if (item.children) {
+            return (
+              <div key={i}>
+                <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#637588]">
+                  <item.icon size={20} />
+                  {item.label}
+                </div>
+
+                <div className="ml-8 space-y-1">
+                  {item.children.map((child, j) => (
+                    <NavLink
+                      key={j}
+                      to={child.path}
+                      className={({ isActive }) =>
+                        `block px-3 py-2 rounded-lg text-sm transition ${
+                          isActive
+                            ? "bg-emerald-50 text-emerald-700 font-semibold"
+                            : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600"
+                        }`
+                      }
+                    >
+                      {child.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <NavLink
+              key={i}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
+                  isActive
+                    ? "bg-emerald-50 text-emerald-700 font-semibold"
+                    : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium"
+                }`
+              }
+            >
+              <item.icon size={20} />
+              {item.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* USER */}

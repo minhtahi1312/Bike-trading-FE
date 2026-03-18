@@ -1,65 +1,100 @@
 /* eslint-disable */
-import React, { useMemo, useState } from "react";
-import { Search, Filter, FileDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 5;
 
 export default function SellerOrders() {
-  // ===== MOCK DATA =====
-  const orders = [
-    {
-      id: "DH-2024",
-      product: "Trek Marlin 7 - 2022",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBYHKUb-OXY4LhuARv-D80YSszSzvNiTBpQuWHwV-gRzqpjWM-RxrxGvBn7v9zVwwXeKTuXWKRI7vcrF0Nvo75yMf-v4Qw4EZxoRP5keZ5YTumzmsOQyrp-C247lRr7DERCyY7NLVkXtQq08xDcsJorx6204U3Fk_5bf-aJ5lh0xWFGuESUg3lPCH9KXrFCl3kBq68n7BgLTqDqAOtUrHQNiKFTg1MtPnHZPzWWdDOMEsafN8wF4TBMerT50D6PnKWQ-9pPYkkNur2Q",
-      buyer: "Nguyễn Văn A",
-      date: "10/10/2023 · 09:30",
-      status: "pending",
-      price: "12.500.000đ",
-    },
-    {
-      id: "DH-2023",
-      product: "Giant Escape 2 City",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDoM2K0wCx3F8R5JWqaK0D4PF0-hgb5rJY-zKMqxsdZcHKnxu185GbgBw1del6odzPk1oIU12y1Ew8d0TFqfTD1GdUOgf2UJCFlLGgekWtN3FACvPmvNd0JMaoNk7IurHdgxp5wlRNfQmrogJHlD8_gNTi9_NN2RkmF4OWbH-e1kYm60usKQJEqivl7KyqzngDoHVsXA0XkM-DkDsHDptx9jobn-wy3M94-LNBPoB8EZn3oWYEU3x90Fk2t96shdfc15eiD8k71Eggc",
-      buyer: "Trần Thị B",
-      date: "09/10/2023 · 14:15",
-      status: "shipping",
-      price: "8.200.000đ",
-    },
-    {
-      id: "DH-2022",
-      product: "Asama Solano",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDWpGkVnTEPfv8gdWtc9TJaCylIYisxHbAwLbRtYl51H4NEdTH6E3L0W4sQ-kI1Ye1HAaCnV4vZI3ZeWhTaNA9GNGbrq--I3Dkj9Qf0DuKafAk98sYnI8wyLGCSA0Q3OmHDRHZxPa2JFijEeBsSXH55lMzaZOqRDJdjaqCsEo3fxb-JNFYS7J-ywLYryRsbL7s4I0KNB5Ow04ALBtlVjo7b5N3l-yL5F12ehMeDJjryfGdCopCgSbCYjXvgm8hpL2phwnySpeK6fZ_O",
-      buyer: "Lê Văn C",
-      date: "08/10/2023 · 10:45",
-      status: "done",
-      price: "5.500.000đ",
-    },
-  ];
+  const navigate = useNavigate();
 
   // ===== STATE =====
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
+  // ===== FETCH API =====
+  const fetchOrders = async (orderStatus) => {
+    setLoading(true);
+
+    let urls = [];
+
+    if (orderStatus === "all") {
+      urls = [
+        "/api/seller/orders/paid",
+        "/api/seller/orders/confirmed",
+        "/api/seller/orders/shipping",
+        "/api/seller/orders/completed",
+      ];
+    } else {
+      urls = [`/api/seller/orders/${orderStatus.toLowerCase()}`];
+    }
+
+    try {
+      const responses = await Promise.all(
+        urls.map((url) =>
+          fetch(
+            `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net${url}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            },
+          ).then((res) => res.json()),
+        ),
+      );
+
+      const merged = responses.flatMap((r) => r.items || r);
+
+      setOrders(merged);
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchOrders("all");
+  }, []);
+
   // ===== STATUS MAP =====
   const statusMap = {
-    pending: { label: "Chờ xác nhận", style: "bg-yellow-100 text-yellow-700" },
-    shipping: { label: "Đang giao", style: "bg-blue-100 text-blue-700" },
-    done: { label: "Hoàn thành", style: "bg-emerald-100 text-emerald-700" },
-    cancel: { label: "Đã huỷ", style: "bg-gray-200 text-gray-600" },
+    Paid: {
+      label: "Đã thanh toán",
+      style: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    },
+    Confirmed: {
+      label: "Đã xác nhận",
+      style: "bg-blue-50 text-blue-700 border border-blue-200",
+    },
+    Shipping: {
+      label: "Đang giao",
+      style: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+    },
+    Completed: {
+      label: "Hoàn thành",
+      style: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    },
+    Cancelled: {
+      label: "Đã huỷ",
+      style: "bg-gray-100 text-gray-600 border border-gray-200",
+    },
   };
 
   // ===== FILTER =====
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const matchStatus = status === "all" || o.status === status;
+
       const matchSearch =
-        o.product.toLowerCase().includes(search.toLowerCase()) ||
-        o.buyer.toLowerCase().includes(search.toLowerCase());
+        search === "" ||
+        o.receiverName?.toLowerCase().includes(search.toLowerCase()) ||
+        o.items?.[0]?.bikeBrand?.toLowerCase().includes(search.toLowerCase());
+
       return matchStatus && matchSearch;
     });
   }, [orders, status, search]);
@@ -67,9 +102,60 @@ export default function SellerOrders() {
   // ===== PAGINATION =====
   const total = filteredOrders.length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
   const start = (page - 1) * PAGE_SIZE;
   const end = start + PAGE_SIZE;
+
   const pageOrders = filteredOrders.slice(start, end);
+
+  const confirmOrder = async (id) => {
+    await fetch(
+      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/confirm",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({ orderId: id }),
+      },
+    );
+  };
+
+  const shippingOrder = async (id) => {
+    await fetch(
+      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/shipping",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({ orderId: id }),
+      },
+    );
+  };
+
+  const completeOrder = async (id) => {
+    await fetch(
+      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/complete",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({ orderId: id }),
+      },
+    );
+  };
+
+  // ===== LOADING =====
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-500">Đang tải đơn hàng...</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -88,16 +174,18 @@ export default function SellerOrders() {
         <div className="flex flex-wrap gap-2">
           {[
             { key: "all", label: `Tất cả (${orders.length})` },
-            { key: "pending", label: "Chờ xác nhận" },
-            { key: "shipping", label: "Đang giao" },
-            { key: "done", label: "Hoàn thành" },
-            { key: "cancel", label: "Đã huỷ" },
+            { key: "Paid", label: "Đã thanh toán" },
+            { key: "Confirmed", label: "Đã xác nhận" },
+            { key: "Shipping", label: "Đang giao" },
+            { key: "Completed", label: "Hoàn thành" },
+            { key: "Cancelled", label: "Đã huỷ" },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => {
                 setStatus(t.key);
                 setPage(1);
+                fetchOrders(t.key);
               }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                 status === t.key
@@ -109,15 +197,6 @@ export default function SellerOrders() {
             </button>
           ))}
         </div>
-
-        <div className="flex gap-2">
-          <button className="border rounded-lg px-3 py-2 text-sm flex items-center gap-1 hover:bg-gray-50">
-            <Filter size={16} /> Lọc
-          </button>
-          <button className="border rounded-lg px-3 py-2 text-sm flex items-center gap-1 hover:bg-gray-50">
-            <FileDown size={16} /> Xuất file
-          </button>
-        </div>
       </div>
 
       {/* ===== SEARCH ===== */}
@@ -126,6 +205,7 @@ export default function SellerOrders() {
           size={18}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
         />
+
         <input
           value={search}
           onChange={(e) => {
@@ -142,7 +222,6 @@ export default function SellerOrders() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500">
             <tr>
-              <th className="px-6 py-3 text-left">Mã đơn</th>
               <th className="px-6 py-3 text-left">Sản phẩm</th>
               <th className="px-6 py-3 text-left">Tên người mua</th>
               <th className="px-6 py-3 text-left">Ngày đặt</th>
@@ -153,48 +232,66 @@ export default function SellerOrders() {
           </thead>
 
           <tbody className="divide-y">
-            {pageOrders.map((o) => (
-              <tr key={o.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium">{o.id}</td>
+            {pageOrders.map((o) => {
+              console.log("ITEMS:", o.items);
+              return (
+                <tr key={o.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={o.items?.[0]?.image}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
 
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={o.image}
-                      alt={o.product}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                    <span className="font-medium">{o.product}</span>
-                  </div>
-                </td>
+                      <div>
+                        <div className="font-medium">
+                          {o.items?.[0]?.bikeBrand}
+                        </div>
 
-                <td className="px-6 py-4">{o.buyer}</td>
-                <td className="px-6 py-4 text-gray-500">{o.date}</td>
+                        <div className="text-xs text-gray-500">
+                          {o.items?.[0]?.bikeCategory}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
 
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      statusMap[o.status].style
-                    }`}
-                  >
-                    {statusMap[o.status].label}
-                  </span>
-                </td>
+                  <td className="px-6 py-4">
+                    <div className="font-medium">{o.receiverName}</div>
+                    <div className="text-xs text-gray-500">
+                      {o.receiverPhone}
+                    </div>
+                  </td>
 
-                <td className="px-6 py-4 text-right font-semibold">
-                  {o.price}
-                </td>
+                  <td className="px-6 py-4 text-gray-500">
+                    {new Date(o.createdAt).toLocaleDateString("vi-VN")}
+                  </td>
 
-                <td className="px-6 py-4 text-right">
-                  <Link
-                    to={`/seller/orders/${o.id}`}
-                    className="text-emerald-600 hover:underline text-sm font-medium"
-                  >
-                    Xem chi tiết
-                  </Link>
-                </td>
-              </tr>
-            ))}
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full ${statusMap[o.status]?.style}`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-current"></span>
+                      {statusMap[o.status]?.label}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-4 text-right font-semibold">
+                    {o.totalAmount?.toLocaleString("vi-VN")} đ
+                  </td>
+
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <button
+                      onClick={() =>
+                        navigate(`/seller/orders/${o.items?.[0]?.id}`)
+                      }
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition"
+                    >
+                      Xem chi tiết
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

@@ -89,9 +89,9 @@ export default function Wishlist() {
             <p className="text-[#61896f] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            <button className="group flex h-9 items-center gap-2 rounded-full border border-[#e5e7eb] bg-white dark:bg-gray-800 px-4 text-sm font-medium hover:border-primary transition-all">
+            {/* <button className="group flex h-9 items-center gap-2 rounded-full border border-[#e5e7eb] bg-white dark:bg-gray-800 px-4 text-sm font-medium hover:border-primary transition-all">
               <ListFilter size={18} /> Lọc
-            </button>
+            </button> */}
             <button className="flex h-9 items-center rounded-full bg-primary text-[#111813] px-4 text-sm font-bold shadow-sm">Tất cả</button>
           </div>
         </div>

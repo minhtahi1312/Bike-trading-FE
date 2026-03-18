@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCart, getCartItems, deleteCartItem, toggleCartItem, isBuying, } from "../../../services/axiosClient";
+import { toast } from 'react-toastify';
 
 const CartBuyer = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const CartBuyer = () => {
   const [items, setItems] = useState([]); // Danh sách sản phẩm (có chứa isSelected)
   const [summary, setSummary] = useState({ totalAmount: 0 }); // Tổng tiền từ server
 
-  // Hiển thị sản phẩm trong giỏ hàng
+  
   const loadItems = async () => {
     try {
       const data = await getCartItems();
@@ -20,7 +21,6 @@ const CartBuyer = () => {
     }
   };
 
-  // Hiển thị tổng tiền (từ API Cart)
   const loadSummary = async () => {
     try {
       const data = await getCart();
@@ -44,32 +44,47 @@ const CartBuyer = () => {
     isBuy();
   }, x * 1000);
 
-  useEffect(() => {
-    const initData = async () => {
-      setLoading(true);
-      await Promise.all([loadItems(), loadSummary()]);
-      setLoading(false);
-    };
-    initData();
-  }, []);
+ // Trong CartBuyer.jsx
 
-  // XỬ LÝ DẤU TÍCH: Gọi API toggle và load lại cả 2 để cập nhật tiền
-  const handleToggle = async (id) => {
+useEffect(() => {
+  const initData = async () => {
+    setLoading(true);
     try {
-      await toggleCartItem(id); // Gọi API thay đổi trạng thái trong DB
-      await Promise.all([loadItems(), loadSummary()]); // Cập nhật lại giao diện và tiền ngay lập tức
-    } catch (err) {
-      alert("Không thể thay đổi trạng thái chọn");
+      // Chạy song song cả 3 việc: lấy items, lấy tổng tiền, và validate đơn hàng
+      await Promise.all([
+        loadItems(),
+        loadSummary(),
+        isBuy() // Gọi hàm validate của bạn ở đây
+      ]);
+    } catch (error) {
+      console.error("Lỗi khi khởi tạo giỏ hàng", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  initData();
+}, []); // Chỉ chạy 1 lần duy nhất khi vào trang
+
+  // XỬ LÝ DẤU TÍCH: Gọi API toggle và load lại cả 2 để cập nhật tiền
+ const handleToggle = async (id) => {
+  try {
+    await toggleCartItem(id); // Gọi API thay đổi trạng thái trong DB
+    await Promise.all([loadItems(), loadSummary()]); // Cập nhật lại giao diện và tiền ngay lập tức
+  } catch (err) {
+    // Thay thế alert bằng toast.error
+    toast.error("Không thể thay đổi trạng thái chọn"); 
+  }
+};
   // xóa sản phẩm khỏi giỏ hàng
   const handleDelete = async (id) => {
     if (window.confirm("Xóa sản phẩm này?")) {
       try {
         await deleteCartItem(id);
         await Promise.all([loadItems(), loadSummary()]);
+        toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
       } catch (err) {
-        alert("Xóa thất bại");
+        toast.error("Không thể xóa sản phẩm");
       }
     }
   };
@@ -162,7 +177,7 @@ const CartBuyer = () => {
               onClick={() => navigate('/homebuyer/checkout')}
               className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
             >
-              THANH TOÁN NGAY
+              Xác Nhận
             </button>
           </div>
         </div>

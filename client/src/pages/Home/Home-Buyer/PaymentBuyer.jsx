@@ -40,11 +40,7 @@ export default function PaymentBuyer() {
       const urlQR = await getPayos(orderId);
       console.log("URL QR Code:", urlQR.data.checkoutUrl);
       window.location.href = urlQR.data.checkoutUrl;
-      // Đã sửa biến ở đây
-      // navigate(`/homebuyer/payment/${orderId}`);
-
-      // Lưu ý: Các lệnh dưới đây có thể không cần thiết nếu bạn đã navigate sang trang khác
-      // const urlQR = await getPayos(orderId);
+     
 
     } catch (error) {
       console.error("Lỗi khi thanh toán", error);
@@ -58,16 +54,11 @@ export default function PaymentBuyer() {
 
           <div className="lg:col-span-8 flex flex-col gap-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-[#111813] dark:text-white mb-2">Xác nhận đơn hàng</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-[#111813] dark:text-white mb-2">Xem Lại Đơn Hàng</h1>
               <p className="text-[#61896f] dark:text-gray-400">Vui lòng kiểm tra lại thông tin sản phẩm và thực hiện chuyển khoản.</p>
             </div>
 
-            {/* <div>
-              <QRCode value={order?.checkoutUrl}
-              size={200}
 
-              />
-            </div> */}
             {/* Thông tin nhận hàng */}
             <section className="bg-white dark:bg-[#1a2c20] rounded-xl p-6 shadow-sm border border-[#e0e0e0] dark:border-[#2a3c30]">
               <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
@@ -86,7 +77,6 @@ export default function PaymentBuyer() {
                     <p className="text-[#61896f] dark:text-gray-300 text-sm mt-1">{order?.receiverAddress}</p>
                   </div>
                 </div>
-                <button onClick={() => navigate('/homebuyer/checkout')} className="text-primary text-sm font-bold hover:underline self-start sm:self-center">Thay đổi</button>
               </div>
             </section>
 
@@ -132,7 +122,7 @@ export default function PaymentBuyer() {
                         </div>
                       </div>
 
-                      <div className="mt-4 flex items-center gap-3 p-3 bg-[#f6f8f6] dark:bg-[#233529] rounded-lg">
+                      {/* <div className="mt-4 flex items-center gap-3 p-3 bg-[#f6f8f6] dark:bg-[#233529] rounded-lg">
                         <div className="h-8 w-8 rounded-full bg-gray-300 bg-cover bg-center" style={{ backgroundImage: `url('https://via.placeholder.com/150')` }} />
                         <div className="flex flex-col">
                           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Người bán</p>
@@ -140,7 +130,7 @@ export default function PaymentBuyer() {
                             Hệ thống Cycled <span className="material-symbols-outlined text-blue-500 text-[16px]">verified</span>
                           </p>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))
@@ -170,7 +160,7 @@ export default function PaymentBuyer() {
               </div>
               <div className="p-6 bg-[#f9fafb] dark:bg-[#233529]">
                 <button onClick={handlePayment}  className="w-full bg-primary hover:bg-[#25d962] text-[#102216] font-bold text-lg py-4 rounded-xl shadow-md transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
-                  <span>Tôi đã chuyển khoản</span>
+                  <span>Xác Nhận</span>
                   <span className="material-symbols-outlined font-bold">check_circle</span>
                 </button>
               </div>

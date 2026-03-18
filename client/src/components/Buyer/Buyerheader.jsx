@@ -59,7 +59,7 @@ useEffect(() => {
             </label>
           </div>
           <div className="flex flex-1 justify-end gap-4 lg:gap-8 items-center">
-            <div className="hidden lg:flex items-center gap-6">
+            {/* <div className="hidden lg:flex items-center gap-6">
               <a className="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">
                 Mua xe
               </a>
@@ -70,14 +70,14 @@ useEffect(() => {
                 Hỗ trợ
               </a>
 
-            </div>
+            </div> */}
 
             <div className="flex gap-3 items-center">
               <button onClick={CartBuyerClick}>
                 <span className="material-symbols-outlined"><ShoppingCart strokeWidth={3} /></span>
                 <span className="absolute top-1 right-1 size-2 bg-red-500 rounded-full border-2 border-surface-light dark:border-surface-dark"></span>
               </button>
-              <button
+              {/* <button
                 className="flex size-10 items-center justify-center rounded-lg bg-[#f0f4f2] hover:bg-[#e2e8e5] text-[#111813] relative"
                 title="Thông báo"
               >
@@ -85,7 +85,7 @@ useEffect(() => {
                   <Bell strokeWidth={3} />
                 </span>
                 <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full"></span>
-              </button>
+              </button> */}
               <button
                 onClick={handleWishlistClick}
                 className="flex size-10 items-center justify-center rounded-lg bg-[#f0f4f2] hover:bg-[#e2e8e5] text-[#111813]"

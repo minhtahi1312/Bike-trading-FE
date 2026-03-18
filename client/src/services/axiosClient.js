@@ -1,4 +1,4 @@
-import axios from "axios";
+  import axios from "axios";
 
 /**
  * ===== AXIOS INSTANCE SETUP =====
@@ -33,12 +33,12 @@ axiosClient.interceptors.response.use(
   (error) => {
     // Handle 401 - token expired
     if (error.response?.status === 401) {
-      console.warn("⚠️  Token expired, logging out...");
+      console.warn("  Token expired, logging out...");
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
     }
 
-    console.error("❌ API Error:", {
+    console.error(" API Error:", {
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
       url: error.config?.url,
@@ -47,11 +47,6 @@ axiosClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-/**
- * ===== CART API =====
- */
-
 
 const getCart = async () => {
   const response = await axiosClient.get(`/api/Cart`);
@@ -89,10 +84,10 @@ const validateCart = async (cartId) => {
 const getWishlist = async () => {
   try {
     const response = await axiosClient.get(`/api/Wishlist`);
-    console.log("✅ GET /api/Wishlist success", response.data);
+    console.log(" GET /api/Wishlist success", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ getWishlist failed:", error.message);
+    console.error(" getWishlist failed:", error.message);
     throw error;
   }
 };
@@ -102,11 +97,10 @@ const addToWishlist = async (bikeId) => {
     // Điểm mấu chốt: Thêm {} vào tham số thứ 2 để báo cho backend biết body không bị lỗi
     const response = await axiosClient.post(`/api/Wishlist/${bikeId}`, {});
 
-    console.log("✅ POST /api/Wishlist/{bikeId} success", response.data);
+    console.log(" POST /api/Wishlist/{bikeId} success", response.data);
     return response.data;
   } catch (error) {
-    // Mình đổi error.message thành error.response?.data để in ra lỗi chi tiết từ backend (nếu có)
-    console.error("❌ addToWishlist failed:", error.response?.data || error.message);
+    console.error(" addToWishlist failed:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -114,24 +108,21 @@ const addToWishlist = async (bikeId) => {
 const removeFromWishlist = async (bikeId) => {
   try {
     const response = await axiosClient.delete(`/api/Wishlist/${bikeId}`);
-    console.log("✅ DELETE /api/Wishlist/{bikeId} success", response.data);
+    console.log(" DELETE /api/Wishlist/{bikeId} success", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ removeFromWishlist failed:", error.message);
+    console.error(" removeFromWishlist failed:", error.message);
     throw error;
   }
 };
 
-/**
- * ===== SELLER/LISTINGS API =====
- */
 const getSellerListings = async () => {
   try {
     const response = await axiosClient.get(`/api/buyer/listings`);
 
     return response.data;
   } catch (error) {
-    console.error("❌ getSellerListings failed:", error.message);
+    console.error(" getSellerListings failed:", error.message);
     throw error;
   }
 };
@@ -140,11 +131,11 @@ const getSellerListings = async () => {
 const isBuying = async () => {
   try {
     const cart = await getCart(); // Lấy thông tin cart hiện tại
-    const response = await axiosClient.get(`/api/CartItem/validate/${cart.id}`);
-
+    const response = await axiosClient.get(`/api/CartItem/validate`);
+    console.log("✅ GET /api/CartItem/validate success:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ isBuying failed:", error.message);
+    console.error(" isBuying failed:", error.message);
     throw error;
   }
 };
@@ -155,10 +146,10 @@ const CheckOut = async (data) => {
 
     const response = await axiosClient.post(`/api/Order/checkout`, data);
 
-    console.log("✅ POST /api/Order/checkout success:", response.data);
+    console.log(" POST /api/Order/checkout success:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ CheckOut failed:", error.message);
+    console.error(" CheckOut failed:", error.message);
     throw error;
   }
 };
@@ -192,7 +183,6 @@ const getBikeDetail = async (id) => {
       // params: { id: listingId }
     });
     console.log("data", response.data);
-    // Nếu API trả về một mảng, hãy lấy phần tử đầu tiên để có Object Listing
     if (Array.isArray(response.data)) {
       return response.data[0];
     }
@@ -221,10 +211,43 @@ const cancelOrder = async (id) => {
     throw error; 
   }
 };
+
+const getSearch = async (searchTerm) => {
+  try {
+    // Lưu ý: Key truyền lên phải là 'name' theo đúng tài liệu API trong hình
+    const response = await axiosClient.get('/api/buyer/listings/search', {
+      params: {
+        name: searchTerm,
+        // pageNumber: 1, // Bạn có thể thêm tham số phân trang nếu muốn
+        // pageSize: 12
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Lỗi tìm kiếm với từ khóa "${searchTerm}":`, error);
+    throw error;
+  }
+};
+
+// const getValidate = async () => {
+//   try {
+//     // Truyền trực tiếp tham số id vào đường dẫn
+//     const response = await axiosClient.get(`/api/CartItem/validate/1`);
+
+//     return response.data;
+//   } catch (error) {
+//     console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+//     throw error;
+//   }
+// };
+
 /**
  * ===== EXPORTS =====
  */
 export {
+  // getValidate,
+  getSearch,
   cancelOrder,
   getPayos,
   getBikeDetail,
@@ -244,4 +267,4 @@ export {
   getMyOrder
 };
 
-export default axiosClient;
+  export default axiosClient;

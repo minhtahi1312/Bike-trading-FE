@@ -87,10 +87,10 @@ export default function OrderDetail() {
     const statusInfo = getStatusInfo(order.status);
     const orderSteps = [
         { id: "Pending", label: "Đã đặt hàng", icon: <NotebookText size={20} /> },
-      { id: "Paid", label: "Chờ xác nhận", icon: "receipt_long" }, // Thay icon phù hợp nếu cần
-    { id: "Confirmed", label: "Đang chuẩn bị", icon: "inventory_2" },
-    { id: "Shipping", label: "Đang giao", icon: "local_shipping" },
-    { id: "Completed", label: "Hoàn tất", icon: "check_circle" },
+        { id: "Paid", label: "Chờ xác nhận", icon: "receipt_long" }, // Thay icon phù hợp nếu cần
+        { id: "Confirmed", label: "Đang chuẩn bị", icon: "inventory_2" },
+        { id: "Shipping", label: "Đang giao", icon: "local_shipping" },
+        { id: "Completed", label: "Hoàn tất", icon: "check_circle" },
     ];
 
     const currentStatusIndex = orderSteps.findIndex(s => s.id === order.status);
@@ -124,64 +124,59 @@ export default function OrderDetail() {
 
                 {/* Stepper Process Mới */}
                 {order.status !== "Canceled" && (
-    <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border py-6 px-2 sm:px-6 mb-6 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between relative w-full mx-auto">
+                    <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border py-6 px-2 sm:px-6 mb-6 shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between relative w-full mx-auto">
 
-            {/* ĐƯỜNG NỀN XÁM */}
-            <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 dark:bg-gray-700" />
+                            <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 dark:bg-gray-700" />
 
-            {/* ACTIVE PROGRESS LINE - Đã đồng bộ với currentStatusIndex */}
-            <div className="absolute top-5 left-12 right-12 h-1">
-                <div
-                    className="h-full bg-emerald-500 transition-all duration-500"
-                    style={{
-                        // Nếu status không tìm thấy (index = -1), set width = 0
-                        width: currentStatusIndex >= 0 
-                            ? `${(currentStatusIndex / (orderSteps.length - 1)) * 100}%` 
-                            : "0%",
-                    }}
-                />
-            </div>
+                            <div className="absolute top-5 left-12 right-12 h-1">
+                                <div
+                                    className="h-full bg-emerald-500 transition-all duration-500"
+                                    style={{
+                                        width: currentStatusIndex >= 0
+                                            ? `${(currentStatusIndex / (orderSteps.length - 1)) * 100}%`
+                                            : "0%",
+                                    }}
+                                />
+                            </div>
 
-            {/* RENDER CÁC BƯỚC */}
-            {orderSteps.map((step, index) => {
-                const isActive = index === currentStatusIndex; // Đang ở bước này
-                const isDone = index < currentStatusIndex;     // Đã qua bước này
+                            {orderSteps.map((step, index) => {
+                                const isActive = index === currentStatusIndex; // Đang ở bước này
+                                const isDone = index < currentStatusIndex;     // Đã qua bước này
 
-                return (
-                    <div
-                        key={step.id}
-                        className="flex flex-col items-center relative z-10 w-24" // Tâm là 48px
-                    >
-                        <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                                return (
+                                    <div
+                                        key={step.id}
+                                        className="flex flex-col items-center relative z-10 w-24" // Tâm là 48px
+                                    >
+                                        <div
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
                             ${isDone || isActive
-                                ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
-                                : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                            }`}
-                        >
-                            {/* Xử lý icon */}
-                            {typeof step.icon === 'string' ? (
-                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
-                                    {step.icon}
-                                </span>
-                            ) : (
-                                step.icon
-                            )}
-                        </div>
+                                                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                                    : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                                                }`}
+                                        >
+                                            {typeof step.icon === 'string' ? (
+                                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
+                                                    {step.icon}
+                                                </span>
+                                            ) : (
+                                                step.icon
+                                            )}
+                                        </div>
 
-                        <p
-                            className={`text-xs mt-2 font-medium text-center whitespace-nowrap
+                                        <p
+                                            className={`text-xs mt-2 font-medium text-center whitespace-nowrap
                             ${isDone || isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}
-                        >
-                            {step.label}
-                        </p>
+                                        >
+                                            {step.label}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                );
-            })}
-        </div>
-    </div>
-)}
+                )}
 
                 {/* Order Info & Summary Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -225,20 +220,43 @@ export default function OrderDetail() {
                             </div>
                         ))}
 
-                        {order.status === "Completed" && (
-                            <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-                                <h3 className="font-bold mb-4 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-yellow-500">star</span>
-                                    Đánh giá của bạn
-                                </h3>
-                                <div className="flex items-center gap-1 text-yellow-400 mb-3">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <span key={star} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>star</span>
-                                    ))}
-                                </div>
-                                <p className="text-gray-500 text-sm italic">Tính năng đánh giá đang được cập nhật...</p>
-                            </div>
-                        )}
+{order.status === "Completed" && (
+    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+        <h3 className="font-bold mb-4 flex items-center gap-2 text-[#111813] dark:text-white">
+            <span className="material-symbols-outlined text-yellow-500">star</span>
+            Đánh giá của bạn
+        </h3>
+        
+        {/* Phần hiển thị sao */}
+        <div className="flex items-center gap-1 text-yellow-400 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <span 
+                    key={star} 
+                    className="material-symbols-outlined cursor-pointer hover:scale-110 transition-transform" 
+                    style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                >
+                    star
+                </span>
+            ))}
+        </div>
+
+        {/* Ô nhập nội dung đánh giá */}
+        <div className="flex flex-col gap-3">
+            <textarea
+                placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này..."
+                className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2bee6c] transition-all min-h-[100px] resize-none"
+            />
+            
+            {/* Nút gửi UI */}
+            <button 
+                className="self-end px-6 py-2 bg-[#2bee6c] hover:bg-[#1fb350] text-[#111813] font-bold rounded-lg shadow-md transition-all flex items-center gap-2 active:scale-95"
+            >
+                <span className="material-symbols-outlined text-[18px]">send</span>
+                Gửi đánh giá
+            </button>
+        </div>
+    </div>
+)}
                     </div>
 
                     <div className="space-y-6">

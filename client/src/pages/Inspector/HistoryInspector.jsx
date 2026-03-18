@@ -1,29 +1,46 @@
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Calendar,
-  Eye,
-  BarChart3
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Calendar, Eye, BarChart3, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DatePicker from "react-datepicker";
+import axiosClient from "../../services/axiosClient";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function HistoryInspector() {
+  
   const navigate = useNavigate();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
-  // --- DỮ LIỆU GIẢ LẬP (Đã chuyển sang xe đạp cho đồng bộ dự án) ---
-  const historyList = [
-    { id: 'KD-2023-882', bikeId: 'XE-8821', name: 'Trek Marlin 7', type: 'Đỏ • 2021', image: 'https://images.unsplash.com/photo-1576435728678-35d01fd18eac?w=100', seller: 'Nguyễn Quốc Bảo', date: '24/10/2023', result: 'passed', resultText: 'Đạt' },
-    { id: 'KD-2023-881', bikeId: 'XE-9902', name: 'Giant Escape 2', type: 'Trắng • 2019', image: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=100', seller: 'Trần Minh Tú', date: '23/10/2023', result: 'failed', resultText: 'Không đạt' },
-    { id: 'KD-2023-879', bikeId: 'XE-7713', name: 'Galaxy ML200', type: 'Xám • 2022', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=100', seller: 'Lê Văn Hùng', date: '22/10/2023', result: 'passed', resultText: 'Đạt' },
-    { id: 'KD-2023-875', bikeId: 'XE-5511', name: 'Trinx M136', type: 'Cam • 2018', image: 'https://images.unsplash.com/photo-1596483553232-0697945037d0?w=100', seller: 'Phạm Thị Mai', date: '21/10/2023', result: 'passed', resultText: 'Đạt' },
-    { id: 'KD-2023-870', bikeId: 'XE-4422', name: 'Asama TRK', type: 'Đen • 2020', image: 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=100', seller: 'Hoàng Văn Long', date: '20/10/2023', result: 'failed', resultText: 'Không đạt' },
-  ];
+  const [historyList, setHistoryList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(10);
+
+  const fetchHistory = async () => {
+  setLoading(true);
+  try {
+    const response = await axiosClient.get('/api/inspector/inspection-history', {
+      params: {
+        pageNumber: pageNumber,
+        pageSize: pageSize
+      }
+    });
+    // Gán dữ liệu từ API vào state
+    setHistoryList(response.data.items);
+    setTotalPages(response.data.totalPages);
+  } catch (error) {
+    console.error("Lỗi fetch API:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchHistory();
+}, [pageNumber]);
 
   const getResultBadge = (result) => {
     switch (result) {

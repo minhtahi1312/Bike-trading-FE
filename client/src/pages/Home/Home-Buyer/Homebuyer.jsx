@@ -61,7 +61,7 @@ export default function Homebuyer() {
         if (bikeId) {
           ids.add(bikeId);
           wishlistBikes.push({
-            listingId: item.id,
+            listingId: item.listingId,
             id: bikeId,
             name: bikeData.title || bikeData.name || "Chưa có tên xe",
             price: bikeData.price ? `${bikeData.price.toLocaleString("vi-VN")} đ` : "0 đ",
@@ -89,7 +89,7 @@ export default function Homebuyer() {
         listingId: item.id,
         id: item.bikeId,
         name: item.title || "Chưa có tên xe",
-        
+
         price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
 
         size: item.size || "N/A",
@@ -150,17 +150,18 @@ export default function Homebuyer() {
               }}
             >
               <div className="relative z-10 flex flex-col gap-3 text-left max-w-2xl">
-                <div className="inline-flex items-center gap-2 bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
+                {/* <div className="inline-flex items-center gap-2 bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
                   <span className="material-symbols-outlined text-black" style={{ fontSize: "16px" }}>
                     <ShieldCheck size={24} />
                   </span>
                   <span className="text-xs font-bold text-black uppercase tracking-wide">Đối tác tin cậy</span>
-                </div>
+                </div> */}
                 <h1 className="text-white text-3xl font-black leading-tight tracking-[-0.033em] md:text-5xl">
-                  Chào mừng trở lại, Minh!
+                  Mua xe bằng niềm tin, nhận xe bằng chất lượng
                 </h1>
                 <p className="text-white/90 text-sm font-normal leading-normal md:text-lg">
-                  Có 5 xe đạp mới phù hợp với bộ lọc tìm kiếm "Road bike size 52" của bạn.
+                  Hành trình mới bắt đầu từ đây! Chúng tôi tìm thấy <span className="font-bold text-white">{bikes.length}</span> lựa chọn hoàn hảo dành riêng cho bạn
+
                 </p>
                 <div className="flex gap-3 mt-2">
                   <button className="flex h-10 px-5 bg-white text-black hover:bg-gray-100 transition-colors text-sm font-bold items-center justify-center rounded-lg">
@@ -240,7 +241,7 @@ export default function Homebuyer() {
                       className="text-red-500 hover:text-red-700 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleWishlistToggle(bike.id);
+                        handleWishlistToggle(bike.listingId);
                       }}
                     >
                       <Heart size={18} fill="currentColor" />
@@ -254,11 +255,11 @@ export default function Homebuyer() {
                 <div className="relative z-10">
                   <h3 className="font-bold text-xl mb-2">Mua xe an tâm</h3>
                   <p className="text-sm text-[#111813]/80 mb-4">
-                    Mọi chiếc xe có nhãn "Đã kiểm định" đều được chuyên gia của chúng tôi xác nhận chất lượng.
+                    Chúng tôi chỉ giới thiệu những chiếc xe có chất lượng thực thụ, đã được bảo chứng bởi đội ngũ chuyên môn
                   </p>
-                  <button className="bg-[#111813] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-opacity-90">
+                  {/* <button className="bg-[#111813] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-opacity-90">
                     Tìm hiểu thêm
-                  </button>
+                  </button> */}
                 </div>
                 <div className="absolute -bottom-4 -right-4 opacity-20">
                   <span className="material-symbols-outlined text-white" style={{ fontSize: "120px" }}>
@@ -294,7 +295,7 @@ export default function Homebuyer() {
                         </span>
                       </button>
 
-                     
+
                       {isFilterOpen && (
                         <div className="absolute top-full left-0 mt-2 w-[450px] bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-[9999] flex gap-6">
 
@@ -441,9 +442,9 @@ export default function Homebuyer() {
                         <div className="flex items-center gap-4 text-xs text-[#61896f] py-2">
                           <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                             <Trello  strokeWidth={1.25} />
+                              <Trello strokeWidth={1.25} />
                             </span>
-                            Size {bike.brand}
+                            Brand: {bike.brand}
                           </div>
                           <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>

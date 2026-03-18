@@ -52,7 +52,8 @@ export default function OrderBuyer() {
 
   const getStatusInfo = (status) => {
     switch (String(status)) {
-
+      // case "Pending":
+      //   return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Paid":
         return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Confirmed":
@@ -151,17 +152,21 @@ export default function OrderBuyer() {
 
 
                       <div className={`absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase shadow-sm backdrop-blur-sm 
-    ${order?.status === 'Shipping' ? 'bg-blue-500/80 text-white' :
-                          order?.status === 'Completed' ? 'bg-green-500/80 text-white' :
-                            order?.status === 'Cancelled' ? 'bg-red-500/80 text-white' :
-                              'bg-yellow-500/80 text-white'}`} // Màu vàng (Paid) sẽ thành màu mặc định
+                          ${order?.status === 'Pending' ? 'bg-orange-500/80 text-white' :
+                          order?.status === 'Paid' ? 'bg-yellow-500/80 text-white' :
+                            order?.status === 'Shipping' ? 'bg-blue-500/80 text-white' :
+                              order?.status === 'Completed' ? 'bg-green-500/80 text-white' :
+                                order?.status === 'Cancelled' ? 'bg-red-500/80 text-white' :
+                                  'bg-gray-500/80 text-white'}`} // Màu mặc định nếu không khớp
                       >
+                        {order?.status === 'Pending' && 'Chờ thanh toán'}
+                        {order?.status === 'Paid' && 'Chờ xác nhận'}
                         {order?.status === 'Shipping' && 'Đang giao'}
                         {order?.status === 'Completed' && 'Hoàn tất'}
                         {order?.status === 'Cancelled' && 'Đã hủy'}
 
-                        {/* Nếu KHÔNG PHẢI 3 trạng thái trên, thì mặc định hiển thị "Chờ xác nhận" */}
-                        {!['Shipping', 'Completed', 'Cancelled'].includes(order?.status) && 'Chờ xác nhận'}
+                        {/* Trường hợp dự phòng nếu status lạ */}
+                        {!['Pending', 'Paid', 'Shipping', 'Completed', 'Cancelled'].includes(order?.status) && 'Không xác định'}
                       </div>
                     </div>
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import { addCartItem, getBikeDetail } from '../../../services/axiosClient';
+import { toast } from 'react-toastify';
 
 const BikeMarketDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+
     // 1. CÁC STATE CỦA COMPONENT
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -38,11 +39,11 @@ const BikeMarketDetail = () => {
     const handleAddCartItem = async () => {
         try {
             await addCartItem(bike.bikes[0].id);
-            alert('Đã thêm vào giỏ hàng!');
-        } catch (err) {  
+            toast.success("Đã thêm vào giỏ hàng!");
+        } catch (err) {
             console.error("Lỗi khi thêm vào giỏ hàng:", err);
-            alert('Xe đã có trong giỏ hàng');
-        } 
+            toast.error("Xe đã có trong giỏ hàng.");
+        }
     };
 
     // 4. KIỂM TRA TRẠNG THÁI LOADING & ERROR
@@ -124,8 +125,8 @@ const BikeMarketDetail = () => {
                                                 className="absolute inset-0 w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <div 
-                                                className="absolute inset-0 bg-cover bg-center transition-all duration-300" 
+                                            <div
+                                                className="absolute inset-0 bg-cover bg-center transition-all duration-300"
                                                 style={{ backgroundImage: `url("${activeMedia.image || ''}")` }}
                                             ></div>
                                         )}
@@ -144,9 +145,8 @@ const BikeMarketDetail = () => {
                                                 <div
                                                     key={index}
                                                     onClick={() => setActiveIndex(index)} // CLICK SẼ CHUYỂN ẢNH Ở ĐÂY
-                                                    className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all relative ${
-                                                        activeIndex === index ? 'border-2 border-[#2bee6c] scale-[1.02] shadow-md' : 'opacity-70'
-                                                    }`}
+                                                    className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all relative ${activeIndex === index ? 'border-2 border-[#2bee6c] scale-[1.02] shadow-md' : 'opacity-70'
+                                                        }`}
                                                     style={{ backgroundImage: `url("${media.image || ''}")` }}
                                                 >
                                                     {/* NẾU LÀ VIDEO: Hiện icon Play */}
@@ -208,12 +208,12 @@ const BikeMarketDetail = () => {
                                         </span>
                                     </div>
 
-                                    <div  className="flex flex-col gap-3 pt-2">
-                                        <button onClick={() => navigate('/homebuyer/checkout', { state: { bike: bike?.bikes?.[0] } }) }  className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
+                                    <div className="flex flex-col gap-3 pt-2">
+                                        <button onClick={() => navigate('/homebuyer/checkout', { state: { bike: bike?.bikes?.[0] } })} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>
-                                        <button onClick={handleAddCartItem  } className="flex items-center justify-center gap-3 bg-[#10b981] text-white font-bold py-4 rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/10 group">
+                                        <button onClick={handleAddCartItem} className="flex items-center justify-center gap-3 bg-[#10b981] text-white font-bold py-4 rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">add_shopping_cart</span>
                                             Thêm vào giỏ hàng
                                         </button>
@@ -249,7 +249,7 @@ const BikeMarketDetail = () => {
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vận hành</div>
                                                 <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.operating || 'N/A'}</div>
-                                                
+
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vành / Lốp</div>
                                                 <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.tireRim || 'N/A'}</div>
 

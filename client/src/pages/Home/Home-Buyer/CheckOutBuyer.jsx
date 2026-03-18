@@ -172,7 +172,7 @@ const CheckoutPage = () => {
                   onClick={handleCheckout}
                   className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
                 >
-                  THANH TOÁN NGAY
+                  Tạo Đơn Hàng
                 </button>
               </div>
             </div>

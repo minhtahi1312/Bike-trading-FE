@@ -11,7 +11,6 @@ const CartBuyer = () => {
   const [items, setItems] = useState([]); // Danh sách sản phẩm (có chứa isSelected)
   const [summary, setSummary] = useState({ totalAmount: 0 }); // Tổng tiền từ server
 
-  
   const loadItems = async () => {
     try {
       const data = await getCartItems();
@@ -29,6 +28,7 @@ const CartBuyer = () => {
       console.error("Lỗi lấy tổng tiền:", err);
     }
   };
+
   const isBuy = async () => {
     try {
       const data = await isBuying();
@@ -37,6 +37,7 @@ const CartBuyer = () => {
       console.error("Lỗi lấy tổng tiền:", err);
     }
   };
+
   const x = 1;
 
   setTimeout(() => {
@@ -44,39 +45,34 @@ const CartBuyer = () => {
     isBuy();
   }, x * 1000);
 
- // Trong CartBuyer.jsx
+  useEffect(() => {
+    const initData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          loadItems(),
+          loadSummary(),
+          isBuy()
+        ]);
+      } catch (error) {
+        console.error("Lỗi khi khởi tạo giỏ hàng", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-useEffect(() => {
-  const initData = async () => {
-    setLoading(true);
+    initData();
+  }, []);
+
+  const handleToggle = async (id) => {
     try {
-      // Chạy song song cả 3 việc: lấy items, lấy tổng tiền, và validate đơn hàng
-      await Promise.all([
-        loadItems(),
-        loadSummary(),
-        isBuy() // Gọi hàm validate của bạn ở đây
-      ]);
-    } catch (error) {
-      console.error("Lỗi khi khởi tạo giỏ hàng", error);
-    } finally {
-      setLoading(false);
+      await toggleCartItem(id);
+      await Promise.all([loadItems(), loadSummary()]);
+    } catch (err) {
+      toast.error("Không thể thay đổi trạng thái chọn");
     }
   };
 
-  initData();
-}, []); // Chỉ chạy 1 lần duy nhất khi vào trang
-
-  // XỬ LÝ DẤU TÍCH: Gọi API toggle và load lại cả 2 để cập nhật tiền
- const handleToggle = async (id) => {
-  try {
-    await toggleCartItem(id); // Gọi API thay đổi trạng thái trong DB
-    await Promise.all([loadItems(), loadSummary()]); // Cập nhật lại giao diện và tiền ngay lập tức
-  } catch (err) {
-    // Thay thế alert bằng toast.error
-    toast.error("Không thể thay đổi trạng thái chọn"); 
-  }
-};
-  // xóa sản phẩm khỏi giỏ hàng
   const handleDelete = async (id) => {
     if (window.confirm("Xóa sản phẩm này?")) {
       try {
@@ -101,12 +97,12 @@ useEffect(() => {
           {items.map((item) => (
             <div key={item.id} className="bg-white p-4 rounded-2xl flex gap-6 border border-gray-100 shadow-sm items-center relative">
 
-              {/* DẤU TÍCH CHỌN */}
+              {/* DẤU TÍCH CHỌN - Đã đổi sang accent-emerald-500 */}
               <input
                 type="checkbox"
                 checked={item.isSelected}
                 onChange={() => handleToggle(item.id)}
-                className="w-6 h-6 accent-[#2bee6c] cursor-pointer shrink-0"
+                className="w-6 h-6 accent-emerald-500 cursor-pointer shrink-0"
               />
 
               {/* HÌNH ẢNH */}
@@ -116,30 +112,28 @@ useEffect(() => {
               />
 
               {/* NỘI DUNG CHI TIẾT */}
-              <div className="flex-1 flex flex-col min-h-[100px]"> {/* min-h để đảm bảo chiều cao cho cột */}
+              <div className="flex-1 flex flex-col min-h-[100px]">
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-xl text-[#111813] line-clamp-1">{item.bikeTitle}</h3>
 
-                  {/* NÚT XÓA - Giữ ở góc trên cùng bên phải của text */}
                   <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                 </div>
 
-                {/* ĐẨY PHẦN DƯỚI NÀY XUỐNG ĐÁY */}
                 <div className="mt-auto flex justify-between items-end">
-                  {/* HIỂN THỊ UNIT PRICE (Bên trái) */}
-                  <p className="text-[#2bee6c] text-2xl font-black">
+                  {/* UNIT PRICE - Đã đổi sang text-emerald-600 */}
+                  <p className="text-emerald-600 text-2xl font-black">
                     {item.unitPrice?.toLocaleString('vi-VN')} đ
                   </p>
 
-                  {/* HIỂN THỊ BIKE STATUS (Góc dưới bên phải) */}
+                  {/* BIKE STATUS */}
                   <div className="flex items-center">
                     <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${item.bikeStatus === 'Available'
-                      ? 'bg-green-50 border-green-200 text-green-700'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                       : item.bikeStatus === 'PendingInspection'
-                        ? 'bg-red-50 border-red-200 text-red-700' // Màu đỏ cho Hết hàng
-                        : 'bg-gray-50 border-gray-200 text-gray-700' // Màu mặc định nếu có status khác
+                        ? 'bg-red-50 border-red-200 text-red-700'
+                        : 'bg-gray-50 border-gray-200 text-gray-700'
                       }`}>
                       {item.bikeStatus === 'Available'
                         ? '● Còn Hàng'
@@ -167,7 +161,8 @@ useEffect(() => {
               </div>
               <div className="border-t border-dashed pt-4 flex justify-between items-center font-black text-2xl">
                 <span>Tổng cộng:</span>
-                <span className="text-[#2bee6c]">
+                {/* TỔNG CỘNG - Đã đổi sang text-emerald-600 */}
+                <span className="text-emerald-600">
                   {(summary.totalAmount > 0 ? summary.totalAmount : 0).toLocaleString('vi-VN')} đ
                 </span>
               </div>
@@ -175,7 +170,8 @@ useEffect(() => {
             <button
               disabled={summary.totalAmount === 0}
               onClick={() => navigate('/homebuyer/checkout')}
-              className="w-full bg-[#2bee6c] hover:bg-[#1fb350] disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
+              /* NÚT XÁC NHẬN - Đã đổi sang bg-emerald-500 hover:bg-emerald-600 */
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
             >
               Xác Nhận
             </button>

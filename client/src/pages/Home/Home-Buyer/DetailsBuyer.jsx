@@ -11,7 +11,7 @@ const BikeMarketDetail = () => {
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeIndex, setActiveIndex] = useState(0); // THÊM STATE ĐỂ LƯU VỊ TRÍ ẢNH ĐANG XEM
+    const [activeIndex, setActiveIndex] = useState(0); 
 
     // 2. FETCH DỮ LIỆU
     useEffect(() => {
@@ -21,7 +21,6 @@ const BikeMarketDetail = () => {
             try {
                 setLoading(true);
                 const data = await getBikeDetail(id);
-                console.log("👉 DỮ LIỆU TỪ API TRẢ VỀ:", data);
                 setBike(data);
                 setError(null);
             } catch (err) {
@@ -35,7 +34,7 @@ const BikeMarketDetail = () => {
         fetchListingDetail();
     }, [id]);
 
-    // 3. XỬ LÝ GIỎ HÀNG
+    
     const handleAddCartItem = async () => {
         try {
             await addCartItem(bike.bikes[0].id);
@@ -50,7 +49,7 @@ const BikeMarketDetail = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f6] dark:bg-[#102216]">
-                <div className="text-emerald-600 font-bold flex items-center gap-2">
+                <div className="text-[#066e48] font-bold flex items-center gap-2">
                     <span className="material-symbols-outlined animate-spin">progress_activity</span>
                     Đang tải thông tin...
                 </div>
@@ -77,12 +76,11 @@ const BikeMarketDetail = () => {
         );
     }
 
-    // 5. KHAI BÁO BIẾN CHO HÌNH ẢNH (Phải đặt Ở ĐÂY, sau khi đã chắc chắn có 'bike')
+    // 5. KHAI BÁO BIẾN CHO HÌNH ẢNH
     const medias = bike?.bikes?.[0]?.medias || [];
     const activeMedia = medias[activeIndex] || {};
     const isActiveVideo = activeMedia.videoUrl || activeMedia.video;
 
-    // --- RENDER GIAO DIỆN CHÍNH ---
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -115,10 +113,9 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-4 shadow-sm">
                                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 mb-4 relative group">
 
-                                        {/* HIỂN THỊ MAIN MEDIA DỰA VÀO STATE ACTIVEINDEX */}
                                         {isActiveVideo ? (
                                             <video
-                                                key={isActiveVideo} // Giúp React load lại video mới khi click
+                                                key={isActiveVideo} 
                                                 src={isActiveVideo}
                                                 controls
                                                 autoPlay
@@ -144,19 +141,17 @@ const BikeMarketDetail = () => {
                                             return (
                                                 <div
                                                     key={index}
-                                                    onClick={() => setActiveIndex(index)} // CLICK SẼ CHUYỂN ẢNH Ở ĐÂY
+                                                    onClick={() => setActiveIndex(index)} 
                                                     className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all relative ${activeIndex === index ? 'border-2 border-[#2bee6c] scale-[1.02] shadow-md' : 'opacity-70'
                                                         }`}
                                                     style={{ backgroundImage: `url("${media.image || ''}")` }}
                                                 >
-                                                    {/* NẾU LÀ VIDEO: Hiện icon Play */}
                                                     {isVideo && (
                                                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                                                             <span className="material-symbols-outlined text-white text-3xl drop-shadow-md">play_circle</span>
                                                         </div>
                                                     )}
 
-                                                    {/* NẾU LÀ ẢNH CUỐI CÙNG VÀ CÒN NHIỀU ẢNH KHÁC */}
                                                     {index === 3 && medias.length > 4 && (
                                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg text-white font-bold text-lg">
                                                             +{medias.length - 4}
@@ -176,10 +171,8 @@ const BikeMarketDetail = () => {
                                 </div>
                             </div>
 
-                            {/* Right Column (Payment Card, Stats, Specs) */}
+                            {/* Right Column (Payment Card) */}
                             <div className="flex flex-col gap-6">
-
-                                {/* Payment Card */}
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-2xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-md flex flex-col gap-6">
                                     <div className="flex justify-between items-start">
                                         <div className="flex flex-col gap-2">
@@ -203,7 +196,7 @@ const BikeMarketDetail = () => {
                                     </div>
 
                                     <div className="flex items-baseline gap-3">
-                                        <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400 tracking-tight">
+                                        <span className="text-3xl font-black text-[#066e48] dark:text-emerald-400 tracking-tight">
                                             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bike?.bikes?.[0]?.price || 0)}
                                         </span>
                                     </div>
@@ -213,7 +206,7 @@ const BikeMarketDetail = () => {
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>
-                                        <button onClick={handleAddCartItem} className="flex items-center justify-center gap-3 bg-[#10b981] text-white font-bold py-4 rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/10 group">
+                                        <button onClick={handleAddCartItem} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-500/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">add_shopping_cart</span>
                                             Thêm vào giỏ hàng
                                         </button>
@@ -224,7 +217,7 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-5 shadow-sm">
                                     <h3 className="text-base font-bold text-[#111813] dark:text-white mb-4">Thông số kỹ thuật</h3>
                                     <div className="space-y-5">
-                                        <div>
+                                       <div>
                                             <h4 className="text-xs font-bold uppercase text-[#94a3b8] dark:text-[#64748b] mb-3 flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-[16px]">info</span> Tổng quan
                                             </h4>
@@ -262,7 +255,6 @@ const BikeMarketDetail = () => {
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>

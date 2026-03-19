@@ -247,42 +247,33 @@ const cancelOrder = async (id) => {
   }
 };
 
-const getSearch = async (searchTerm) => {
-  try {
-    // Lưu ý: Key truyền lên phải là 'name' theo đúng tài liệu API trong hình
+const searchListings = async (name = "", pageNumber = 1, pageSize = 12) => {
+    // Truyền params cho phương thức GET
     const response = await axiosClient.get('/api/buyer/listings/search', {
-      params: {
-        name: searchTerm,
-        // pageNumber: 1, // Bạn có thể thêm tham số phân trang nếu muốn
-        // pageSize: 12
-      }
+        params: {
+            name: name,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        }
     });
-    
+    return response.data;
+};
+
+const postReview = async (data) => {
+  try {
+    const response = await axiosClient.post(`/api/Review`, data);
     return response.data;
   } catch (error) {
-    console.error(`Lỗi tìm kiếm với từ khóa "${searchTerm}":`, error);
     throw error;
   }
 };
-
-// const getValidate = async () => {
-//   try {
-//     // Truyền trực tiếp tham số id vào đường dẫn
-//     const response = await axiosClient.get(`/api/CartItem/validate/1`);
-
-//     return response.data;
-//   } catch (error) {
-//     console.error("Lỗi khi lấy thông tin đơn hàng:", error);
-//     throw error;
-//   }
-// };
 
 /**
  * ===== EXPORTS =====
  */
 export {
-  // getValidate,
-  getSearch,
+  postReview,
+  searchListings,
   cancelOrder,
   getPayos,
   getBikeDetail,

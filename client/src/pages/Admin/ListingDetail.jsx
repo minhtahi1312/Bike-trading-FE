@@ -46,36 +46,36 @@ const ListingDetail = () => {
 
   // --- HÀM XỬ LÝ PHÊ DUYỆT ---
   const handleApprove = async () => {
-    if (window.confirm("Bạn có chắc chắn muốn phê duyệt tin đăng này?")) {
-      try {
-        await axiosClient.patch(`/api/admin/listing/${id}`, {
-          isApproved: true,
-        });
+  if (window.confirm("Bạn có chắc chắn muốn phê duyệt tin đăng này?")) {
+    try {
+      await axiosClient.patch(`/api/admin/listing/approve/${id}`, {
+        isApproved: true, 
+      });
 
-        alert("Phê duyệt tin đăng thành công!");
-        navigate("/admin/listings");
-      } catch (error) {
-        console.error("Lỗi duyệt tin:", error);
-        alert("Không thể phê duyệt tin.");
-      }
+      alert("Phê duyệt tin đăng thành công!");
+      navigate("/admin/listings");
+    } catch (error) {
+      console.error("Lỗi duyệt tin:", error);
+      alert("Không thể phê duyệt tin. Hãy kiểm tra console log.");
     }
-  };
+  }
+};
 
   const handleReject = async () => {
-    if (window.confirm("Bạn có chắc chắn muốn TỪ CHỐI tin đăng này?")) {
-      try {
-        await axiosClient.patch(`/api/admin/listing/${id}`, {
-          isApproved: false,
-        });
+  if (window.confirm("Bạn có chắc chắn muốn TỪ CHỐI tin đăng này?")) {
+    try {
+      await axiosClient.patch(`/api/admin/listing/approve/${id}`, {
+        isApproved: false,
+      });
 
-        alert("Đã từ chối tin đăng!");
-        navigate("/admin/listings");
-      } catch (error) {
-        console.error("Lỗi từ chối tin:", error);
-        alert("Không thể từ chối tin.");
-      }
+      alert("Đã từ chối tin đăng!");
+      navigate("/admin/listings");
+    } catch (error) {
+      console.error("Lỗi từ chối tin:", error);
+      alert("Không thể từ chối tin.");
     }
-  };
+  }
+};
 
   if (isLoading) {
     return (

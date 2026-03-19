@@ -160,81 +160,112 @@ useEffect(() => {
 
       {/* TABLE */}
       <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white border-b border-[#e5e7eb]">
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Mã tin</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Tên xe</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Người bán</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Ngày kiểm định</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Kết quả</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Hành động</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#e5e7eb]">
-              {historyList.map((item, index) => (
-                <tr key={index} className="hover:bg-gray-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#637588]">#{item.id}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={item.image} alt={item.name} className="w-12 h-8 rounded object-cover border border-[#e5e7eb]" />
-                      <div>
-                        <p className="font-bold text-[#111813] text-sm">{item.name}</p>
-                        <span className="text-xs text-[#637588]">{item.type}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-semibold text-[#111813]">{item.seller}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#111813]">{item.date}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${getResultBadge(item.result)}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${getResultDot(item.result)}`}></span>
-                      {item.resultText}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button 
-                      onClick={() => navigate(`/inspector/history/${item.id}`)} 
-                      className="inline-flex items-center justify-center text-[#9ca3af] hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-full transition-all"
-                      title="Xem chi tiết"
-                    >
-                      <Eye size={18} />
-                    </button>
-                  </td>
+        {loading ? (
+          <div className="flex flex-col justify-center items-center py-20 gap-3">
+            <Loader2 className="animate-spin text-emerald-500" size={40} />
+            <p className="text-sm text-[#637588] font-medium">Đang tải dữ liệu...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-white border-b border-[#e5e7eb]">
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Mã tin</th>
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Tên xe</th>
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Người bán</th>
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Ngày kiểm định</th>
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">Kết quả</th>
+                  <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">Hành động</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[#e5e7eb]">
+                {historyList && historyList.length > 0 ? (
+                  historyList.map((item) => (
+                    <tr key={item.inspectionId} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-[#637588]">#{item.bikeCode}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={item.thumbnail} 
+                            alt={item.bikeName} 
+                            className="w-12 h-8 rounded object-cover border border-[#e5e7eb]" 
+                            onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
+                          />
+                          <div>
+                            <p className="font-bold text-[#111813] text-sm">{item.bikeName}</p>
+                            <span className="text-xs text-[#637588]">{item.bikeStatus}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-[#111813]">Người bán</p> 
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-[#111813]">
+                          {item.inspectionDate ? new Date(item.inspectionDate).toLocaleDateString('vi-VN') : '---'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${item.score >= 80 ? getResultBadge('passed') : getResultBadge('failed')}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${item.score >= 80 ? getResultDot('passed') : getResultDot('failed')}`}></span>
+                          {item.score >= 80 ? 'Đạt' : ' Không đạt'} ({item.score})
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button 
+                          onClick={() => navigate(`/inspector/history/${item.inspectionId}`)}
+                          className="inline-flex items-center justify-center text-[#9ca3af] hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-full transition-all"
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-10 text-center text-[#637588]">
+                      Chưa có dữ liệu lịch sử kiểm định.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )} {/* <--- Dấu đóng ngoặc này cực kỳ quan trọng */}
 
-        {/* PAGINATION */}
+        {/* PAGINATION - Nằm dưới cùng, bên trong div bọc chính */}
         <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-[#e5e7eb] bg-white gap-4">
           <div className="text-sm text-[#637588]">
-            Hiển thị <span className="font-bold text-[#111813]">1-5</span> trong <span className="font-bold text-[#111813]">45</span> kết quả
+            Hiển thị trang <span className="font-bold text-[#111813]">{pageNumber}</span> trên <span className="font-bold text-[#111813]">{totalPages}</span>
           </div>
           
           <div className="flex items-center gap-1.5">
-            <button disabled className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] rounded-lg text-sm text-[#637588] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button 
+              disabled={pageNumber === 1}
+              onClick={() => setPageNumber(prev => prev - 1)}
+              className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] rounded-lg disabled:opacity-50 hover:bg-gray-50"
+            >
               &lt;
             </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-emerald-600 bg-emerald-600 text-white rounded-lg text-sm font-bold shadow-sm">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] bg-white text-[#637588] hover:bg-gray-50 hover:text-[#111813] rounded-lg text-sm font-medium transition-colors">
-              2
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] bg-white text-[#637588] hover:bg-gray-50 hover:text-[#111813] rounded-lg text-sm font-medium transition-colors">
-              3
-            </button>
-            <span className="px-1 text-[#637588] select-none">...</span>
-            <button className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] rounded-lg text-sm text-[#637588] hover:bg-gray-50 hover:text-[#111813] transition-colors">
+            
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setPageNumber(i + 1)}
+                className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${pageNumber === i + 1 ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-[#637588] border border-[#e5e7eb] hover:bg-gray-50'}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button 
+              disabled={pageNumber === totalPages}
+              onClick={() => setPageNumber(prev => prev + 1)}
+              className="w-8 h-8 flex items-center justify-center border border-[#e5e7eb] rounded-lg disabled:opacity-50 hover:bg-gray-50"
+            >
               &gt;
             </button>
           </div>

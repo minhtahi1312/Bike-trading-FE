@@ -12,7 +12,6 @@ export default function OrderBuyer() {
   const tabs = [
     { id: "all", name: "Tất cả" },
     { id: "waiting", name: "Chờ xác nhận" },
-
     { id: "shipping", name: "Đang giao" },
     { id: "completed", name: "Hoàn tất" },
     { id: "canceled", name: "Đã hủy" },
@@ -52,18 +51,14 @@ export default function OrderBuyer() {
 
   const getStatusInfo = (status) => {
     switch (String(status)) {
-      // case "Pending":
-      //   return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Paid":
         return { text: "Chờ xác nhận", tabId: "waiting", colorClass: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300" };
       case "Confirmed":
         return { text: "Đang chuẩn bị", tabId: "processing", colorClass: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" };
-      // case "Processing":
       case "Shipping":
         return { text: "Đang giao", tabId: "shipping", colorClass: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300" };
       case "Completed":
         return { text: "Hoàn tất", tabId: "completed", colorClass: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300" };
-      // case "Cancelled":
       case "Cancelled":
         return { text: "Đã hủy", tabId: "canceled", colorClass: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" };
       default:
@@ -96,7 +91,6 @@ export default function OrderBuyer() {
             <h1 className="text-3xl font-bold tracking-tight text-[#111813] dark:text-white mb-2">Đơn hàng của tôi</h1>
             <p className="text-gray-500 dark:text-gray-400">Quản lý và theo dõi quá trình mua bán xe đạp của bạn</p>
           </div>
-
         </div>
 
         {/* Tabs */}
@@ -117,10 +111,13 @@ export default function OrderBuyer() {
           </div>
         </div>
 
-        {/* Danh sách đơn hàng (Render Động) */}
+        {/* Danh sách đơn hàng */}
         <div className="flex flex-col gap-4">
           {isLoading ? (
-            <div className="text-center py-10 text-gray-500">Đang tải dữ liệu...</div>
+            <div className="text-center py-10 text-[#066e48] font-medium flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined animate-spin">progress_activity</span>
+              Đang tải dữ liệu...
+            </div>
           ) : filteredOrders.length > 0 ? (
             filteredOrders.map((order) => {
               const statusInfo = getStatusInfo(order?.status);
@@ -131,7 +128,6 @@ export default function OrderBuyer() {
 
                     <div className="shrink-0 relative group">
                       <div className="w-full md:w-[160px] aspect-[4/3] rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
-
                         {(order?.thumbnail || order?.orderItems?.[0]?.thumbnail) ? (
                           <img
                             src={order.thumbnail || order.orderItems[0].thumbnail}
@@ -150,22 +146,19 @@ export default function OrderBuyer() {
                         )}
                       </div>
 
-
                       <div className={`absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase shadow-sm backdrop-blur-sm 
                           ${order?.status === 'Pending' ? 'bg-orange-500/80 text-white' :
                           order?.status === 'Paid' ? 'bg-yellow-500/80 text-white' :
                             order?.status === 'Shipping' ? 'bg-blue-500/80 text-white' :
                               order?.status === 'Completed' ? 'bg-green-500/80 text-white' :
                                 order?.status === 'Cancelled' ? 'bg-red-500/80 text-white' :
-                                  'bg-gray-500/80 text-white'}`} // Màu mặc định nếu không khớp
+                                  'bg-gray-500/80 text-white'}`}
                       >
                         {order?.status === 'Pending' && 'Chờ thanh toán'}
                         {order?.status === 'Paid' && 'Chờ xác nhận'}
                         {order?.status === 'Shipping' && 'Đang giao'}
                         {order?.status === 'Completed' && 'Hoàn tất'}
                         {order?.status === 'Cancelled' && 'Đã hủy'}
-
-                        {/* Trường hợp dự phòng nếu status lạ */}
                         {!['Pending', 'Paid', 'Shipping', 'Completed', 'Cancelled'].includes(order?.status) && 'Không xác định'}
                       </div>
                     </div>
@@ -174,23 +167,23 @@ export default function OrderBuyer() {
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                         <div>
                           <h3 className="text-lg font-bold text-[#111813] dark:text-white mb-1">
-                            Đơn hàng gồm {order?.totalItems || 0} sản phẩm
+                            {/* Đơn hàng gồm {order?.totalItems || 0} sản phẩm */}
+                            Mã đơn: <span className="uppercase">{order?.id?.split('-')[0] || order?.id}</span>
                           </h3>
                           <div className="flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
                             <span>Người nhận: <strong>{order?.receiverName || "Chưa cập nhật"}</strong></span>
-                            <span>Mã đơn: <span className="uppercase">{order?.id?.split('-')[0] || order?.id}</span></span>
+                            {/* <span>Mã đơn: <span className="uppercase">{order?.id?.split('-')[0] || order?.id}</span></span> */}
                             <span>Ngày đặt: {formatDate(order?.createdAt)}</span>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-500 mb-1">Tổng tiền</p>
-                          <p className="text-xl font-bold text-primary dark:text-primary">
+                          <p className="text-xl font-bold text-[#066e48]">
                             {formatPrice(order?.totalAmount)}
                           </p>
                         </div>
                       </div>
 
-                      {/* Nút thao tác */}
                       <div className="flex flex-wrap items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                         {order?.status === "Pending" && (
                           <button
@@ -205,7 +198,7 @@ export default function OrderBuyer() {
                         )}
                         <button
                           onClick={() => navigate(`/homebuyer/order/${order.id}`)}
-                          className="px-5 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-transparent text-[#111813] dark:text-white transition-colors"
+                          className="px-5 py-2 rounded-lg text-sm font-medium bg-[#066e48] hover:bg-[#055a3b] text-white shadow-sm transition-colors"
                         >
                           Xem chi tiết
                         </button>

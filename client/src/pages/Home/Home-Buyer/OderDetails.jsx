@@ -1,13 +1,35 @@
 import { NotebookText } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getOrder } from "../../../services/axiosClient";
+import { getOrder, postReview } from "../../../services/axiosClient";
+import { toast } from "react-toastify";
 
 export default function OrderDetail() {
     const navigate = useNavigate();
     const { id } = useParams();
     const [order, setOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState("");
+    /* ------ API Review ------ */
+    const submitMyReview = async () => {
+        try {
+            // 2. Gắn dữ liệu động từ state vào payload
+            const payload = {
+                orderId: id, // Lấy từ props hoặc URL params
+                rating: rating,          // Lấy từ state người dùng chọn
+                comment: comment         // Lấy từ ô input người dùng nhập
+            };
+
+            const result = await postReview(payload);
+            console.log("✅ Review submitted successfully:", result);
+            toast.success("Cảm ơn bạn đã gửi đánh giá!");
+
+        } catch (error) {
+            console.error("Lỗi:", error);
+            toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    };
 
     const loadOrder = async () => {
         setIsLoading(true);
@@ -54,7 +76,7 @@ export default function OrderDetail() {
             case "Shipping":
                 return { text: "Đang giao", color: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" };
             case "Completed":
-                return { text: "Hoàn tất", color: "bg-emerald-100 text-emerald-600 dark:text-emerald-400" };
+                return { text: "Hoàn tất", color: "bg-green-100 text-[#066e48] dark:text-[#066e48]" };
             case "Canceled":
                 return { text: "Đã hủy", color: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
             default:
@@ -87,7 +109,7 @@ export default function OrderDetail() {
     const statusInfo = getStatusInfo(order.status);
     const orderSteps = [
         { id: "Pending", label: "Đã đặt hàng", icon: <NotebookText size={20} /> },
-        { id: "Paid", label: "Chờ xác nhận", icon: "receipt_long" }, // Thay icon phù hợp nếu cần
+        { id: "Paid", label: "Chờ xác nhận", icon: "receipt_long" },
         { id: "Confirmed", label: "Đang chuẩn bị", icon: "inventory_2" },
         { id: "Shipping", label: "Đang giao", icon: "local_shipping" },
         { id: "Completed", label: "Hoàn tất", icon: "check_circle" },
@@ -97,7 +119,6 @@ export default function OrderDetail() {
 
     return (
         <div className="bg-background-light dark:bg-background-dark text-[#111813] dark:text-white min-h-screen flex flex-col font-display">
-            {/* Main Content */}
             <main className="flex-1 w-full px-4 md:px-10 py-8">
                 <button
                     onClick={() => navigate('/homebuyer/order')}
@@ -119,19 +140,16 @@ export default function OrderDetail() {
                             Ngày đặt hàng: {formatDate(order.createdAt)} | {statusInfo.text}
                         </p>
                     </div>
-
                 </div>
 
-                {/* Stepper Process Mới */}
+                {/* Stepper Process */}
                 {order.status !== "Canceled" && (
                     <div className="bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-xl border py-6 px-2 sm:px-6 mb-6 shadow-sm overflow-hidden">
                         <div className="flex items-center justify-between relative w-full mx-auto">
-
                             <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 dark:bg-gray-700" />
-
                             <div className="absolute top-5 left-12 right-12 h-1">
                                 <div
-                                    className="h-full bg-emerald-500 transition-all duration-500"
+                                    className="h-full bg-[#066e48] transition-all duration-500"
                                     style={{
                                         width: currentStatusIndex >= 0
                                             ? `${(currentStatusIndex / (orderSteps.length - 1)) * 100}%`
@@ -141,18 +159,15 @@ export default function OrderDetail() {
                             </div>
 
                             {orderSteps.map((step, index) => {
-                                const isActive = index === currentStatusIndex; // Đang ở bước này
-                                const isDone = index < currentStatusIndex;     // Đã qua bước này
+                                const isActive = index === currentStatusIndex;
+                                const isDone = index < currentStatusIndex;
 
                                 return (
-                                    <div
-                                        key={step.id}
-                                        className="flex flex-col items-center relative z-10 w-24" // Tâm là 48px
-                                    >
+                                    <div key={step.id} className="flex flex-col items-center relative z-10 w-24">
                                         <div
                                             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
-                            ${isDone || isActive
-                                                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                            ${isDone || isActive
+                                                    ? "bg-[#066e48] text-white shadow-md shadow-[#066e48]/30"
                                                     : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
                                                 }`}
                                         >
@@ -164,10 +179,9 @@ export default function OrderDetail() {
                                                 step.icon
                                             )}
                                         </div>
-
                                         <p
                                             className={`text-xs mt-2 font-medium text-center whitespace-nowrap
-                            ${isDone || isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-gray-500"}`}
+                                            ${isDone || isActive ? "text-[#066e48]" : "text-gray-400 dark:text-gray-500"}`}
                                         >
                                             {step.label}
                                         </p>
@@ -178,17 +192,16 @@ export default function OrderDetail() {
                     </div>
                 )}
 
-                {/* Order Info & Summary Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
                         {order.status === "Completed" && (
-                            <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-4 flex gap-4">
-                                <div className="shrink-0 size-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                            <div className="bg-green-50 dark:bg-[#066e48]/10 border border-green-100 dark:border-[#066e48]/30 rounded-xl p-4 flex gap-4">
+                                <div className="shrink-0 size-10 rounded-full bg-[#066e48] flex items-center justify-center text-white">
                                     <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>check_circle</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-emerald-800 dark:text-emerald-400">Giao dịch thành công</h3>
-                                    <p className="text-sm text-emerald-700 dark:text-emerald-500/80">Bạn đã xác nhận nhận hàng. Người bán sẽ sớm nhận được khoản thanh toán.</p>
+                                    <h3 className="font-bold text-[#066e48]">Giao dịch thành công</h3>
+                                    <p className="text-sm text-[#066e48]/80">Bạn đã xác nhận nhận hàng. Người bán sẽ sớm nhận được khoản thanh toán.</p>
                                 </div>
                             </div>
                         )}
@@ -213,50 +226,52 @@ export default function OrderDetail() {
                                         </p>
                                         <div className="flex justify-between items-end">
                                             <span className="text-gray-600 dark:text-gray-400 text-sm">x1</span>
-                                            <span className="font-bold text-lg text-primary">{formatPrice(item.unitPrice)}</span>
+                                            <span className="font-bold text-lg text-[#066e48]">{formatPrice(item.unitPrice)}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ))}
 
-{order.status === "Completed" && (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-        <h3 className="font-bold mb-4 flex items-center gap-2 text-[#111813] dark:text-white">
-            <span className="material-symbols-outlined text-yellow-500">star</span>
-            Đánh giá của bạn
-        </h3>
-        
-        {/* Phần hiển thị sao */}
-        <div className="flex items-center gap-1 text-yellow-400 mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-                <span 
-                    key={star} 
-                    className="material-symbols-outlined cursor-pointer hover:scale-110 transition-transform" 
-                    style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-                >
-                    star
-                </span>
-            ))}
-        </div>
+                        {order.status === "Completed" && (
+                            <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                                <h3 className="font-bold mb-4 flex items-center gap-2 text-[#111813] dark:text-white">
+                                    <span className="material-symbols-outlined text-yellow-500">star</span>
+                                    Đánh giá của bạn
+                                </h3>
+                                <div className="flex items-center gap-1 mb-4">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                            key={star}
+                                            onClick={() => setRating(star)}
 
-        {/* Ô nhập nội dung đánh giá */}
-        <div className="flex flex-col gap-3">
-            <textarea
-                placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này..."
-                className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2bee6c] transition-all min-h-[100px] resize-none"
-            />
-            
-            {/* Nút gửi UI */}
-            <button 
-                className="self-end px-6 py-2 bg-[#2bee6c] hover:bg-[#1fb350] text-[#111813] font-bold rounded-lg shadow-md transition-all flex items-center gap-2 active:scale-95"
-            >
-                <span className="material-symbols-outlined text-[18px]">send</span>
-                Gửi đánh giá
-            </button>
-        </div>
-    </div>
-)}
+                                            className={`material-symbols-outlined cursor-pointer hover:scale-110 transition-transform ${star <= rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-500"
+                                                }`}
+
+                                            style={{
+                                                fontVariationSettings: `'FILL' ${star <= rating ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24`
+                                            }}
+                                        >
+                                            star
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <textarea
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này..."
+                                        className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#066e48] transition-all min-h-[100px] resize-none"
+                                    />
+                                    <button onClick={submitMyReview}
+                                        className="self-end px-6 py-2 bg-[#066e48] hover:bg-[#055a3b] text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2 active:scale-95"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">send</span>
+                                        Gửi đánh giá
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -281,7 +296,7 @@ export default function OrderDetail() {
                                 </div>
                                 <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-end">
                                     <span className="font-bold">Tổng số tiền</span>
-                                    <span className="text-xl font-bold text-primary">{formatPrice(order.totalAmount)}</span>
+                                    <span className="text-xl font-bold text-[#066e48]">{formatPrice(order.totalAmount)}</span>
                                 </div>
                             </div>
                         </div>
@@ -289,7 +304,7 @@ export default function OrderDetail() {
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => navigate('/homebuyer')}
-                                className="w-full py-3 bg-primary text-background-dark font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-[#066e48] text-white font-bold rounded-xl shadow-lg shadow-[#066e48]/20 hover:bg-[#055a3b] transition-all flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-outlined">shopping_cart</span>
                                 Tiếp tục mua sắm

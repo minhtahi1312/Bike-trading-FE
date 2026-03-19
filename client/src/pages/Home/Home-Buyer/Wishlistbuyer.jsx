@@ -23,21 +23,17 @@ export default function Wishlist() {
     setLoading(true);
     try {
       const response = await getWishlist();
-      console.log("✅ Wishlist page response:", response);
-      
       const dataArray = Array.isArray(response) ? response : response?.data || [];
-      console.log("✅ Wishlist page data array:", dataArray);
       const formattedData = dataArray.map(item => {
-        // Handle nested bike object if present, otherwise assume item is the bike
         const bikeData = item.bike || item;
         const bikeId = item.bikeId || bikeData.id;
-        const listingId = item.listingId ; // Fallback to bikeId if listingId is missing
+        const listingId = item.listingId ; 
         
         return {
           listingId: listingId,
-          id: bikeId,                     // ID của xe để xem chi tiết
-          wishlistId: item.id,            // ID bản ghi wishlist
-          bikeId: bikeId,                 // ID của xe để xóa từ wishlist
+          id: bikeId,
+          wishlistId: item.id,
+          bikeId: bikeId,
           title: bikeData.title || bikeData.name || 'Chưa có tên xe',
           price: bikeData.price || 0,
           brand: bikeData.brand || 'N/A',
@@ -53,7 +49,6 @@ export default function Wishlist() {
         };
       });
       
-      console.log("✅ Wishlist page formatted:", formattedData);
       setBikes(formattedData);
     } catch (e) {
       console.error('❌ Failed to load wishlist:', e);
@@ -86,19 +81,19 @@ export default function Wishlist() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Danh sách yêu thích</h1>
-            <p className="text-[#61896f] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
+            {/* Thay thế text-emerald-600 bằng text-[#066e48] */}
+            <p className="text-[#066e48] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {/* <button className="group flex h-9 items-center gap-2 rounded-full border border-[#e5e7eb] bg-white dark:bg-gray-800 px-4 text-sm font-medium hover:border-primary transition-all">
-              <ListFilter size={18} /> Lọc
-            </button> */}
-            <button className="flex h-9 items-center rounded-full bg-primary text-[#111813] px-4 text-sm font-bold shadow-sm">Tất cả</button>
+            {/* Thay thế bg-emerald-500 bằng bg-[#066e48] */}
+            <button className="flex h-9 items-center rounded-full bg-[#066e48] text-white px-4 text-sm font-bold shadow-sm">Tất cả</button>
           </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            {/* Thay thế border-emerald-500 bằng border-[#066e48] */}
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#066e48] mb-4"></div>
             <p className="text-gray-500">Đang tải danh sách...</p>
           </div>
         ) : bikes.length === 0 ? (
@@ -107,7 +102,7 @@ export default function Wishlist() {
             <p className="text-gray-500 text-lg">Danh sách yêu thích của bạn đang trống</p>
             <button 
               onClick={() => navigate('/homebuyer')}
-              className="mt-4 text-primary font-bold hover:underline"
+              className="mt-4 text-[#066e48] font-bold hover:underline"
             >
               Khám phá xe ngay
             </button>
@@ -115,8 +110,7 @@ export default function Wishlist() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {bikes.map((b) => (
-              <article key={b.wishlistId || b.listingId} className={`group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e5e7eb] dark:border-gray-700 hover:border-primary/50 transition-all duration-300 ${b.sold ? "opacity-75" : ""}`}>
-                {/* Ảnh sản phẩm */}
+              <article key={b.wishlistId || b.listingId} className={`group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e5e7eb] dark:border-gray-700 hover:border-[#066e48]/50 transition-all duration-300 ${b.sold ? "opacity-75" : ""}`}>
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 cursor-pointer" onClick={() => navigate(`/homebuyer/details/${b.listingId}`)}>
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" 
@@ -129,14 +123,12 @@ export default function Wishlist() {
                     </div>
                   )}
 
-                  {/* Badge Trạng thái */}
                   <div className="absolute top-3 left-3 flex flex-col gap-2">
-                    <span className="bg-primary/95 backdrop-blur-sm text-[#111813] font-bold text-[10px] px-2 py-1 rounded shadow-sm uppercase tracking-wider">
+                    <span className="bg-[#066e48]/95 backdrop-blur-sm text-white font-bold text-[10px] px-2 py-1 rounded shadow-sm uppercase tracking-wider">
                       {b.bikeStatus || 'CÓ SẴN'}
                     </span>
                   </div>
 
-                  {/* Nút Xóa */}
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -149,11 +141,10 @@ export default function Wishlist() {
                   </button>
                 </div>
 
-                {/* Nội dung */}
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex-1">
                     <h3 
-                      className="text-base font-bold text-[#111813] dark:text-white leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-2 cursor-pointer min-h-[2.5rem]" 
+                      className="text-base font-bold text-[#111813] dark:text-white leading-snug line-clamp-2 group-hover:text-[#066e48] transition-colors mb-2 cursor-pointer min-h-[2.5rem]" 
                       onClick={() => !b.sold && handleView(b.id)}
                     >
                       {b.title}
@@ -168,12 +159,11 @@ export default function Wishlist() {
                       </span>
                     </div>
 
-                    <div className="text-xl font-black text-primary mb-4">
+                    <div className="text-xl font-black text-[#066e48] mb-4">
                       {formatVND(b.price)}
                     </div>
 
-                    {/* Meta info */}
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-[#61896f] mb-2">
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-[#066e48] mb-2">
                       <div className="flex items-center gap-1.5"><RulerDimensionLine size={14} /><span>Size {b.size}</span></div>
                       <div className="flex items-center gap-1.5"><MapPin size={14} /><span className="truncate">{b.location}</span></div>
                     </div>
@@ -186,7 +176,7 @@ export default function Wishlist() {
                       className={`w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition-all ${
                         b.sold 
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                        : "bg-[#f0f4f2] hover:bg-primary text-[#111813] shadow-sm active:scale-95"
+                        : "bg-[#f0f4f2] hover:bg-[#066e48] hover:text-white text-[#111813] shadow-sm active:scale-95"
                       }`}
                     >
                       {b.sold ? "Đã bán" : "Xem chi tiết"}

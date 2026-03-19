@@ -26,24 +26,59 @@ axiosClient.interceptors.request.use((config) => {
  * Xử lý lỗi, token expiry, etc.
  */
 axiosClient.interceptors.response.use(
-  (response) => {
-    // Success
-    return response;
-  },
-  (error) => {
-    // Handle 401 - token expired
-    if (error.response?.status === 401) {
-      console.warn("  Token expired, logging out...");
-      localStorage.removeItem("accessToken");
-      window.location.href = "/login";
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
+
+    // Chỉ xử lý nếu lỗi 401 và chưa retry
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const storedRefreshToken = localStorage.getItem("refreshToken");
+        if (!storedRefreshToken) throw new Error("No refresh token");
+
+        console.log("🔄 Đang gửi yêu cầu làm mới token...");
+
+        // GỌI API RENEW
+        const response = await axios.post(`${apiBaseUrl}/api/Auth/renew-token`, {
+          refreshToken: storedRefreshToken
+        });
+
+        // Kiểm tra logic thành công dựa trên cấu trúc API của bạn
+        // Giả sử thành công trả về dữ liệu trong response.data
+        if (response.data && (response.data.token || response.data.accessToken)) {
+          const newAccessToken = response.data.token || response.data.accessToken;
+          const newRefreshToken = response.data.refreshToken;
+
+          // 1. Cập nhật lại kho lưu trữ
+          localStorage.setItem("accessToken", newAccessToken);
+          if (newRefreshToken) {
+            localStorage.setItem("refreshToken", newRefreshToken);
+          }
+
+          console.log("✅ Token đã được cập nhật tự động.");
+
+          // 2. Thực hiện lại request bị lỗi với token mới
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return axiosClient(originalRequest);
+        }
+      } catch (refreshError) {
+        // Nếu API renew trả về success: false hoặc lỗi 400/500
+        console.error("🚨 Phiên đăng nhập hết hạn hoàn toàn.");
+        
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("role");
+        localStorage.removeItem("user");
+
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
+      }
     }
-
-    console.error(" API Error:", {
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-      url: error.config?.url,
-    });
-
     return Promise.reject(error);
   }
 );

@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 
 const LoginForm = ({ role }) => {
-  console.log("Vai trò hiện tại:", role); // Thêm dòng này vào đầu hàm
-  // ... code cũ
+  console.log("Vai trò hiện tại:", role); 
+  
   const [showPassword, setShowPassword] = useState(false);
 
   return (

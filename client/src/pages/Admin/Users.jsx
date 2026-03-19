@@ -28,6 +28,7 @@ const Users = () => {
     phone: "",
   });
   const [errors, setErrors] = useState({});
+  const [totalPages, setTotalPages] = useState(1);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -126,8 +127,11 @@ const Users = () => {
       );
       const data = response.data;
 
-      setUsersList(data);
-      setHasMore(data.length === pageSize);
+      setUsersList(data.items || []); 
+    setTotalPages(data.totalPage || 1); 
+    
+    
+    setHasMore(currentPage < data.totalPage);
     } catch (error) {
       console.error("Lỗi khi tải danh sách người dùng:", error);
       setUsersList([]);
@@ -340,7 +344,7 @@ const Users = () => {
                   </td>
                 </tr>
               ) : (
-                usersList.map((user) => (
+                usersList?.map((user) => (
                   <tr
                     key={user.id}
                     className="hover:bg-gray-50 transition-colors group"
@@ -425,7 +429,7 @@ const Users = () => {
 
             <button
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              disabled={!hasMore || isLoadingTable}
+              disabled={currentPage >= totalPages || isLoadingTable}
               className="px-4 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-bold shadow-sm shadow-emerald-600/20 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed transition-colors"
             >
               Sau

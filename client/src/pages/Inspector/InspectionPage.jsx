@@ -17,6 +17,7 @@ import {
   Check,
   X,
   Loader2,
+  PlayCircle
 } from "lucide-react";
 import axiosClient from "../../services/axiosClient";
 import { useNavigate, useParams } from "react-router-dom";
@@ -85,13 +86,16 @@ export default function MergedInspectionPage() {
             brakeType: data.brakeType,
             tireRim: data.tireRim,
           },
-          // Map danh sách ảnh từ medias
+
           media:
             data.medias && data.medias.length > 0
               ? data.medias.map((m, idx) => ({
                   id: m.id,
-                  src: m.image,
-                  label: `Ảnh chi tiết ${idx + 1}`,
+                  src: m.image || m.videoUrl,
+                  type: m.videoUrl ? "video" : "image",
+                  label: m.videoUrl
+                    ? `Video bằng chứng ${idx + 1}`
+                    : `Ảnh chi tiết ${idx + 1}`,
                 }))
               : [
                   {
@@ -132,7 +136,7 @@ export default function MergedInspectionPage() {
 
       if (response.status === 200 || response.status === 201) {
         showToast("Đã phê duyệt xe thành công!", "success");
-        setTimeout(() => navigate(`/inspector/result/${id}`), 1000);
+        setTimeout(() => navigate("/inspector/HomeInspector"), 1500);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Có lỗi xảy ra!";
@@ -142,18 +146,15 @@ export default function MergedInspectionPage() {
     }
   };
   const handleReject = () => {
-    // Nếu chưa nhập comment, hiện Toast báo lỗi (thay vì alert)
     if (!formData.comment || formData.comment.trim() === "") {
       showToast("Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!");
       return;
     }
 
-    // Nếu đã nhập, copy nội dung vào state của Modal và mở Modal
     setRejectReason(formData.comment);
     setIsRejectModalOpen(true);
   };
 
-  // --- HÀM 2: Bấm nút Xác nhận trong Modal (Gọi API thực sự) ---
   const handleConfirmReject = async () => {
     if (!rejectReason.trim()) {
       showToast("Vui lòng nhập lý do từ chối cụ thể.");
@@ -175,7 +176,6 @@ export default function MergedInspectionPage() {
       if (response.status === 200 || response.status === 201) {
         showToast("Đã từ chối xe thành công.", "success");
         setIsRejectModalOpen(false);
-        // Đợi 1.5s để hiện Toast rồi mới chuyển trang
         setTimeout(() => navigate("/inspector/HomeInspector"), 1500);
       }
     } catch (error) {
@@ -218,55 +218,6 @@ export default function MergedInspectionPage() {
             <ArrowLeft size={18} className="mr-2" /> Quay lại danh sách
           </button>
         </div>
-
-        {/* 2. KHỐI GIỮA: Stepper */}
-        <div className="flex-1 flex justify-center items-center">
-          <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-full border border-[#e5e7eb]">
-            {/* Bước 1: Kiểm định */}
-            <div className="flex items-center">
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold transition-all select-none bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100">
-                <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] border border-emerald-600 bg-emerald-600 text-white">
-                  1
-                </span>
-                <span className="whitespace-nowrap">Kiểm định chi tiết</span>
-              </div>
-            </div>
-
-            {/* Bước 2: Kết quả */}
-            <div className="flex items-center">
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold transition-all select-none text-[#9ca3af]">
-                <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] border border-current">
-                  2
-                </span>
-                <span className="whitespace-nowrap">Kết quả kiểm định</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. KHỐI PHẢI: User Info & Nút Tiếp tục sang trang Kết quả */}
-        <div className="flex-none flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden xl:block">
-              <p className="text-[12px] font-bold text-[#111813]">
-                Nguyễn Văn Kiểm
-              </p>
-              <p className="text-[10px] text-[#637588]">Inspector</p>
-            </div>
-            <img
-              src="https://i.pravatar.cc/150?img=11"
-              className="w-8 h-8 rounded-full border border-[#e5e7eb]"
-              alt="Inspector"
-            />
-          </div>
-
-          <button
-            onClick={() => navigate(`/inspector/result/${id}`)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
-          >
-            Tiếp tục: Kết quả <ArrowRight size={16} />
-          </button>
-        </div>
       </header>
 
       {/* --- MAIN CONTENT (2 CỘT) --- */}
@@ -294,12 +245,20 @@ export default function MergedInspectionPage() {
 
             {/* Main Image Viewer */}
             <div className="relative w-full aspect-video bg-gray-100 rounded-xl overflow-hidden group border border-gray-200">
-              <img
-                src={bike.media[activeMediaIndex]?.src}
-                alt="Bike"
-                onClick={() => setIsFullscreen(true)}
-                className="w-full h-full object-cover"
-              />
+  {bike.media[activeMediaIndex]?.type === 'video' ? (
+    <video
+      src={bike.media[activeMediaIndex]?.src}
+      controls
+      className="w-full h-full object-contain bg-black"
+    />
+  ) : (
+    <img
+      src={bike.media[activeMediaIndex]?.src}
+      alt="Bike"
+      onClick={() => setIsFullscreen(true)}
+      className="w-full h-full object-cover cursor-zoom-in"
+    />
+  )}
 
               <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
                 {bike.media[activeMediaIndex]?.label}
@@ -329,20 +288,29 @@ export default function MergedInspectionPage() {
             </div>
 
             {/* Thumbnails */}
-            <div className="flex gap-3 mt-4">
-              {bike.media.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => setActiveMediaIndex(index)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${activeMediaIndex === index ? "border-blue-600 ring-2 ring-blue-600/20" : "border-transparent hover:opacity-80"}`}
-                >
-                  <img src={item.src} className="w-full h-full object-cover" />
-                </div>
-              ))}
-              <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 cursor-pointer hover:bg-gray-100">
-                <ImageIcon size={20} />
-              </div>
-            </div>
+<div className="flex gap-3 mt-4">
+  {bike.media.map((item, index) => (
+    <div
+      key={item.id}
+      onClick={() => setActiveMediaIndex(index)}
+      className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+        activeMediaIndex === index ? "border-blue-600 ring-2 ring-blue-600/20" : "border-transparent hover:opacity-80"
+      }`}
+    >
+      {/* NẾU LÀ VIDEO THÌ HIỆN ICON PLAY, NẾU LÀ ẢNH THÌ HIỆN ẢNH */}
+      {item.type === 'video' ? (
+        <div className="w-full h-full flex items-center justify-center bg-gray-800">
+          <PlayCircle size={24} className="text-white opacity-80" />
+        </div>
+      ) : (
+        <img src={item.src} className="w-full h-full object-cover" />
+      )}
+    </div>
+  ))}
+  <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 cursor-pointer hover:bg-gray-100 shrink-0">
+    <ImageIcon size={20} />
+  </div>
+</div>
           </div>
 
           {/* Thông tin cơ bản & Specs */}
@@ -566,12 +534,22 @@ export default function MergedInspectionPage() {
           </button>
 
           {/* Ảnh được phóng to */}
-          <img
-            src={bike.media[activeMediaIndex]?.src}
-            alt="Fullscreen Bike"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
-            onClick={(e) => e.stopPropagation()}
-          />
+          {bike.media[activeMediaIndex]?.type === 'video' ? (
+  <video
+    src={bike.media[activeMediaIndex]?.src}
+    controls
+    autoPlay
+    className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+    onClick={(e) => e.stopPropagation()}
+  />
+) : (
+  <img
+    src={bike.media[activeMediaIndex]?.src}
+    alt="Fullscreen Bike"
+    className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
+    onClick={(e) => e.stopPropagation()}
+  />
+)}
 
           {/* Mũi tên trái/phải trên bản phóng to */}
           <button

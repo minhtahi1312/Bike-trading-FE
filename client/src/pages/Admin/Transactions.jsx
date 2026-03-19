@@ -282,14 +282,11 @@ const Transactions = () => {
             Quản lý dòng tiền, theo dõi doanh thu và cấu hình phí hệ thống.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-[#111813] rounded-xl text-sm font-bold transition-all shadow-sm whitespace-nowrap">
-          <Download size={18} className="text-emerald-600" /> Xuất báo cáo Excel
-        </button>
       </div>
 
       {/* TOP SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-[#e5e7eb] shadow-sm p-6 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+      <div className="w-full">
+        <div className="w-full bg-white rounded-xl border border-[#e5e7eb] shadow-sm p-6 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
           <div className="absolute -right-10 -top-10 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
           <div className="absolute -right-4 -bottom-6 opacity-[0.03] pointer-events-none text-emerald-900 transform -rotate-12">
             <Wallet size={160} />
@@ -377,40 +374,12 @@ const Transactions = () => {
               }}
               className="flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/30 whitespace-nowrap group"
             >
-              Cập nhật chính sách
+              Tạo chính sách mới
               <ArrowUpRight
                 size={18}
                 className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
               />
             </button>
-          </div>
-        </div>
-
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm p-5 flex flex-col justify-center h-full hover:border-blue-200 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                <Wallet size={20} />
-              </div>
-              <span className="text-xs font-bold text-[#637588] uppercase tracking-wider">
-                Tổng doanh thu phí
-              </span>
-            </div>
-            <div className="text-2xl font-extrabold text-[#111813]">
-              1.250.000.000 ₫
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm p-5 flex flex-col justify-center h-full hover:border-emerald-200 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                <CheckCircle size={20} />
-              </div>
-              <span className="text-xs font-bold text-[#637588] uppercase tracking-wider">
-                Giao dịch thành công
-              </span>
-            </div>
-            <div className="text-2xl font-extrabold text-[#111813]">8,432</div>
           </div>
         </div>
       </div>
@@ -519,14 +488,23 @@ const Transactions = () => {
                     <td className="px-5 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleEditClick(item)} // <-- THÊM SỰ KIỆN Ở ĐÂY
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Sửa"
+                          onClick={() => handleEditClick(item)}
+                          disabled={item.timelineStatus !== "Chờ hiệu lực"} 
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.timelineStatus === "Chờ hiệu lực"
+                              ? "text-blue-500 hover:bg-blue-50" 
+                              : "text-gray-300 cursor-not-allowed" 
+                          }`}
+                          title={
+                            item.timelineStatus === "Chờ hiệu lực"
+                              ? "Sửa"
+                              : "Chỉ được phép sửa chính sách chưa áp dụng"
+                          }
                         >
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeletePolicy(item.id)} // <-- GẮN SỰ KIỆN Ở ĐÂY
+                          onClick={() => handleDeletePolicy(item.id)} 
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Xóa"
                         >
@@ -603,7 +581,9 @@ const Transactions = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
               <h3 className="text-lg font-extrabold text-[#111813]">
-                Tạo chính sách phí mới
+                {editingPolicyId
+                  ? "Chỉnh sửa chính sách phí"
+                  : "Tạo chính sách phí mới"}
               </h3>
               <button
                 onClick={() => !isLoading && setIsModalOpen(false)}

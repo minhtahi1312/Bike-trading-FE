@@ -12,7 +12,7 @@ export default function Dashboard() {
       color: "text-blue-600 bg-blue-100",
     },
     {
-      label: "Đơn chờ xử lý",
+      label: "Chờ xác nhận",
       value: 5,
       note: "+1 mới",
       icon: Package,
@@ -26,7 +26,7 @@ export default function Dashboard() {
       color: "text-emerald-600 bg-emerald-100",
     },
     {
-      label: "Tin đang bán",
+      label: "Đơn đã hủy",
       value: 9,
       note: "+1 hôm nay",
       icon: ShoppingBag,

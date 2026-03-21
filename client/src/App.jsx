@@ -19,6 +19,8 @@ import InspectionHistoryDetail from "./pages/Inspector/InspectionHistoryDetail";
 import InspectorProfile from "./pages/Inspector/InspectorProfile";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
+import SellerReview from "./pages/Seller/Review";
+import SellerReport from "./pages/Seller/Report";
 
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
@@ -95,6 +97,8 @@ function App() {
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
           <Route path="edit-listing/:id" element={<CreateListing />} />
+          <Route path="reviews" element={<SellerReview />} />
+          <Route path="reports" element={<SellerReport />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />

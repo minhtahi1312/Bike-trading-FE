@@ -37,7 +37,7 @@ axiosClient.interceptors.response.use(
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
     }
-
+    
     console.error(" API Error:", {
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
@@ -233,10 +233,54 @@ const postReview = async (data) => {
   }
 };
 
+const postReport = async (payload) => {
+  try {
+    const { data } = await axiosClient.post(`/api/Report/send-report`, payload);
+    return data; 
+  } catch (error) {
+    console.error("API Report Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const buyNowOrder = async (bikeId) => {
+  try {
+    // API này nhận bikeId qua Path, không thấy khai báo Body trong tài liệu
+    const { data } = await axiosClient.post(`/api/Order/buy-now/${bikeId}`);
+    return data;
+  } catch (error) {
+    // Log lỗi chi tiết để dễ debug
+    console.error("API Buy Now Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+const filterBuyerListings = async (filterList = [], pageNumber = 1, pageSize = 12) => {
+  try {
+    // filterList chính là Request body dạng mảng string: ["Mtb", "Giant", ...]
+    const { data } = await axiosClient.post(
+      '/api/buyer/listings/filter', 
+      filterList, 
+      {
+        params: {
+          pageNumber: pageNumber,
+          pageSize: pageSize
+        }
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("API Filter Listings Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
 export {
+  filterBuyerListings,
+  buyNowOrder,
+  postReport,
   postReview,
   searchListings,
   cancelOrder,

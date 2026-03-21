@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyOrder, cancelOrder } from "../../../services/axiosClient";
+import { getMyOrder, cancelOrder, postReport } from "../../../services/axiosClient";
 
 export default function OrderBuyer() {
   const navigate = useNavigate();
@@ -8,7 +8,12 @@ export default function OrderBuyer() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Tabs danh mục
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [issueType, setIssueType] = useState(""); 
+  const [reportDescription, setReportDescription] = useState(""); 
+
   const tabs = [
     { id: "all", name: "Tất cả" },
     { id: "waiting", name: "Chờ xác nhận" },
@@ -49,6 +54,48 @@ export default function OrderBuyer() {
     }
   };
 
+  
+  const handleOpenReport = (orderId) => {
+    setSelectedOrderId(orderId);
+    setIssueType(""); 
+    setReportDescription(""); 
+    setIsModalOpen(true);
+  };
+
+
+  const handleSubmitReport = async () => {
+    if (!issueType) {
+      alert("Vui lòng chọn loại vấn đề!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+    
+      const payload = {
+        orderId: selectedOrderId,
+        type: issueType,          
+        reason: reportDescription 
+      };
+      
+      console.log("Đang gửi báo cáo với payload:", payload);
+      const response = await postReport(payload);
+      
+      console.log("Gửi báo cáo thành công:", response);
+      alert("Báo cáo của bạn đã được gửi thành công!");
+      setIsModalOpen(false);
+      
+     
+
+    } catch (error) {
+      console.error("Lỗi khi submit báo cáo:", error);
+      alert("Đã có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại sau!");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const getStatusInfo = (status) => {
     switch (String(status)) {
       case "Paid":
@@ -82,7 +129,7 @@ export default function OrderBuyer() {
     : orders.filter(order => getStatusInfo(order?.status).tabId === activeTab);
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display relative">
       <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-10 py-8">
 
         {/* Header */}
@@ -167,12 +214,10 @@ export default function OrderBuyer() {
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                         <div>
                           <h3 className="text-lg font-bold text-[#111813] dark:text-white mb-1">
-                            {/* Đơn hàng gồm {order?.totalItems || 0} sản phẩm */}
                             Mã đơn: <span className="uppercase">{order?.id?.split('-')[0] || order?.id}</span>
                           </h3>
                           <div className="flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
                             <span>Người nhận: <strong>{order?.receiverName || "Chưa cập nhật"}</strong></span>
-                            {/* <span>Mã đơn: <span className="uppercase">{order?.id?.split('-')[0] || order?.id}</span></span> */}
                             <span>Ngày đặt: {formatDate(order?.createdAt)}</span>
                           </div>
                         </div>
@@ -185,6 +230,17 @@ export default function OrderBuyer() {
                       </div>
 
                       <div className="flex flex-wrap items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                        {/* Nút Báo Cáo */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenReport(order?.id);
+                          }}
+                          className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          Báo cáo
+                        </button>
+
                         {order?.status === "Pending" && (
                           <button
                             onClick={(e) => {
@@ -214,8 +270,91 @@ export default function OrderBuyer() {
             </div>
           )}
         </div>
-
       </main>
+
+      {/* --- Modal Báo Cáo --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[#111813]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+
+            {/* Header Modal */}
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+              <div>
+                <h2 className="text-lg font-bold text-[#111813] dark:text-white">Báo cáo đơn hàng</h2>
+                <p className="text-xs text-[#637588] dark:text-gray-400 mt-0.5">
+                  Mã đơn: {selectedOrderId?.split('-')[0] || selectedOrderId}
+                </p>
+              </div>
+              <button
+                onClick={() => !isSubmitting && setIsModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                disabled={isSubmitting}
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Nội dung Modal: Form báo cáo */}
+            <div className="p-5 flex flex-col gap-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Hãy cho chúng tôi biết vấn đề bạn gặp phải với đơn hàng này.
+              </p>
+
+              {/* Dropdown chọn loại vấn đề */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Loại vấn đề <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={issueType}
+                  onChange={(e) => setIssueType(Number(e.target.value))}
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-[#111813] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#066e48]"
+                >
+                  <option value="" disabled>-- Chọn loại vấn đề --</option>
+                  <option value={1}>Vấn đề về đơn hàng (Order Issue)</option>
+                  <option value={2}>Vấn đề từ người bán (Seller Issue)</option>
+                  <option value={3}>Vấn đề từ người mua (Buyer Issue)</option>
+                  <option value={4}>Vấn đề thanh toán (Payment Issue)</option>
+                  <option value={5}>Khác (Other)</option>
+                </select>
+              </div>
+
+              {/* Textarea để nhập chi tiết (Tùy chọn) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Mô tả chi tiết
+                </label>
+                <textarea
+                  rows="3"
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Nhập chi tiết vấn đề bạn gặp phải..."
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-[#111813] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#066e48] resize-none"
+                ></textarea>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-5 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSubmitReport}
+                className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                disabled={isSubmitting || !issueType} // Disable nếu đang submit hoặc chưa chọn Issue Type
+              >
+                {isSubmitting ? "Đang gửi..." : "Gửi báo cáo"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

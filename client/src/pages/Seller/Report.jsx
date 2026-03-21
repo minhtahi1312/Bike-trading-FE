@@ -1,49 +1,38 @@
-import React from "react";
+import { getSellerReports } from "../../services/axiosClient";
 
-const REPORT_TYPE = {
-  1: "Vấn đề đơn hàng",
-  2: "Vấn đề người bán",
-  3: "Vấn đề người mua",
-  4: "Vấn đề thanh toán",
-  5: "Khác",
-};
-
-const mockReports = [
-  {
-    id: "RP-0921",
-    date: "26/10/2023 14:30",
-    user: "Nguyễn Văn A",
-    phone: "0901***123",
-    content: "Xe không đúng mô tả, xước nhiều hơn ảnh",
-    type: 1,
-  },
-  {
-    id: "RP-0920",
-    date: "25/10/2023 09:15",
-    user: "Trần Thị Tú",
-    phone: "0988***456",
-    content: "Thái độ người bán không tốt, chửi bới khách",
-    type: 2,
-  },
-  {
-    id: "RP-0918",
-    date: "24/10/2023 16:45",
-    user: "Lê Hữu Hoàng",
-    phone: "0912***789",
-    content: "Nghi ngờ hàng giả, tem fake",
-    type: 4,
-  },
-  {
-    id: "RP-0915",
-    date: "22/10/2023 10:20",
-    user: "Phạm Bảo",
-    phone: "0933***222",
-    content: "Chuyển cọc nhưng không giao xe",
-    type: 3,
-  },
-];
+import React, { useEffect, useState } from "react";
 
 export default function ReportPage() {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedType, setSelectedType] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const REPORT_TYPE = {
+    1: "Vấn đề đơn hàng",
+    2: "Vấn đề người bán",
+    3: "Vấn đề người mua",
+    4: "Vấn đề thanh toán",
+    5: "Khác",
+  };
+
+  const colors = [
+    "bg-red-100 text-red-600",
+    "bg-blue-100 text-blue-600",
+    "bg-yellow-100 text-yellow-600",
+    "bg-purple-100 text-purple-600",
+  ];
+
+  const getColor = (name) => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    return name?.charAt(0).toUpperCase() || "?";
+  };
+  const pageSize = 5;
+
   const getTypeStyle = (type) => {
     switch (type) {
       case 1:
@@ -58,6 +47,48 @@ export default function ReportPage() {
         return "bg-gray-100 text-gray-600";
     }
   };
+
+  // format date
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString("vi-VN");
+  };
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const data = await getSellerReports();
+        setReports(data);
+      } catch (err) {
+        console.error("Lỗi fetch reports:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
+  // FILTER
+  const filteredReports =
+    selectedType === "all"
+      ? reports
+      : reports.filter((r) => r.type === Number(selectedType));
+
+  // SORT
+  const sortedReports = [...filteredReports].sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return new Date(a.createdAt) - new Date(b.createdAt);
+  });
+
+  // PAGINATION
+  const totalPages = Math.ceil(sortedReports.length / pageSize);
+
+  const paginatedReports = sortedReports.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
   return (
     <div className="p-6 space-y-6">
       {/* HEADER */}
@@ -68,6 +99,35 @@ export default function ReportPage() {
         <p className="text-gray-500 text-sm">
           Danh sách các báo cáo từ người dùng
         </p>
+      </div>
+
+      <div className="flex gap-4">
+        {/* FILTER TYPE */}
+        <select
+          className="border rounded px-3 py-2 text-sm"
+          value={selectedType}
+          onChange={(e) => {
+            setSelectedType(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">Tất cả loại</option>
+          {Object.entries(REPORT_TYPE).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </select>
+
+        {/* SORT */}
+        <select
+          className="border rounded px-3 py-2 text-sm"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+        >
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
+        </select>
       </div>
 
       {/* TABLE */}
@@ -82,55 +142,102 @@ export default function ReportPage() {
 
         {/* BODY */}
         <div className="divide-y">
-          {mockReports.map((r, i) => (
-            <div className="grid grid-cols-4 px-6 py-5 items-center hover:bg-gray-50 transition group">
-              {/* ID + DATE */}
-              <div>
-                <p className="font-semibold text-gray-900 tracking-tight">
-                  #{r.id}
-                </p>
-                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                  {r.date}
-                </p>
-              </div>
+          {loading ? (
+            <p className="p-6 text-center">Đang tải...</p>
+          ) : reports.length === 0 ? (
+            <p className="p-6 text-center">Không có dữ liệu</p>
+          ) : (
+            paginatedReports.map((r) => (
+              <div
+                key={r.reportId}
+                className="grid grid-cols-4 px-6 py-5 items-center hover:bg-gray-50 transition"
+              >
+                {/* ID + DATE */}
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    #{r.reportId.slice(0, 8)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(r.createdAt)}
+                  </p>
+                </div>
 
-              {/* USER */}
-              <div>
-                <p className="font-medium text-gray-900">{r.user}</p>
-                <p className="text-xs text-gray-400 mt-1">{r.phone}</p>
-              </div>
+                {/* USER */}
+                <div className="flex items-center gap-3">
+                  {/* AVATAR */}
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${getColor(
+                      r.reporterName,
+                    )}`}
+                  >
+                    {getInitial(r.reporterName)}
+                  </div>
 
-              {/* CONTENT */}
-              <div className="text-sm text-gray-700 leading-relaxed max-w-md">
-                {r.content}
-              </div>
+                  {/* INFO */}
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {r.reporterName}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {r.reporterPhone}
+                    </p>
+                  </div>
+                </div>
 
-              {/* TYPE */}
-              <div className="flex justify-center">
-                <span
-                  className={`text-xs px-3 py-1.5 rounded-full font-medium ${getTypeStyle(
-                    r.type,
-                  )}`}
-                >
-                  {REPORT_TYPE[r.type]}
-                </span>
+                {/* CONTENT */}
+                <div className="text-sm text-gray-700 max-w-md">{r.reason}</div>
+
+                {/* TYPE */}
+                <div className="flex justify-center">
+                  <span
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium ${getTypeStyle(
+                      r.type,
+                    )}`}
+                  >
+                    {REPORT_TYPE[r.type]}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
-        {/* FOOTER */}
+        {/* FOOTER (tạm giữ cứng, lát làm pagination thật) */}
         <div className="flex justify-between items-center px-6 py-4 text-sm text-gray-500">
-          <span>Hiển thị 1-4 trong 68 khiếu nại</span>
+          <span>
+            Hiển thị {(currentPage - 1) * pageSize + 1} –{" "}
+            {Math.min(currentPage * pageSize, sortedReports.length)} trên tổng{" "}
+            {sortedReports.length} khiếu nại
+          </span>
 
           <div className="flex gap-2">
-            <button className="px-3 py-1 rounded border">{"<"}</button>
-            <button className="px-3 py-1 rounded bg-emerald-500 text-white">
-              1
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              {"<"}
             </button>
-            <button className="px-3 py-1 rounded border">2</button>
-            <button className="px-3 py-1 rounded border">3</button>
-            <button className="px-3 py-1 rounded border">{">"}</button>
+
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-3 py-1 rounded ${
+                  currentPage === i + 1 ? "bg-emerald-500 text-white" : "border"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              {">"}
+            </button>
           </div>
         </div>
       </div>

@@ -304,6 +304,17 @@ const getReviewSummary = async () => {
   }
 };
 
+const getSellerReports = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReport`);
+    console.log("GET /api/SellerReport success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getSellerReports failed:", error.message);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -329,6 +340,7 @@ export {
   getMyOrder,
   getSellerReviews,
   getReviewSummary,
+  getSellerReports,
 };
 
 export default axiosClient;

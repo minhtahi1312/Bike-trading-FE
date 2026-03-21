@@ -7,6 +7,21 @@ import { getCategoryLabel, getBrandLabel } from "../../utils/format";
 const PAGE_SIZE = 5;
 
 export default function SellerOrders() {
+  const getInitial = (name) => {
+    return name?.charAt(0).toUpperCase() || "?";
+  };
+
+  const colors = [
+    "bg-red-100 text-red-600",
+    "bg-blue-100 text-blue-600",
+    "bg-yellow-100 text-yellow-600",
+    "bg-purple-100 text-purple-600",
+  ];
+
+  const getColor = (name) => {
+    const index = name?.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
   const navigate = useNavigate();
 
   // ===== STATE =====
@@ -257,9 +272,23 @@ export default function SellerOrders() {
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="font-medium">{o.receiverName}</div>
-                    <div className="text-xs text-gray-500">
-                      {o.receiverPhone}
+                    <div className="flex items-center gap-3">
+                      {/* AVATAR */}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${getColor(
+                          o.receiverName,
+                        )}`}
+                      >
+                        {getInitial(o.receiverName)}
+                      </div>
+
+                      {/* INFO */}
+                      <div>
+                        <div className="font-medium">{o.receiverName}</div>
+                        <div className="text-xs text-gray-500">
+                          {o.receiverPhone}
+                        </div>
+                      </div>
                     </div>
                   </td>
 

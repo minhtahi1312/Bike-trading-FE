@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { Toaster } from "react-hot-toast";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Admin/Dashboard";
 import Listings from "./pages/Admin/Listings";
@@ -14,23 +14,23 @@ import Homeguest from "./pages/Home/Home-guest/Homeguest";
 import HomeInspector from "./pages/Inspector/HomeInspector";
 import InspectorLayout from "./layouts/InspectorLayout";
 import InspectionPage from "./pages/Inspector/InspectionPage";
-import InspectionResult from "./pages/Inspector/InspectionResult";
-import InspectionFinalConfirmation from "./pages/Inspector/InspectionFinalConfirmation";
 import HistoryInspector from "./pages/Inspector/HistoryInspector";
 import InspectionHistoryDetail from "./pages/Inspector/InspectionHistoryDetail";
 import InspectorProfile from "./pages/Inspector/InspectorProfile";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
+import SellerReview from "./pages/Seller/Review";
+import SellerReport from "./pages/Seller/Report";
 
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
 import Users from "./pages/Admin/Users";
-import Transactions from "./pages/Admin/Transactions";
+import Policy from "./pages/Admin/Policy";
 import Categories from "./pages/Admin/Categories";
 import ListingDetail from "./pages/Admin/ListingDetail";
-import TransactionDetail from "./pages/Admin/TransactionDetail";
 import Complaints from "./pages/Admin/Complaints";
 import ComplaintDetail from "./pages/Admin/ComplaintDetail";
+import Transactions from "./pages/Admin/Transactions";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
@@ -49,6 +49,7 @@ import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Homeguest />} />
         <Route path="/homeguest" element={<Homeguest />} />
@@ -68,8 +69,6 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<HomeInspector />} />
           <Route path="inspect/:id" element={<InspectionPage />} />
-          <Route path="result/:id" element={<InspectionResult />} />
-          <Route path="confirm/:id" element={<InspectionFinalConfirmation />} />
           <Route path="history" element={<HistoryInspector />} />
           <Route path="history/:id" element={<InspectionHistoryDetail />} />
           <Route path="profile" element={<InspectorProfile />} />
@@ -79,10 +78,10 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="listings" element={<Listings />} />
           <Route path="users" element={<Users />} />
-          <Route path="transactions" element={<Transactions />} />
+          <Route path="policy" element={<Policy />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="transactions" element={<Transactions />} />
           <Route path="listings/:id" element={<ListingDetail />} />
-          <Route path="transactions/:id" element={<TransactionDetail />} />
           <Route path="complaints" element={<Complaints />} />
           <Route path="reports/:id" element={<ComplaintDetail />} />
         </Route>
@@ -98,6 +97,8 @@ function App() {
           <Route path="orders/:id" element={<SellerOrderDetail />} />
           <Route path="create-listing" element={<CreateListing />} />
           <Route path="edit-listing/:id" element={<CreateListing />} />
+          <Route path="reviews" element={<SellerReview />} />
+          <Route path="reports" element={<SellerReport />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />

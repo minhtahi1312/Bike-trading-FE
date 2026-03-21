@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./Login.css"; 
+import "./Login.css";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import axiosClient from "../../services/axiosClient";
 import { toast } from "react-toastify";
@@ -60,8 +59,7 @@ const LoginForm = ({ role, tab, setTab }) => {
   // State cho Popup OTP
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  
- 
+
   const handleResendOtp = async () => {
     if (!email) {
       toast.warning("Vui lòng nhập email để gửi lại mã!");
@@ -138,8 +136,10 @@ const LoginForm = ({ role, tab, setTab }) => {
         console.log("Role chuẩn hóa:", serverRoleStr);
 
         // --- BƯỚC 2: LƯU TOKEN ---
-        localStorage.setItem("accessToken", response.data.token);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
+        const token = response.data.token || response.data.accessToken; // Lấy cái nào có dữ liệu
+        const rToken = response.data.refreshToken;
+        if (token) localStorage.setItem("accessToken", token);
+        if (rToken) localStorage.setItem("refreshToken", rToken);
         localStorage.setItem("role", serverRoleStr);
         localStorage.setItem(
           "user",
@@ -149,16 +149,17 @@ const LoginForm = ({ role, tab, setTab }) => {
         // --- BƯỚC 3: ĐIỀU HƯỚNG THEO ROLE ---
 
         // === NHÓM QUẢN TRỊ (ADMIN & INSPECTOR) ===
-        if (serverRoleStr === 'ADMIN' || serverRoleStr === 'INSPECTOR') {
-             toast.success(`Xin chào ${serverRoleStr === 'ADMIN' ? 'Quản trị viên' : 'Kiểm duyệt viên'}!`);
-             
-             if (serverRoleStr === 'ADMIN') {
-                 navigate("/admin/dashboard");
-             } else {
-                
-                 navigate("/inspector/dashboard");
-             }
-             return; 
+        if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
+          toast.success(
+            `Xin chào ${serverRoleStr === "ADMIN" ? "Quản trị viên" : "Kiểm duyệt viên"}!`,
+          );
+
+          if (serverRoleStr === "ADMIN") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/inspector/dashboard");
+          }
+          return;
         }
 
         // === NHÓM NGƯỜI DÙNG (BUYER & SELLER) ===
@@ -189,29 +190,29 @@ const LoginForm = ({ role, tab, setTab }) => {
       } else {
         toast.error(response.data.message || "Đăng nhập thất bại!");
       }
+    } catch (error) {
+      console.error("Login Error:", error);
+      const resData = error.response?.data;
+      const serverMsg = resData?.message || "";
+      const errorMsgLow = serverMsg.toLowerCase();
 
-} catch (error) {
-    console.error("Login Error:", error);
-    const resData = error.response?.data;
-    const serverMsg = resData?.message || "";
-    const errorMsgLow = serverMsg.toLowerCase();
-
-    // Kiểm tra message từ BE
-    if (errorMsgLow.includes("chưa xác minh email") || errorMsgLow.includes("kích hoạt")) {
-        
+      // Kiểm tra message từ BE
+      if (
+        errorMsgLow.includes("chưa xác minh email") ||
+        errorMsgLow.includes("kích hoạt")
+      ) {
         // 1. Bật Modal OTP lên ngay lập tức
-        setShowOtpModal(true); 
+        setShowOtpModal(true);
 
         // 2. Thông báo cho người dùng
         toast.info("Tài khoản chưa xác thực. Hệ thống đang gửi lại mã OTP...");
 
         // 3. Tự động chạy API gửi lại mã (Gọi sau cùng)
-        handleResendOtp(); 
-        
-    } else {
+        handleResendOtp();
+      } else {
         toast.error(serverMsg || "Sai tài khoản hoặc mật khẩu!");
-    }
-} finally {
+      }
+    } finally {
       setLoading(false);
     }
   };
@@ -219,8 +220,8 @@ const LoginForm = ({ role, tab, setTab }) => {
   const handleRegisterClick = async (e) => {
     e.preventDefault();
     if (!isAgreed) {
-    toast.warning("Bạn phải đồng ý với Điều khoản dịch vụ để tiếp tục!");
-    return;
+      toast.warning("Bạn phải đồng ý với Điều khoản dịch vụ để tiếp tục!");
+      return;
     }
     // Validate dữ liệu
     if (!email || !password || !fullName || !phone) {
@@ -455,7 +456,7 @@ const LoginForm = ({ role, tab, setTab }) => {
               id="terms"
               style={{ marginTop: 4, width: "auto", marginRight: 8 }}
               checked={isAgreed}
-            onChange={(e) => setIsAgreed(e.target.checked)}
+              onChange={(e) => setIsAgreed(e.target.checked)}
             />
             <label
               htmlFor="terms"
@@ -743,13 +744,15 @@ const Login = () => {
   const location = useLocation();
   const [role, setRole] = useState("buyer");
 
-  const [tab, setTab] = useState(location.state?.activeTab === "register" ? "register" : "login");
-useEffect(() => {
+  const [tab, setTab] = useState(
+    location.state?.activeTab === "register" ? "register" : "login",
+  );
+  useEffect(() => {
     if (location.state?.activeTab) {
       setTab(location.state.activeTab);
     }
   }, [location.state]);
-// >>>>>>> main
+  // >>>>>>> main
   return (
     <div className="login-page">
       {/* CỘT TRÁI */}

@@ -1,244 +1,233 @@
-import React, { useState } from 'react';
-import { 
-  ChevronRight, Share2, FileText, MessageSquare, 
-  Settings, Image as ImageIcon, CheckCircle2,
-  Bike, Disc, ZoomIn, X
-} from 'lucide-react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-
-// --- MOCK DATA (Mô phỏng dữ liệu trả về từ API lấy chi tiết lịch sử) ---
-const REPORT_DATA = {
-  id: "INSP-99283",
-  bikeName: "Giant TCR Advanced 2 - 2021",
-  date: "24 thg 10, 2023",
-  inspectorName: "Nguyễn Văn Kiểm",
-  status: "ĐÃ QUA KIỂM ĐỊNH",
-  score: 8.5,
-  scoreLabel: "Tình trạng tốt",
-  overallComment: "Chiếc Giant TCR này cho thấy rất ít dấu hiệu sử dụng. Khung sườn hoàn hảo về mặt cấu trúc, chỉ có vài vết trầy xước thẩm mỹ nhỏ ở phần gióng đứng. Bộ truyền động cơ học được bảo dưỡng tốt, mặc dù nên thay xích trong vòng 500km tới. Sẵn sàng để bán ngay.",
-  
-  // Dữ liệu từ Kịch bản A (chuỗi string)
-  details: {
-    frame_condition: "Hoàn hảo (Không tì vết, sơn zin, không nứt móp)",
-    drivetrain_condition: "Khá (Xích giãn < 0.75%, hoạt động bình thường)",
-    brakes_condition: "Hoàn hảo (Vành cân chuẩn, phanh ăn tuyệt đối)"
-  },
-  
-  media: [
-    "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=400",
-    "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400",
-    "https://images.unsplash.com/photo-1576435728678-35d01fd18eac?w=400",
-    "https://images.unsplash.com/photo-1507035895480-08acdf9b7466?w=400"
-  ]
-};
+import React, { useState, useEffect } from "react";
+import {
+  ChevronRight, Share2, FileText, MessageSquare, Settings,
+  Image as ImageIcon, CheckCircle2, Bike, Disc, ZoomIn, X,
+  Loader2, Tag, Info, ShieldCheck, PlayCircle, ArrowLeft, Clock
+} from "lucide-react";
+import axiosClient from "../../services/axiosClient";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 export default function InspectionHistoryDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Helper sinh màu badge dựa trên text
-  const getBadgeStyle = (text) => {
-    if (text.includes("Hoàn hảo")) return "bg-emerald-100 text-emerald-700";
-    if (text.includes("Khá")) return "bg-amber-100 text-amber-700";
-    if (text.includes("Kém")) return "bg-red-100 text-red-700";
-    return "bg-gray-100 text-gray-700";
-  };
+  useEffect(() => {
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        const response = await axiosClient.get(
+          "/api/inspector/inspection-history-details",
+          { headers: { "X-inspection-id": id } }
+        );
+        setData(response.data);
+      } catch (error) {
+        console.error("Lỗi fetch detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchDetail();
+  }, [id]);
 
-  const getBadgeText = (text) => {
-    if (text.includes("Hoàn hảo")) return "XUẤT SẮC";
-    if (text.includes("Khá")) return "CHÚ Ý";
-    if (text.includes("Kém")) return "CẦN THAY THẾ";
-    return "ĐÁNH GIÁ LẠI";
-  };
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-[#f9fafb]">
+      {/* Đã đổi màu Loader sang Emerald */}
+      <Loader2 className="animate-spin text-emerald-600" size={48} />
+    </div>
+  );
+
+  if (!data) return (
+    <div className="p-10 text-center font-bold text-gray-500">Không tìm thấy dữ liệu báo cáo.</div>
+  );
 
   return (
     <div className="flex-1 bg-[#f9fafb] p-8 font-display text-[#111813] min-h-screen">
       
-      {/* 1. BREADCRUMBS */}
-      <div className="flex items-center gap-2 text-sm text-[#637588] mb-6 font-medium">
-        <Link to="/inspector/history" className="hover:text-[#111813] transition-colors">Kiểm định</Link>
-        <ChevronRight size={16} />
-        <span className="font-bold text-[#111813]">Báo cáo #{REPORT_DATA.id}</span>
+      {/* 1. TOP NAVIGATION (QUAY LẠI & BREADCRUMBS) */}
+      <div className="flex items-center gap-5 mb-8">
+        <button 
+          onClick={() => navigate('/inspector/history')} 
+          className="flex items-center gap-2 text-[#637588] hover:text-emerald-700 transition-all group shrink-0"
+        >
+          <div className="p-1.5 bg-white rounded-lg border border-gray-200 shadow-sm group-hover:border-emerald-400 group-hover:bg-emerald-50 transition-all">
+            <ArrowLeft size={16} />
+          </div>
+          <span className="text-sm font-bold">Quay lại danh sách</span>
+        </button>
+        <div className="w-[1px] h-4 bg-gray-300"></div>
+        <div className="flex items-center gap-2 text-sm text-[#637588] font-medium">
+          <Link to="/inspector/history" className="hover:text-emerald-600 transition-colors">Kiểm định</Link>
+          <ChevronRight size={14} className="text-gray-400" />
+          <span className="font-bold text-[#111813]">Chi tiết #{data.inspectionId?.slice(0, 8)}</span>
+        </div>
       </div>
 
       {/* 2. HEADER INFO & ACTIONS */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8">
         <div>
-          <span className="inline-block bg-emerald-100 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded tracking-widest uppercase mb-3">
-            <CheckCircle2 size={12} className="inline mr-1 -mt-0.5" /> {REPORT_DATA.status}
-          </span>
-          <h1 className="text-3xl font-black text-[#111813] tracking-tight">{REPORT_DATA.bikeName}</h1>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded tracking-widest uppercase border border-emerald-200">
+              <CheckCircle2 size={12} className="inline mr-1" /> {data.bikeStatus}
+            </span>
+            <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2.5 py-1 rounded tracking-widest uppercase border border-blue-100">
+              {data.listingStatus}
+            </span>
+          </div>
+          <h1 className="text-3xl font-black text-[#111813] tracking-tight uppercase">
+            {data.brand} {data.category}
+          </h1>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#637588] font-medium mt-3">
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Mã số: {REPORT_DATA.id}</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Ngày: {REPORT_DATA.date}</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Kiểm định viên: <span className="font-bold text-[#111813]">{REPORT_DATA.inspectorName}</span></span>
+            <span className="flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md">
+                <Tag size={14} /> Giá niêm yết: ${data.price?.toLocaleString()}
+            </span>
+            <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-600" /> Mã ID: {data.inspectionId}</span>
+            <span className="flex items-center gap-1.5"><ImageIcon size={14} className="text-emerald-600" /> Ngày kiểm: {new Date(data.inspectionDate).toLocaleDateString("vi-VN")}</span>
           </div>
         </div>
+
         
-        <div className="flex gap-3 shrink-0">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 font-bold text-sm text-gray-700 transition-all">
-            <Share2 size={18} /> Chia sẻ báo cáo
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white rounded-xl shadow-sm shadow-orange-500/20 font-bold text-sm transition-all">
-            <FileText size={18} /> Xuất PDF
-          </button>
-        </div>
       </div>
 
-      {/* 3. SUMMARY CARDS (ĐIỂM & NHẬN XÉT) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        
-        {/* Điểm tổng quan */}
-        <div className="col-span-1 bg-white p-6 rounded-3xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center gap-6">
-          <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-            {/* Vòng tròn cam */}
+      {/* 3. QUICK STATS CARD */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+        {/* Score Card - Emerald Theme */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="relative w-24 h-24 flex items-center justify-center mb-3">
             <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-              <circle cx="48" cy="48" r="44" stroke="#fef3c7" strokeWidth="6" fill="none" />
-              <circle cx="48" cy="48" r="44" stroke="#ea580c" strokeWidth="6" fill="none" strokeDasharray="276" strokeDashoffset="41" strokeLinecap="round" />
+              <circle cx="48" cy="48" r="44" stroke="#f0fdf4" strokeWidth="6" fill="none" />
+              <circle cx="48" cy="48" r="44" stroke="#10b981" strokeWidth="6" fill="none" strokeDasharray="276" strokeDashoffset={276 - (data.score / 100) * 276} strokeLinecap="round" />
             </svg>
-            <span className="text-3xl font-black text-[#111813]">{REPORT_DATA.score}</span>
+            <span className="text-3xl font-black text-[#111813]">{data.score}</span>
           </div>
-          <div>
-            <p className="text-[11px] text-[#637588] font-black uppercase tracking-widest mb-1">Điểm tổng quan</p>
-            <p className="text-xl font-black text-[#111813]">{REPORT_DATA.scoreLabel}</p>
+          <p className="text-[11px] text-emerald-700 font-black uppercase tracking-widest">Điểm chất lượng</p>
+        </div>
+
+        <div className="lg:col-span-1 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <h4 className="text-[11px] text-emerald-700 font-black uppercase tracking-widest mb-4 flex items-center gap-2"><Info size={14}/> Thông số kỹ thuật</h4>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm"><span className="text-gray-500">Size:</span><span className="font-bold">{data.frameSize}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500">Chất liệu:</span><span className="font-bold">{data.frameMaterial}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500">Phanh:</span><span className="font-bold">{data.brakeType}</span></div>
           </div>
         </div>
 
-        {/* Nhận xét chung */}
-        <div className="col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-start gap-5">
-          <div className="p-3.5 bg-orange-50 text-orange-600 rounded-2xl shrink-0">
-            <MessageSquare size={24} fill="currentColor" className="opacity-20 absolute" />
-            <MessageSquare size={24} className="relative z-10" />
-          </div>
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
           <div>
-            <p className="text-[11px] text-[#637588] font-black uppercase tracking-widest mb-2">Nhận xét chung của người kiểm định</p>
-            <p className="text-sm text-[#111813] leading-relaxed font-medium">
-              {REPORT_DATA.overallComment}
-            </p>
+            <h4 className="text-[11px] text-emerald-700 font-black uppercase tracking-widest mb-2 flex items-center gap-2"><MessageSquare size={14}/> Nhận xét từ Inspector</h4>
+            <p className="text-sm text-[#111813] font-medium leading-relaxed italic">"{data.comment || "Không có nhận xét bổ sung."}"</p>
+          </div>
+          <div className="pt-4 border-t border-gray-50">
+            <h4 className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-2 flex items-center gap-2"><FileText size={14}/> Mô tả từ người bán</h4>
+            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{data.listingDescription || "Người bán không cung cấp mô tả."}</p>
           </div>
         </div>
       </div>
 
-      {/* 4. MAIN DETAILS (2 CỘT) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* CỘT TRÁI: DANH MỤC KIỂM ĐỊNH */}
+        {/* 4. INSPECTION CHECKLIST */}
         <div className="col-span-2 space-y-5">
           <h3 className="text-[15px] font-black text-[#111813] flex items-center gap-2 mb-4 uppercase tracking-tight">
-            <Settings size={20} className="text-orange-500" /> Danh mục kiểm định chi tiết
+            <Settings size={20} className="text-emerald-600" /> Chi tiết hạng mục kiểm tra
           </h3>
-
-          {/* Card 1: Khung sườn */}
-          <CategoryCard 
+          
+          <CategoryCard
             icon={<Bike size={20} />}
-            title="Khung sườn & Phuộc"
-            statusText={getBadgeText(REPORT_DATA.details.frame_condition)}
-            statusClass={getBadgeStyle(REPORT_DATA.details.frame_condition)}
-            resultString={REPORT_DATA.details.frame_condition}
+            title="Khung sườn & Sơn"
+            statusText={data.frame ? "ĐẠT" : "KHÔNG ĐẠT"}
+            statusClass={data.frame ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-100"}
+            mainText={data.paintCondition ? "Tình trạng sơn zin" : "Sơn trầy xước/đã sơn lại"}
+            subText={`Bề mặt: ${data.paint}`}
           />
 
-          {/* Card 2: Truyền động */}
-          <CategoryCard 
+          <CategoryCard
             icon={<Settings size={20} />}
             title="Hệ thống truyền động"
-            statusText={getBadgeText(REPORT_DATA.details.drivetrain_condition)}
-            statusClass={getBadgeStyle(REPORT_DATA.details.drivetrain_condition)}
-            resultString={REPORT_DATA.details.drivetrain_condition}
+            statusText={data.drivetrain ? "ĐẠT" : "CHÚ Ý"}
+            statusClass={data.drivetrain ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-emerald-50 text-emerald-600 border-emerald-100"}
+            mainText={data.operating === "good" ? "Vận hành mượt mà" : "Cần bảo trì kỹ thuật"}
+            subText={`Groupset: ${data.groupset}`}
           />
 
-          {/* Card 3: Phanh */}
-          <CategoryCard 
+          <CategoryCard
             icon={<Disc size={20} />}
             title="Phanh & Bánh xe"
-            statusText={getBadgeText(REPORT_DATA.details.brakes_condition)}
-            statusClass={getBadgeStyle(REPORT_DATA.details.brakes_condition)}
-            resultString={REPORT_DATA.details.brakes_condition}
+            statusText={data.brakes ? "ĐẠT" : "KHÔNG ĐẠT"}
+            statusClass={data.brakes ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-100"}
+            mainText={`Hệ thống: ${data.brakeType}`}
+            subText={`Tình trạng vành/lốp: ${data.tireRim}`}
           />
         </div>
 
-        {/* CỘT PHẢI: MEDIA & ACTION */}
+        {/* 5. MEDIA GALLERY */}
         <div className="col-span-1 space-y-6">
           <h3 className="text-[15px] font-black text-[#111813] flex items-center gap-2 mb-4 uppercase tracking-tight">
-            <ImageIcon size={20} className="text-orange-500" /> Thư viện bằng chứng
+            <ImageIcon size={20} className="text-emerald-600" /> Hình ảnh & Video thực tế
           </h3>
 
-          {/* Image Grid */}
-          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
             <div className="grid grid-cols-2 gap-3 mb-4">
-              {REPORT_DATA.media.map((img, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => setFullscreenImage(img)}
-                  className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer border border-gray-100"
-                >
-                  <img src={img} alt="Evidence" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+              {data.medias?.map((media, idx) => (
+                media.image && (
+                  <div key={media.id || idx} onClick={() => setFullscreenImage(media.image)} className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer border border-gray-100">
+                    <img src={media.image} alt="Bằng chứng" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-emerald-600/0 group-hover:bg-emerald-600/20 transition-all flex items-center justify-center">
+                      <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
-                </div>
+                )
               ))}
             </div>
-          </div>
 
-          {/* Action Box (Dành cho Admin duyệt hoặc xem) */}
-          <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
-            <h4 className="font-black text-gray-900 mb-2">Trạng thái báo cáo</h4>
-            <p className="text-xs text-gray-600 font-medium leading-relaxed mb-6">
-              Báo cáo này đã được hoàn tất và niêm phong bởi Inspector. Nó đã sẵn sàng để công khai trên tin đăng của người bán.
-            </p>
-            <button className="w-full py-3 bg-[#111813] hover:bg-black text-white font-bold rounded-xl transition-colors mb-3">
-              Xem lại tin đăng
-            </button>
-            <button className="w-full py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition-colors">
-              Lịch sử chỉnh sửa
-            </button>
+            {data.medias?.filter(m => m.videoUrl).map((media, idx) => (
+              <div key={`vid-${idx}`} className="mt-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-emerald-700 uppercase mb-2">
+                  <PlayCircle size={14} /> Video kiểm định
+                </div>
+                <video src={media.videoUrl} controls className="w-full rounded-2xl shadow-sm border border-emerald-100" />
+              </div>
+            ))}
           </div>
         </div>
-
       </div>
 
-      {/* --- POPUP LIGHTBOX XEM ẢNH --- */}
+      {/* LIGHTBOX */}
       {fullscreenImage && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center backdrop-blur-sm" onClick={() => setFullscreenImage(null)}>
-          <button className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all">
+        <div className="fixed inset-0 z-[9999] bg-[#111813]/95 flex items-center justify-center backdrop-blur-md" onClick={() => setFullscreenImage(null)}>
+          <button className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/10 p-2.5 rounded-full transition-all">
             <X size={24} />
           </button>
-          <img src={fullscreenImage} alt="Fullscreen" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none" />
+          <img src={fullscreenImage} alt="Fullscreen" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" />
         </div>
       )}
-
     </div>
   );
 }
 
-// --- SUB COMPONENT CARD HIỂN THỊ DANH MỤC ---
-function CategoryCard({ icon, title, statusText, statusClass, resultString }) {
-  // Cắt chuỗi Kịch bản A thành Tiêu đề chính và Mô tả trong ngoặc
-  // Ví dụ: "Hoàn hảo (Không tì vết...)" -> mainText: "Hoàn hảo", subText: "Không tì vết..."
-  const match = resultString.match(/^(.*?)\s*\((.*?)\)$/);
-  const mainText = match ? match[1] : resultString;
-  const subText = match ? match[2] : "";
-
+function CategoryCard({ icon, title, statusText, statusClass, mainText, subText }) {
   return (
-    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-      {/* Header Card */}
+    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:border-emerald-100">
       <div className="flex justify-between items-center mb-5 pb-4 border-b border-gray-50">
         <div className="flex items-center gap-3 text-gray-700">
-          <div className="p-2 bg-gray-50 rounded-xl text-gray-500">{icon}</div>
+          {/* Icon Emerald */}
+          <div className="p-2 bg-emerald-50 rounded-xl text-emerald-600">{icon}</div>
           <h4 className="font-bold text-[15px]">{title}</h4>
         </div>
-        <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${statusClass}`}>
+        <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${statusClass}`}>
           {statusText}
         </span>
       </div>
-
-      {/* Nội dung đánh giá */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-gray-400 font-black uppercase tracking-widest">Đánh giá thực tế</span>
-        <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-sm font-bold text-emerald-600">{mainText}:</span>
-          <span className="text-sm font-medium text-gray-700">{subText || resultString}</span>
+        <span className="text-xs text-gray-400 font-black uppercase tracking-widest">Đánh giá chuyên gia</span>
+        <div className="flex flex-col mt-1">
+          <span className="text-sm font-bold text-gray-800">{mainText}</span>
+          {subText && (
+            <span className="text-sm text-emerald-700/70 italic mt-0.5 font-medium">
+              Ghi chú: {subText}
+            </span>
+          )}
         </div>
       </div>
     </div>

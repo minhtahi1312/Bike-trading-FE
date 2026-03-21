@@ -4,6 +4,13 @@ import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  getCategoryLabel,
+  getFrameLabel,
+  getBrakeLabel,
+  getPaintLabel,
+  getDrivetrainConditionLabel,
+} from "../../utils/format";
+import {
   ArrowLeft,
   Phone,
   MapPin,
@@ -249,7 +256,8 @@ export default function OrderDetail() {
                     </h4>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      Màu sắc: {order.paint} • Tình trạng: {order.operating}
+                      Màu sắc: {getPaintLabel(order.paint)} • Tình trạng:{" "}
+                      {getDrivetrainConditionLabel(order.operating)}
                     </p>
                   </div>
 
@@ -261,7 +269,7 @@ export default function OrderDetail() {
                 {/* TAGS */}
                 <div className="flex gap-2 mt-3 flex-wrap text-xs">
                   <span className="bg-gray-100 px-2 py-1 rounded">
-                    {order.bikeCategory}
+                    {getCategoryLabel(order.bikeCategory)}
                   </span>
 
                   <span className="bg-gray-100 px-2 py-1 rounded">
@@ -269,11 +277,11 @@ export default function OrderDetail() {
                   </span>
 
                   <span className="bg-gray-100 px-2 py-1 rounded">
-                    {order.brakeType}
+                    {getBrakeLabel(order.brakeType)}
                   </span>
 
                   <span className="bg-gray-100 px-2 py-1 rounded">
-                    {order.frameMaterial}
+                    {getFrameLabel(order.frameMaterial)}
                   </span>
                 </div>
               </div>

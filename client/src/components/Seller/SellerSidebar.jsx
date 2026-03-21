@@ -1,19 +1,32 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Star } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import {
   LayoutDashboard,
   FileText,
   ShoppingCart,
-  MessageCircle,
   Wallet,
   LogOut,
   Bike,
 } from "lucide-react";
+import { useState } from "react";
 
 const menu = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/seller/dashboard" },
   { icon: FileText, label: "Tin đăng", path: "/seller/listings" },
   { icon: ShoppingCart, label: "Đơn hàng", path: "/seller/orders" },
+  {
+    icon: Star,
+    label: "Đánh giá & Uy tín",
+    path: "/seller/reviews",
+  },
 
+  {
+    icon: AlertTriangle,
+    label: "Khiếu nại",
+    path: "/seller/reports",
+  },
   {
     icon: Wallet,
     label: "Ví tiền",
@@ -25,6 +38,16 @@ const menu = [
 ];
 
 export default function SellerSidebar() {
+  const navigate = useNavigate();
+  const [openMenu, setOpenMenu] = useState(null);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    toast.success("Đăng xuất thành công");
+
+    navigate("/", { replace: true });
+  };
   return (
     <aside className="w-64 hidden md:flex flex-col border-r border-[#e5e7eb] bg-white">
       {/* LOGO */}
@@ -43,29 +66,57 @@ export default function SellerSidebar() {
       <nav className="flex-1 px-4 space-y-1">
         {menu.map((item, i) => {
           if (item.children) {
+            const isOpen = openMenu === i;
+
             return (
               <div key={i}>
-                <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#637588]">
-                  <item.icon size={20} />
-                  {item.label}
-                </div>
+                {/* PARENT */}
+                <button
+                  onClick={() => setOpenMenu(isOpen ? null : i)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-[#637588] hover:bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon size={20} />
+                    {item.label}
+                  </div>
 
-                <div className="ml-8 space-y-1">
-                  {item.children.map((child, j) => (
-                    <NavLink
-                      key={j}
-                      to={child.path}
-                      className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm transition ${
-                          isActive
-                            ? "bg-emerald-50 text-emerald-700 font-semibold"
-                            : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600"
-                        }`
-                      }
-                    >
-                      {child.label}
-                    </NavLink>
-                  ))}
+                  {/* icon mũi tên */}
+                  <span
+                    className={`transition-transform ${isOpen ? "rotate-90" : ""}`}
+                  >
+                    ▶
+                  </span>
+                </button>
+
+                {/* CHILDREN */}
+                <div
+                  className={`ml-6 overflow-hidden transition-all duration-300 ${
+                    isOpen ? "max-h-40 mt-1" : "max-h-0"
+                  }`}
+                >
+                  <div className="relative pl-4 space-y-1">
+                    {/* ĐƯỜNG DỌC */}
+                    <div className="absolute left-1 top-0 bottom-0 w-[2px] bg-gray-200"></div>
+
+                    {item.children.map((child, j) => (
+                      <NavLink
+                        key={j}
+                        to={child.path}
+                        className={({ isActive }) =>
+                          `relative block px-3 py-2 rounded-lg text-sm transition ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-700 font-semibold"
+                              : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600"
+                          }`
+                        }
+                      >
+                        {/* ĐƯỜNG NGANG */}
+                        <span className="absolute left-[-12px] top-1/2 w-3 h-[2px] bg-gray-200"></span>
+
+                        {child.label}
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
               </div>
             );
@@ -97,12 +148,15 @@ export default function SellerSidebar() {
             S
           </div>
           <div>
-            <p className="text-sm font-bold text-[#111813]">Seller</p>
+            <p className="text-sm font-bold text-[#111813]">Trần Anh Tuấn</p>
             <p className="text-xs text-[#637588]">Cửa hàng</p>
           </div>
         </div>
 
-        <button className="mt-4 flex items-center gap-3 text-sm text-[#637588] hover:text-red-600">
+        <button
+          onClick={handleLogout}
+          className="mt-4 flex items-center gap-3 text-sm text-[#637588] hover:text-red-600"
+        >
           <LogOut size={18} />
           Đăng xuất
         </button>

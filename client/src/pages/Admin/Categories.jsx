@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const Categories = () => {
-  const [activeTab, setActiveTab] = useState("brands"); // brands, types, groupsets
+  const [activeTab, setActiveTab] = useState("brands"); 
 
   const [listData, setListData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +31,6 @@ const Categories = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // --- HÀM GỌI API ---
   const fetchCategoryData = async () => {
     setIsLoading(true);
     try {
@@ -48,7 +47,6 @@ const Categories = () => {
       const response = await axiosClient.get(`${endpoint}?${params.toString()}`);
       const data = response.data;
 
-      // SỬA: Bắt đúng key 'items' và 'totalPage' từ API của bạn
       setListData(data.items || []);
       setTotalPages(data.totalPage || 1);
 
@@ -73,7 +71,7 @@ const Categories = () => {
     setDebouncedSearch("");
   }, [activeTab]);
 
-  // Render Table Content (Chỉ trả về danh sách thẻ <tr>)
+  // Render Table Content
   const renderTableRows = () => {
     if (isLoading) {
       return (
@@ -181,14 +179,13 @@ const Categories = () => {
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center w-[20%]">Đã bán</th>
               </tr>
             </thead>
-            {/* SỬA: Đưa thẻ tbody ra ngoài và gọi các thẻ tr bên trong */}
             <tbody className={`divide-y divide-[#e5e7eb] ${isLoading ? 'opacity-50' : ''}`}>
                {renderTableRows()}
             </tbody>
           </table>
         </div>
 
-        {/* FOOTER - SỬA LẠI LOGIC HIỂN THỊ */}
+        {/* FOOTER  */}
         {!isLoading && listData.length > 0 && (
           <div className="px-6 py-4 border-t border-[#e5e7eb] flex items-center justify-between bg-white rounded-b-xl">
             <span className="text-sm text-[#637588] font-medium">

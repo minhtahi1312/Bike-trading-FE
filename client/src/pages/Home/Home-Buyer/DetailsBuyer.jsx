@@ -22,7 +22,7 @@ const BikeMarketDetail = () => {
         }
     }, [bike]);
 
-
+  
 
     // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
     const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
@@ -56,12 +56,12 @@ const BikeMarketDetail = () => {
             if (isWishlisted) {
                 await removeFromWishlist(bikeId);
 
-                setIsWishlisted(false); 
-                toast.info("Đã xóa khỏi danh sách yêu thích");
+                setIsWishlisted(false);
+                toast.success("Đã xóa khỏi danh sách yêu thích");
             } else {
                 await addToWishlist(bikeId);
 
-                setIsWishlisted(true); 
+                setIsWishlisted(true);
                 toast.success("Đã thêm vào danh sách yêu thích");
             }
         } catch (error) {
@@ -148,6 +148,11 @@ const BikeMarketDetail = () => {
     const bikeInfo = bike?.bikes?.[0] || {};
     const inspectionData = bike?.bikes?.[0]?.inspections?.[0] || {};
     const status = bike?.status === 3 ? "Active" : "Sold";
+
+    // Lấy danh sách review từ API (nếu API trả về mảng rỗng hoặc undefined thì mặc định là [])
+// Thay dòng 263 thành:
+const reviews = bike?.sellerReviewSummary?.latestReviews || []; 
+console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews);
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -236,8 +241,75 @@ const BikeMarketDetail = () => {
                                         {bike.description || 'Chưa có mô tả cho sản phẩm này.'}
                                     </div>
                                 </div>
-                            </div>
+                                 {/* Phần đánh giá từ người mua */}
+                                <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
+                                    <div className="flex items-center justify-between mb-6 border-b border-[#f0f4f2] dark:border-[#2a3c30] pb-4">
+                                        <h3 className="text-lg font-bold text-[#111813] dark:text-white">
+                                            Đánh giá từ người mua ({reviews.length})
+                                        </h3>
+                                    {bike?.sellerReviewSummary?.totalReviews > 0 && (
+    <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-100 dark:border-yellow-800/50">
+        <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">
+            {/* Lấy thẳng điểm trung bình từ API, thêm toFixed(1) để luôn hiển thị dạng 5.0, 4.5... */}
+            {bike?.sellerReviewSummary?.averageRating?.toFixed(1) || "0.0"}
+        </span>
+        <span className="material-symbols-outlined text-yellow-500 text-[18px] [font-variation-settings:'FILL'_1]">star</span>
+    </div>
+)}
+                                    </div>
 
+                                    <div className="space-y-6">
+                                        {reviews.length > 0 ? (
+                                            reviews.map((review, index) => (
+                                                <div key={index} className="flex flex-col gap-3 pb-6 border-b border-gray-50 dark:border-gray-800 last:border-0 last:pb-0">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Avatar lấy chữ cái đầu của reviewerName */}
+                                                            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-sm uppercase">
+                                                                {review.reviewerName?.charAt(0) || "U"}
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-[#111813] dark:text-white capitalize">
+                                                                    {review.reviewerName}
+                                                                </h4>
+                                                                <div className="flex items-center gap-1 mt-0.5">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <span
+                                                                            key={i}
+                                                                            className={`material-symbols-outlined text-[14px] ${i < review.rating
+                                                                                    ? 'text-yellow-400 [font-variation-settings:\'FILL\'_1]'
+                                                                                    : 'text-gray-200 dark:text-gray-700'
+                                                                                }`}
+                                                                        >
+                                                                            star
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {/* Hiển thị ngày tháng có sẵn từ API */}
+                                                        <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded-md">
+                                                            {review.date}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Nội dung đánh giá */}
+                                                    <p className="text-sm text-[#374151] dark:text-[#cbd5e1] leading-relaxed italic mt-1 bg-gray-50/50 dark:bg-[#1a271d] p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                                                        "{review.comment}"
+                                                    </p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="py-8 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-black/10 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                                                <span className="material-symbols-outlined text-gray-300 dark:text-gray-600 text-5xl mb-3">rate_review</span>
+                                                <p className="text-sm text-gray-500 font-medium">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                                <p className="text-xs text-gray-400 mt-1">Hãy là người đầu tiên để lại nhận xét sau khi mua hàng nhé!</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                                            
                             {/* Right Column (Payment Card) */}
                             <div className="flex flex-col gap-6">
                                 {(status === "Active" || status === "Sold") && (
@@ -374,6 +446,7 @@ const BikeMarketDetail = () => {
                                     </div>
                                 </div>
 
+                               
                             </div>
                         </div>
                     </div>

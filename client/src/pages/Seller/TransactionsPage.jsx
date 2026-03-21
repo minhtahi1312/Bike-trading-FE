@@ -206,6 +206,7 @@ export default function TransactionsPage() {
           </div>
         )}
       </div>
+
       <div className="flex justify-between items-center px-4 py-3 text-sm text-gray-500">
         {/* TEXT */}
         <span>

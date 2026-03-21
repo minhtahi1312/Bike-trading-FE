@@ -9,15 +9,16 @@ import {
   Cog,
   Disc,
   ShieldCheck,
-  HelpCircle,
   CheckCircle,
   ThumbsUp,
   ImagePlus,
   Camera,
   DollarSign,
-  ImageIcon,
   Video,
   X,
+  ArrowLeft,
+  ArrowRight,
+  Send,
 } from "lucide-react";
 
 import {
@@ -51,9 +52,16 @@ export default function CreateListing() {
     images: [],
     video: null,
   });
+
   const [customBrand, setCustomBrand] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [customRim, setCustomRim] = useState("");
+  const [customFrame, setCustomFrame] = useState("");
+  const [customPaint, setCustomPaint] = useState("");
+  const [customDrivetrainCondition, setCustomDrivetrainCondition] =
+    useState("");
+  const [customBrake, setCustomBrake] = useState("");
+
   const { id } = useParams();
   useEffect(() => {
     if (!id) return;
@@ -108,11 +116,14 @@ export default function CreateListing() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
+
   const handleSubmit = async () => {
     const isEdit = !!id;
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
+      console.log("DRAFT MODE:", draft);
+      console.log("STATUS SENT:", draft ? 1 : 2);
 
       // 1️⃣ CREATE LISTING
       const listingRes = await fetch(
@@ -128,7 +139,7 @@ export default function CreateListing() {
           body: JSON.stringify({
             title: formData.title,
             description: formData.description,
-            status: 2,
+            status: draft ? 1 : 2,
           }),
         },
       );
@@ -158,13 +169,25 @@ export default function CreateListing() {
                   : formData.category,
               brand: formData.brand === "other" ? customBrand : formData.brand,
               frameSize: formData.size,
-              frameMaterial: formData.frameMaterial,
-              paint: formData.paintCondition,
+              frameMaterial:
+                formData.frameMaterial === "other"
+                  ? customFrame
+                  : formData.frameMaterial,
+              paint:
+                formData.paintCondition === "other"
+                  ? customPaint
+                  : formData.paintCondition,
               groupset: formData.drivetrain,
-              operating: formData.drivetrainCondition,
+              operating:
+                formData.drivetrainCondition === "other"
+                  ? customDrivetrainCondition
+                  : formData.drivetrainCondition,
               tireRim:
                 formData.tireRim === "other" ? customRim : formData.tireRim,
-              brakeType: formData.brakeType,
+              brakeType:
+                formData.brakeType === "other"
+                  ? customBrake
+                  : formData.brakeType,
               overall: formData.overallCondition,
               price: Number(formData.price),
             }),
@@ -240,9 +263,6 @@ export default function CreateListing() {
 
       toast.success(isEdit ? "Cập nhật tin thành công" : "Đăng tin thành công");
       navigate("/seller/listings");
-    } catch (error) {
-      console.error(error);
-      toast.error("Đăng tin thất bại");
     } finally {
       setLoading(false);
     }
@@ -268,6 +288,14 @@ export default function CreateListing() {
           setCustomCategory={setCustomCategory}
           customRim={customRim}
           setCustomRim={setCustomRim}
+          customFrame={customFrame}
+          setCustomFrame={setCustomFrame}
+          customPaint={customPaint}
+          setCustomPaint={setCustomPaint}
+          customDrivetrainCondition={customDrivetrainCondition}
+          setCustomDrivetrainCondition={setCustomDrivetrainCondition}
+          customBrake={customBrake}
+          setCustomBrake={setCustomBrake}
         />
       )}
 
@@ -276,40 +304,53 @@ export default function CreateListing() {
       )}
 
       {/* ===== NAVIGATION BUTTONS ===== */}
-      <div className="flex justify-between pt-6">
+      <div className="flex justify-between items-center pt-8 border-t">
+        {/* BACK */}
         {step > 1 ? (
           <button
             onClick={() => setStep(step - 1)}
-            className="px-6 py-2 border rounded-lg"
+            className="group flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-300 
+      text-gray-700 font-medium transition-all
+      hover:bg-gray-100 hover:shadow-sm active:scale-95"
           >
+            <ArrowLeft size={18} />
             Quay lại
           </button>
         ) : (
           <div />
         )}
 
+        {/* NEXT / SUBMIT */}
         {step < 3 ? (
           <button
             onClick={() => setStep(step + 1)}
-            className="px-6 py-2 bg-emerald-500 text-white rounded-lg"
+            className="group flex items-center gap-2 px-6 py-2.5 rounded-xl 
+      bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold
+      shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
           >
-            Tiếp theo →
+            Tiếp theo <ArrowRight size={18} />
           </button>
         ) : (
-          <div>
-            <button
-              onClick={() => handleSubmit()}
-              disabled={loading}
-              className={`px-8 py-3 text-white rounded-lg transition
-        ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-emerald-600 hover:bg-emerald-700"
-        }`}
-            >
-              {loading ? "Đang xử lý..." : "Đăng tin ngay"}
-            </button>
-          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-white
+      transition-all shadow-md
+      ${
+        loading
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:shadow-xl hover:scale-[1.02] active:scale-95"
+      }`}
+          >
+            {loading ? (
+              "Đang xử lý..."
+            ) : (
+              <>
+                <Send size={18} />
+                Đăng tin ngay
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>
@@ -542,6 +583,14 @@ function StepTechnical({
   setCustomBrand,
   customRim,
   setCustomRim,
+  customFrame,
+  setCustomFrame,
+  customPaint,
+  setCustomPaint,
+  customDrivetrainCondition,
+  setCustomDrivetrainCondition,
+  customBrake,
+  setCustomBrake,
 }) {
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
@@ -678,12 +727,23 @@ function StepTechnical({
                     </option>
                   ))}
                 </select>
+
+                {formData.frameMaterial === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập chất liệu khung..."
+                    value={customFrame}
+                    onChange={(e) => setCustomFrame(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
 
               <div>
                 <label className="text-sm font-medium">
                   Tình trạng nước sơn <span className="text-red-500">*</span>
                 </label>
+
                 <select
                   value={formData.paintCondition}
                   onChange={(e) =>
@@ -691,12 +751,22 @@ function StepTechnical({
                   }
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
+                  <option value="">Tình trạng nước sơn</option>
                   {PAINT_OPTIONS.map((p) => (
                     <option key={p.value} value={p.value}>
                       {p.label}
                     </option>
                   ))}
                 </select>
+                {formData.paintCondition === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập tình trạng sơn..."
+                    value={customPaint}
+                    onChange={(e) => setCustomPaint(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -744,6 +814,17 @@ function StepTechnical({
                     </option>
                   ))}
                 </select>
+                {formData.drivetrainCondition === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập tình trạng truyền động..."
+                    value={customDrivetrainCondition}
+                    onChange={(e) =>
+                      setCustomDrivetrainCondition(e.target.value)
+                    }
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -807,6 +888,15 @@ function StepTechnical({
                     </option>
                   ))}
                 </select>
+                {formData.brakeType === "other" && (
+                  <input
+                    type="text"
+                    placeholder="Nhập loại phanh..."
+                    value={customBrake}
+                    onChange={(e) => setCustomBrake(e.target.value)}
+                    className="mt-2 w-full border rounded-lg px-3 py-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -817,24 +907,24 @@ function StepTechnical({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <ConditionCard
-                active={formData.overallCondition === "new"}
-                onClick={() => updateField("overallCondition", "new")}
+                active={formData.overallCondition === "Như mới"}
+                onClick={() => updateField("overallCondition", "Như mới")}
                 icon={<CheckCircle className="w-6 h-6 text-emerald-600" />}
                 title="Như mới"
                 desc="Không trầy xước, linh kiện nguyên bản."
               />
 
               <ConditionCard
-                active={formData.overallCondition === "good"}
-                onClick={() => updateField("overallCondition", "good")}
+                active={formData.overallCondition === "Tốt"}
+                onClick={() => updateField("overallCondition", "Tốt")}
                 icon={<ThumbsUp className="w-6 h-6 text-amber-500" />}
                 title="Tốt"
                 desc="Có xước dăm nhẹ, hoạt động ổn định."
               />
 
               <ConditionCard
-                active={formData.overallCondition === "fair"}
-                onClick={() => updateField("overallCondition", "fair")}
+                active={formData.overallCondition === "Khá"}
+                onClick={() => updateField("overallCondition", "Khá")}
                 icon={<Wrench className="w-6 h-6 text-orange-500" />}
                 title="Khá"
                 desc="Có trầy rõ, cần bảo dưỡng nhẹ."

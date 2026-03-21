@@ -40,7 +40,7 @@ export default function TransactionsPage() {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Lịch sử giao dịch</h1>
+          <h1 className="text-2xl font-bold">Giao dịch</h1>
           <p className="text-gray-500 text-sm">
             Theo dõi các giao dịch ví tiền của bạn
           </p>

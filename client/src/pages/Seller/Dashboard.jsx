@@ -1,10 +1,32 @@
 /* eslint-disable */
 
-import { Eye, Package, Wallet, ShoppingBag } from "lucide-react";
+import { Eye, Package, Wallet, ShoppingBag, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const isNewOrder = (date) => {
+    if (!date) return false;
+
+    const diff = Date.now() - new Date(date).getTime();
+    return diff < 24 * 60 * 60 * 1000; // 24h
+  };
+  const getInitial = (name) => {
+    return name?.charAt(0).toUpperCase() || "?";
+  };
+
+  const colors = [
+    "bg-red-100 text-red-600",
+    "bg-blue-100 text-blue-600",
+    "bg-yellow-100 text-yellow-600",
+    "bg-purple-100 text-purple-600",
+    "bg-emerald-100 text-emerald-600",
+  ];
+
+  const getColor = (name) => {
+    const index = name?.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [animate, setAnimate] = useState(false);
@@ -192,32 +214,61 @@ export default function Dashboard() {
               {/* BODY */}
               <tbody className="divide-y">
                 {orders.map((o) => (
-                  <tr key={o.orderId} className="hover:bg-gray-50">
+                  <tr
+                    key={o.orderId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      navigate(`/seller/orders/${o.items?.[0]?.id}`);
+                    }}
+                    className={`cursor-pointer hover:bg-emerald-50/50 hover:shadow-sm transition-all duration-200 ${
+                      isNewOrder(o.date) ? "bg-emerald-50/60" : ""
+                    }`}
+                  >
                     {/* ID */}
-                    <td className="px-6 py-4 font-medium">
+                    <td className="px-6 py-4 font-medium flex items-center gap-2">
                       #{o.orderId.slice(0, 6)}
+                      {isNewOrder(o.date) && (
+                        <span className="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                          Mới
+                        </span>
+                      )}
                     </td>
 
-                    {/* 🔥 NGÀY THANH TOÁN */}
+                    {/*  NGÀY THANH TOÁN */}
                     <td className="px-6 py-4">
-                      {o.date
-                        ? new Date(o.date).toLocaleString("vi-VN", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "--"}
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Calendar size={16} className="text-gray-400" />
+                        {o.date
+                          ? new Date(o.date).toLocaleDateString("vi-VN")
+                          : "--"}
+                      </div>
                     </td>
 
                     {/* CUSTOMER */}
-                    <td className="px-6 py-4">{o.customerName || "--"}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {/* AVATAR */}
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold transition transform hover:scale-110 cursor-pointer ${getColor(
+                            o.customerName,
+                          )}`}
+                          title={o.customerName}
+                        >
+                          {getInitial(o.customerName)}
+                        </div>
+
+                        {/* NAME */}
+                        <span className="font-medium">
+                          {o.customerName || "--"}
+                        </span>
+                      </div>
+                    </td>
 
                     {/* STATUS */}
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
                           o.status === "Shipping"
                             ? "bg-blue-100 text-blue-700"
                             : o.status === "Completed"
@@ -225,6 +276,8 @@ export default function Dashboard() {
                               : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
+                        <span className="w-2 h-2 rounded-full bg-current"></span>
+
                         {o.status === "Shipping" && "Đang giao"}
                         {o.status === "Completed" && "Hoàn thành"}
                         {o.status === "Pending" && "Chờ xử lý"}

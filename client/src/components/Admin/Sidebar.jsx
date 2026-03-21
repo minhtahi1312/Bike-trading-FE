@@ -1,20 +1,37 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, FileText, Users, Receipt, List, AlertTriangle, Settings, LogOut, Bike, X } from 'lucide-react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { LayoutDashboard, FileText, Users, Receipt, List, AlertTriangle, Settings, LogOut, Bike, ChevronDown, ChevronUp } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  // State để quản lý việc hiện/ẩn popup
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const location = useLocation(); // Thêm hook này
+  const currentPath = location.pathname;
 
-  const menuItems = [
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  
+  // State quản lý Dropdown Tổng giao dịch
+  const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+
+  // Tự động mở menu khi f5 nếu đang ở trong trang Giao dịch hoặc Phí dịch vụ
+  useEffect(() => {
+    if (currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy')) {
+      setIsTransactionOpen(true);
+    }
+  }, [currentPath]);
+
+  const isTransactionActive = currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy');
+
+  // Chia menu làm 2 phần (bỏ mục Giao dịch cũ ra)
+  const menuItemsTop = [
     { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin/dashboard' },
     { icon: FileText, label: 'Tin đăng', path: '/admin/listings' },
     { icon: Users, label: 'Người dùng', path: '/admin/users' },
-    { icon: Receipt, label: 'Giao dịch', path: '/admin/transactions' },
+  ];
+
+  const menuItemsBottom = [
     { icon: List, label: 'Danh mục', path: '/admin/categories' },
     { icon: AlertTriangle, label: 'Khiếu nại', path: '/admin/complaints' },
-    { icon: Settings, label: 'Cấu hình hệ thống', path: '/admin/settings' },
+    
   ];
 
   // Hàm xử lý khi nhấn "Xác nhận"
@@ -43,9 +60,80 @@ const Sidebar = () => {
         {/* Menu */}
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <nav className="flex flex-col gap-1.5">
-            {menuItems.map((item, index) => (
+            {/* 1. Render phần trên */}
+            {menuItemsTop.map((item, index) => (
               <NavLink 
-                key={index}
+                key={`top-${index}`}
+                to={item.path}
+                className={({ isActive }) => 
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                    isActive 
+                    ? 'bg-emerald-50 text-emerald-700 font-semibold' 
+                    : 'text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium'
+                  }`
+                }
+              >
+                <item.icon size={20} />
+                <p className="text-sm leading-normal">{item.label}</p>
+              </NavLink>
+            ))}
+
+            {/* 2. CỤM DROPDOWN: TỔNG GIAO DỊCH */}
+            <div className="flex flex-col">
+              <button
+                onClick={() => setIsTransactionOpen(!isTransactionOpen)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors w-full text-left ${
+                  isTransactionActive
+                    ? "bg-emerald-50 text-emerald-700 font-semibold"
+                    : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Receipt size={20} />
+                  <p className="text-sm leading-normal">Tổng giao dịch</p>
+                </div>
+                {isTransactionOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {/* Menu con xổ xuống */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isTransactionOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="flex flex-col gap-1 pl-11 pr-2 py-1">
+                  <NavLink
+                    to="/admin/transactions"
+                    className={({ isActive }) =>
+                      `block px-4 py-2 rounded-lg text-sm transition-colors ${
+                        isActive 
+                        ? "bg-emerald-500 text-white font-bold shadow-sm" 
+                        : "text-[#637588] hover:bg-gray-100 hover:text-[#111813] font-medium"
+                      }`
+                    }
+                  >
+                    Giao dịch
+                  </NavLink>
+                  <NavLink
+                    to="/admin/policy"
+                    className={({ isActive }) =>
+                      `block px-4 py-2 rounded-lg text-sm transition-colors ${
+                        isActive 
+                        ? "bg-emerald-500 text-white font-bold shadow-sm" 
+                        : "text-[#637588] hover:bg-gray-100 hover:text-[#111813] font-medium"
+                      }`
+                    }
+                  >
+                    Phí dịch vụ
+                  </NavLink>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Render phần dưới */}
+            {menuItemsBottom.map((item, index) => (
+              <NavLink 
+                key={`bot-${index}`}
                 to={item.path}
                 className={({ isActive }) => 
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${

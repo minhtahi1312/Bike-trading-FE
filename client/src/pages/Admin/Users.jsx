@@ -58,6 +58,7 @@ const Users = () => {
       );
       setIsModalOpen(false);
       setFormData({ fullName: "", email: "", password: "", phone: "" });
+      fetchUsers();
     } catch (error) {
       console.error("Lỗi khi tạo Inspector:", error);
 
@@ -102,7 +103,6 @@ const Users = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,11 +127,10 @@ const Users = () => {
       );
       const data = response.data;
 
-      setUsersList(data.items || []); 
-    setTotalPages(data.totalPage || 1); 
-    
-    
-    setHasMore(currentPage < data.totalPage);
+      setUsersList(data.items || []);
+      setTotalPages(data.totalPage || 1);
+
+      
     } catch (error) {
       console.error("Lỗi khi tải danh sách người dùng:", error);
       setUsersList([]);
@@ -255,7 +254,7 @@ const Users = () => {
             />
             <input
               type="text"
-              value={searchTerm}                                
+              value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Tìm kiếm theo Tên hoặc Email..."
               className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-[#111813]"
@@ -416,7 +415,9 @@ const Users = () => {
         <div className="px-6 py-4 border-t border-[#e5e7eb] flex items-center justify-between bg-white rounded-b-xl">
           <span className="text-sm font-medium text-[#637588]">
             Trang{" "}
-            <span className="font-bold text-[#111813]">{currentPage}</span>
+            <span className="font-bold text-[#111813]">
+              {currentPage} / {totalPages}
+            </span>
           </span>
           <div className="flex gap-2">
             <button

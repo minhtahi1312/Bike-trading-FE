@@ -14,7 +14,7 @@ export default function Transactions() {
 
   // --- THÊM STATE CHO PHÂN TRANG ---
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Đặt số lượng hiển thị trên 1 trang (bạn có thể đổi thành 5, 20...)
+  const itemsPerPage = 10; 
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -125,14 +125,6 @@ export default function Transactions() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
             />
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
-              <Calendar size={16} /> Tháng này
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap">
-              <Filter size={16} /> Lọc
-            </button>
           </div>
         </div>
 

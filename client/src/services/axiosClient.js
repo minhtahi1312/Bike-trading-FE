@@ -364,6 +364,18 @@ const filterBuyerListings = async (
   }
 };
 
+// ===== WALLET =====
+const getWithdrawals = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerWallet/withdrawals`);
+    console.log("GET withdrawals success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getWithdrawals failed:", error.message);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -393,6 +405,7 @@ export {
   getSellerReviews,
   getReviewSummary,
   getSellerReports,
+  getWithdrawals,
 };
 
 export default axiosClient;

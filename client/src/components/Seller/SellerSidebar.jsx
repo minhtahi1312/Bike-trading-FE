@@ -32,7 +32,7 @@ const menu = [
     label: "Ví tiền",
     children: [
       { label: "Tài chính", path: "/seller/wallet" },
-      { label: "Lịch sử giao dịch", path: "/seller/transactions" },
+      { label: "Giao dịch", path: "/seller/transactions" },
     ],
   },
 ];

@@ -87,7 +87,6 @@ axiosClient.interceptors.response.use(
       }
     }
 
-
     return Promise.reject(error);
   },
 );
@@ -280,7 +279,6 @@ const postReview = async (data) => {
   }
 };
 
-
 /**Seller */
 
 // lấy danh sách review
@@ -291,22 +289,19 @@ const getSellerReviews = async () => {
     return response.data;
   } catch (error) {
     console.error("getSellerReviews failed:", error.message);
-    }
+  }
 };
-
-
 
 const postReport = async (payload) => {
   try {
     const { data } = await axiosClient.post(`/api/Report/send-report`, payload);
-    return data; 
+    return data;
   } catch (error) {
     console.error("API Report Error:", error.response?.data || error.message);
 
     throw error;
   }
 };
-
 
 // lấy thống kê review
 const getReviewSummary = async () => {
@@ -327,6 +322,8 @@ const getSellerReports = async () => {
     return response.data;
   } catch (error) {
     console.error("getSellerReports failed:", error.message);
+  }
+};
 
 const buyNowOrder = async (bikeId) => {
   try {
@@ -339,22 +336,29 @@ const buyNowOrder = async (bikeId) => {
     throw error;
   }
 };
-const filterBuyerListings = async (filterList = [], pageNumber = 1, pageSize = 12) => {
+const filterBuyerListings = async (
+  filterList = [],
+  pageNumber = 1,
+  pageSize = 12,
+) => {
   try {
     // filterList chính là Request body dạng mảng string: ["Mtb", "Giant", ...]
     const { data } = await axiosClient.post(
-      '/api/buyer/listings/filter', 
-      filterList, 
+      "/api/buyer/listings/filter",
+      filterList,
       {
         params: {
           pageNumber: pageNumber,
-          pageSize: pageSize
-        }
-      }
+          pageSize: pageSize,
+        },
+      },
     );
     return data;
   } catch (error) {
-    console.error("API Filter Listings Error:", error.response?.data || error.message);
+    console.error(
+      "API Filter Listings Error:",
+      error.response?.data || error.message,
+    );
 
     throw error;
   }

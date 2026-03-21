@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
-import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail } from '../../../services/axiosClient';
+import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail, removeFromWishlist } from '../../../services/axiosClient';
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 
 const BikeMarketDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+
     // 1. CÁC STATE CỦA COMPONENT
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeIndex, setActiveIndex] = useState(0);
-const [isWishlisted, setIsWishlisted] = useState(false);
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
-// Giả sử khi fetch bike detail, API trả về thông tin này, hãy set nó:
-useEffect(() => {
-    if (bike?.is_wishlisted) { // Tên field tùy vào API của bạn
-        setIsWishlisted(true);
-    }
-}, [bike]);
-    
+    // Giả sử khi fetch bike detail, API trả về thông tin này, hãy set nó:
+    useEffect(() => {
+        if (bike?.is_wishlisted) { // Tên field tùy vào API của bạn
+            setIsWishlisted(true);
+        }
+    }, [bike]);
+
 
 
     // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
@@ -49,19 +49,26 @@ useEffect(() => {
     }, [id]);
 
     /* --------- API WISHLIST--------- */
-  const handleAddWishlist = async () => {
-    if (!bike?.bikes?.[0]?.id) return;
-    try {
-        await addToWishlist(bike.bikes[0].id);
-        setIsWishlisted(true); // Biến thành "in đậm"
-        toast.success("Đã thêm vào yêu thích!");
-    } catch (err) {
-        // Nếu lỗi là do đã có trong wishlist, ta cũng có thể set true
-        setIsWishlisted(true); 
-        toast.error("Xe đã có trong danh sách!");
-    }
-};
+    const handleWishlistToggle = async (bikeId) => {
+        if (!bikeId) return;
 
+        try {
+            if (isWishlisted) {
+                await removeFromWishlist(bikeId);
+
+                setIsWishlisted(false); 
+                toast.info("Đã xóa khỏi danh sách yêu thích");
+            } else {
+                await addToWishlist(bikeId);
+
+                setIsWishlisted(true); 
+                toast.success("Đã thêm vào danh sách yêu thích");
+            }
+        } catch (error) {
+            console.error("❌ Lỗi khi cập nhật wishlist:", error);
+            toast.error("Xe đã có trong danh sách yêu thích!");
+        }
+    };
     /* --------- API CART --------- */
     const handleAddCartItem = async () => {
         try {
@@ -284,14 +291,18 @@ useEffect(() => {
                                                 <span className="text-[10px] font-bold uppercase tracking-wider">Độ mới: {bike?.bikes?.[0]?.overall}</span>
                                             </div>
                                         </div>
-                                       <button 
-  onClick={handleAddWishlist} 
-  className={`transition-colors ${isWishlisted ? 'text-red-500' : 'text-gray-300 hover:text-red-500'}`}
->
-  <span className={`material-symbols-outlined text-[28px] ${isWishlisted ? '[font-variation-settings:"FILL"_1]' : ''}`}>
-    favorite
-  </span>
-</button>
+                                        <button
+                                            onClick={() => handleWishlistToggle(bike?.bikes?.[0]?.id)}
+                                            className="transition-all active:scale-90 p-2"
+                                        >
+                                            <Heart
+                                                size={28}
+                                                // Nếu isWishlisted true thì đỏ đặc, false thì rỗng
+                                                fill={isWishlisted ? "#ef4444" : "none"}
+                                                color={isWishlisted ? "#ef4444" : "#9ca3af"}
+                                                strokeWidth={2}
+                                            />
+                                        </button>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 text-[#637588] dark:text-[#a0aec0] text-[10px] font-bold uppercase tracking-widest">

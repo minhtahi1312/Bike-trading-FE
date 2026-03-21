@@ -1,4 +1,4 @@
-  import axios from "axios";
+import axios from "axios";
 
 /**
  * ===== AXIOS INSTANCE SETUP =====
@@ -13,13 +13,13 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
   console.log("Token đang gửi đi:", token);
-  
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
   // Bắt buộc phải return config để Axios tiếp tục gửi request đi
-  return config; 
+  return config;
 });
 /**
  * ===== RESPONSE INTERCEPTOR =====
@@ -42,14 +42,21 @@ axiosClient.interceptors.response.use(
         console.log("🔄 Đang gửi yêu cầu làm mới token...");
 
         // GỌI API RENEW
-        const response = await axios.post(`${apiBaseUrl}/api/Auth/renew-token`, {
-          refreshToken: storedRefreshToken
-        });
+        const response = await axios.post(
+          `${apiBaseUrl}/api/Auth/renew-token`,
+          {
+            refreshToken: storedRefreshToken,
+          },
+        );
 
         // Kiểm tra logic thành công dựa trên cấu trúc API của bạn
         // Giả sử thành công trả về dữ liệu trong response.data
-        if (response.data && (response.data.token || response.data.accessToken)) {
-          const newAccessToken = response.data.token || response.data.accessToken;
+        if (
+          response.data &&
+          (response.data.token || response.data.accessToken)
+        ) {
+          const newAccessToken =
+            response.data.token || response.data.accessToken;
           const newRefreshToken = response.data.refreshToken;
 
           // 1. Cập nhật lại kho lưu trữ
@@ -67,7 +74,7 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         // Nếu API renew trả về success: false hoặc lỗi 400/500
         console.error("🚨 Phiên đăng nhập hết hạn hoàn toàn.");
-        
+
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("role");
@@ -80,15 +87,14 @@ axiosClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const getCart = async () => {
   const response = await axiosClient.get(`/api/Cart`);
   return response.data;
-}
+};
 const getCartItems = async () => {
-
   const response = await axiosClient.get(`/api/CartItem`);
   return response.data;
 };
@@ -104,7 +110,9 @@ const deleteCartItem = async (cartItemId) => {
 };
 
 const toggleCartItem = async (cartItemId) => {
-  const response = await axiosClient.patch(`/api/CartItem/toggle/${cartItemId}`);
+  const response = await axiosClient.patch(
+    `/api/CartItem/toggle/${cartItemId}`,
+  );
   return response.data;
 };
 
@@ -135,7 +143,10 @@ const addToWishlist = async (bikeId) => {
     console.log(" POST /api/Wishlist/{bikeId} success", response.data);
     return response.data;
   } catch (error) {
-    console.error(" addToWishlist failed:", error.response?.data || error.message);
+    console.error(
+      " addToWishlist failed:",
+      error.response?.data || error.message,
+    );
     throw error;
   }
 };
@@ -178,7 +189,6 @@ const isBuying = async () => {
 ///////////////
 const CheckOut = async (data) => {
   try {
-
     const response = await axiosClient.post(`/api/Order/checkout`, data);
 
     console.log(" POST /api/Order/checkout success:", response.data);
@@ -213,7 +223,6 @@ const getMyOrder = async (id) => {
 
 const getBikeDetail = async (id) => {
   try {
-
     const response = await axiosClient.get(`/api/buyer/listings/${id}`, {
       // params: { id: listingId }
     });
@@ -229,7 +238,9 @@ const getBikeDetail = async (id) => {
 
 const getPayos = async (id) => {
   try {
-    const response = await axiosClient.post(`/api/payos/checkout`, { orderId: id });
+    const response = await axiosClient.post(`/api/payos/checkout`, {
+      orderId: id,
+    });
     return response.data;
   } catch (error) {
     throw error;
@@ -238,25 +249,24 @@ const getPayos = async (id) => {
 
 const cancelOrder = async (id) => {
   try {
-    
     const response = await axiosClient.post(`/api/Order/${id}/cancel`);
     return response.data;
   } catch (error) {
     console.error(`Lỗi hủy đơn ${id}:`, error);
-    throw error; 
+    throw error;
   }
 };
 
 const searchListings = async (name = "", pageNumber = 1, pageSize = 12) => {
-    // Truyền params cho phương thức GET
-    const response = await axiosClient.get('/api/buyer/listings/search', {
-        params: {
-            name: name,
-            pageNumber: pageNumber,
-            pageSize: pageSize
-        }
-    });
-    return response.data;
+  // Truyền params cho phương thức GET
+  const response = await axiosClient.get("/api/buyer/listings/search", {
+    params: {
+      name: name,
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+    },
+  });
+  return response.data;
 };
 
 const postReview = async (data) => {
@@ -264,6 +274,32 @@ const postReview = async (data) => {
     const response = await axiosClient.post(`/api/Review`, data);
     return response.data;
   } catch (error) {
+    throw error;
+  }
+};
+
+/**Seller */
+
+// lấy danh sách review
+const getSellerReviews = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReview`);
+    console.log("GET /api/SellerReview success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getSellerReviews failed:", error.message);
+    throw error;
+  }
+};
+
+// lấy thống kê review
+const getReviewSummary = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReview/summary`);
+    console.log("GET /api/SellerReview/summary success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getReviewSummary failed:", error.message);
     throw error;
   }
 };
@@ -290,7 +326,9 @@ export {
   isBuying,
   CheckOut,
   getOrder,
-  getMyOrder
+  getMyOrder,
+  getSellerReviews,
+  getReviewSummary,
 };
 
-  export default axiosClient;
+export default axiosClient;

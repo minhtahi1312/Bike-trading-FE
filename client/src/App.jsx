@@ -25,12 +25,12 @@ import SellerReport from "./pages/Seller/Report";
 import SellerListings from "./pages/Seller/Listing";
 import SellerOrders from "./pages/Seller/Orders";
 import Users from "./pages/Admin/Users";
-import Transactions from "./pages/Admin/Transactions";
+import Policy from "./pages/Admin/Policy";
 import Categories from "./pages/Admin/Categories";
 import ListingDetail from "./pages/Admin/ListingDetail";
-import TransactionDetail from "./pages/Admin/TransactionDetail";
 import Complaints from "./pages/Admin/Complaints";
 import ComplaintDetail from "./pages/Admin/ComplaintDetail";
+import Transactions from "./pages/Admin/Transactions";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
@@ -78,10 +78,10 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="listings" element={<Listings />} />
           <Route path="users" element={<Users />} />
-          <Route path="transactions" element={<Transactions />} />
+          <Route path="policy" element={<Policy />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="transactions" element={<Transactions />} />
           <Route path="listings/:id" element={<ListingDetail />} />
-          <Route path="transactions/:id" element={<TransactionDetail />} />
           <Route path="complaints" element={<Complaints />} />
           <Route path="reports/:id" element={<ComplaintDetail />} />
         </Route>

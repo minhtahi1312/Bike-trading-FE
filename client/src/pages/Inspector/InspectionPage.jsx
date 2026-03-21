@@ -121,11 +121,27 @@ export default function MergedInspectionPage() {
 
   const handleComplete = async () => {
     if (isSubmitting) return;
+
+    // 1. Kiểm tra điểm nhập vào có hợp lệ không 
     if (formData.score < 0 || formData.score > 100) {
       showToast("Điểm số phải nằm trong khoảng 0 - 100.");
       return;
     }
 
+    // 2. Đếm số lượng hạng mục bị đánh giá "Lỗi" (false)
+    const failedCount = 
+      (!formData.frame ? 1 : 0) + 
+      (!formData.paintCondition ? 1 : 0) + 
+      (!formData.drivetrain ? 1 : 0) + 
+      (!formData.brakes ? 1 : 0);
+
+    
+    if (failedCount >= 3 || formData.score < 50) {
+      showToast("Xe không đạt chuẩn . Vui lòng xem xét lại kết quả kiểm định.", "error");
+      return;
+    }
+
+    
     setIsSubmitting(true);
     try {
       const response = await axiosClient.post(
@@ -136,7 +152,7 @@ export default function MergedInspectionPage() {
 
       if (response.status === 200 || response.status === 201) {
         showToast("Đã phê duyệt xe thành công!", "success");
-        setTimeout(() => navigate("/inspector/HomeInspector"), 1500);
+        setTimeout(() => navigate("/inspector/dashboard"), 1500);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Có lỗi xảy ra!";
@@ -145,16 +161,30 @@ export default function MergedInspectionPage() {
       setIsSubmitting(false);
     }
   };
+  
   const handleReject = () => {
+    // 1. Đếm số lượng hạng mục bị "Lỗi" (false)
+    const failedCount = 
+      (!formData.frame ? 1 : 0) + 
+      (!formData.paintCondition ? 1 : 0) + 
+      (!formData.drivetrain ? 1 : 0) + 
+      (!formData.brakes ? 1 : 0);
+
+    // 2. LOGIC RÀNG BUỘC TỪ CHỐI
+    // Nếu xe đang ĐẠT CHUẨN (dưới 3 lỗi VÀ điểm >= 50) thì không cho Inspector từ chối bậy bạ
+    if (failedCount < 3 && formData.score >= 50) {
+      showToast("Xe đạt chuẩn để phê duyệt. Vui lòng xem xét lại kết quả cuối cùng ", "error");
+      return;
+    }
+
     if (!formData.comment || formData.comment.trim() === "") {
-      showToast("Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!");
+      showToast("Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!", "error");
       return;
     }
 
     setRejectReason(formData.comment);
     setIsRejectModalOpen(true);
   };
-
   const handleConfirmReject = async () => {
     if (!rejectReason.trim()) {
       showToast("Vui lòng nhập lý do từ chối cụ thể.");
@@ -176,7 +206,7 @@ export default function MergedInspectionPage() {
       if (response.status === 200 || response.status === 201) {
         showToast("Đã từ chối xe thành công.", "success");
         setIsRejectModalOpen(false);
-        setTimeout(() => navigate("/inspector/HomeInspector"), 1500);
+        setTimeout(() => navigate("/inspector/dashboard"), 1500);
       }
     } catch (error) {
       console.error("Lỗi khi Reject xe:", error);

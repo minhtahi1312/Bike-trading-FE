@@ -35,7 +35,7 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-  
+
   console.log("Token đang gửi đi:", token);
 
   if (token) {
@@ -53,7 +53,6 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -71,21 +70,21 @@ axiosClient.interceptors.response.use(
       try {
         console.log(" Access Token hết hạn. Đang Renew...");
 
-      
         const response = await axios.post(
-          `${apiBaseUrl}/api/Auth/renew-token`, 
-          {}, 
-          { withCredentials: true }
+          `${apiBaseUrl}/api/Auth/renew-token`,
+          {},
+          { withCredentials: true },
         );
 
-        const newAccessToken = response.data?.token || response.data?.accessToken;
+        const newAccessToken =
+          response.data?.token || response.data?.accessToken;
 
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
           console.log(" Renew thành công!");
-          
+
           processQueue(null, newAccessToken);
-          
+
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosClient(originalRequest);
         } else {
@@ -94,15 +93,15 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
         processQueue(refreshError, null);
-        
+
         localStorage.removeItem("accessToken");
         localStorage.removeItem("role");
         localStorage.removeItem("user");
 
         if (window.location.pathname !== "/login") {
-           window.location.href = "/login";
+          window.location.href = "/login";
         }
-        
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -403,6 +402,32 @@ const getWalletFinance = async () => {
   return response.data;
 };
 
+const withdrawMoney = async (payload) => {
+  try {
+    const response = await axiosClient.post(
+      `/api/SellerWallet/withdrawal`,
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "withdrawMoney failed:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+const getWalletBalance = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerWallet/balance`);
+    return response.data;
+  } catch (error) {
+    console.error("getWalletBalance failed:", error.message);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -434,6 +459,8 @@ export {
   getSellerReports,
   getWithdrawals,
   getWalletFinance,
+  withdrawMoney,
+  getWalletBalance,
 };
 
 export default axiosClient;

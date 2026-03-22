@@ -402,12 +402,7 @@ const handleSearch = (e) => {
                       </div>
                     )}
                   </div>
-                  <div className="h-6 w-px bg-gray-200 mx-1 hidden md:block"></div>
-                  <div className="hidden sm:flex gap-2">
-                    {["Road", "MTB", "Touring"].map(cat => (
-                      <button key={cat} className="px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-sm hover:border-emerald-500 hover:text-emerald-600 transition-colors bg-white">{cat}</button>
-                    ))}
-                  </div>
+                 
                 </div>
                 <div className="flex items-center gap-2 ml-auto">
                   <span className="text-sm text-emerald-700">Sắp xếp:</span>

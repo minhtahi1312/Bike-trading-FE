@@ -81,18 +81,18 @@ export default function Wishlist() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Danh sách yêu thích</h1>
-            {/* Thay thế text-emerald-600 bằng text-[#066e48] */}
+      
             <p className="text-[#066e48] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {/* Thay thế bg-emerald-500 bằng bg-[#066e48] */}
+          
             <button className="flex h-9 items-center rounded-full bg-[#066e48] text-white px-4 text-sm font-bold shadow-sm">Tất cả</button>
           </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            {/* Thay thế border-emerald-500 bằng border-[#066e48] */}
+           
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#066e48] mb-4"></div>
             <p className="text-gray-500">Đang tải danh sách...</p>
           </div>

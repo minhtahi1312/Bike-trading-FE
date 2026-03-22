@@ -3,15 +3,19 @@ import React from 'react'
 import { useEffect } from 'react';
 import { useRef } from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const BuyerHeader = () => {
+  
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 const toggleMenu = () => setIsOpen(!isOpen);
 
+
+
+  /*----------------*/
 useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -45,19 +49,7 @@ useEffect(() => {
                 </div>
               </button>
             </div>
-            <label className="hidden md:flex flex-col min-w-40 !h-10 w-96">
-              <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-r-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
-                    <Search strokeWidth={1.25} />
-                  </span>
-                </div>
-                <input
-                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111813] focus:outline-0 focus:ring-0 border-none bg-[#f0f4f2] focus:border-none h-full placeholder:text-[#61896f] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal"
-                  placeholder="Tìm kiếm xe đạp mơ ước..."
-                />
-              </div>
-            </label>
+           
           </div>
           <div className="flex flex-1 justify-end gap-4 lg:gap-8 items-center">
           

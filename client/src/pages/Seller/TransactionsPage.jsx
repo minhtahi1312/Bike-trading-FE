@@ -2,6 +2,7 @@ import { Wallet, ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getWithdrawals } from "../../services/axiosClient";
+import Pagination from "../../components/Seller/Pagination";
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ export default function TransactionsPage() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [transactions]);
 
   // ===== FORMAT =====
   const formatCurrency = (value) => value.toLocaleString("vi-VN") + "₫";
@@ -207,47 +212,12 @@ export default function TransactionsPage() {
         )}
       </div>
 
-      <div className="flex justify-between items-center px-4 py-3 text-sm text-gray-500">
-        {/* TEXT */}
-        <span>
-          Hiển thị {(currentPage - 1) * pageSize + 1} –{" "}
-          {Math.min(currentPage * pageSize, transactions.length)} /{" "}
-          {transactions.length}
-        </span>
-
-        {/* BUTTON */}
-        <div className="flex gap-2">
-          {/* PREV */}
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            {"<"}
-          </button>
-
-          {/* PAGE NUMBERS */}
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1 ? "bg-emerald-500 text-white" : "border"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          {/* NEXT */}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            {">"}
-          </button>
-        </div>
+      <div className="border-t bg-gray-50">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

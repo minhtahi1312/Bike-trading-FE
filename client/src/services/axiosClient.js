@@ -376,6 +376,12 @@ const getWithdrawals = async () => {
   }
 };
 
+//  Balance seller
+const getWalletFinance = async () => {
+  const response = await axiosClient.get(`/api/SellerWallet/finance`);
+  return response.data;
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -406,6 +412,7 @@ export {
   getReviewSummary,
   getSellerReports,
   getWithdrawals,
+  getWalletFinance,
 };
 
 export default axiosClient;

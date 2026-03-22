@@ -122,8 +122,6 @@ export default function CreateListing() {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-      console.log("DRAFT MODE:", draft);
-      console.log("STATUS SENT:", draft ? 1 : 2);
 
       // 1️⃣ CREATE LISTING
       const listingRes = await fetch(
@@ -139,7 +137,7 @@ export default function CreateListing() {
           body: JSON.stringify({
             title: formData.title,
             description: formData.description,
-            status: draft ? 1 : 2,
+            status: 2,
           }),
         },
       );

@@ -1,7 +1,7 @@
 import { Wallet, ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getWithdrawals } from "../../services/axiosClient";
+import { getWithdrawals, getWalletBalance } from "../../services/axiosClient";
 import Pagination from "../../components/Seller/Pagination";
 
 export default function TransactionsPage() {
@@ -20,26 +20,34 @@ export default function TransactionsPage() {
     currentPage * pageSize,
   );
 
+  const [balance, setBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+
   // ===== FETCH API =====
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAll = async () => {
       try {
-        const data = await getWithdrawals();
+        const [transactionsData, balanceData] = await Promise.all([
+          getWithdrawals(),
+          getWalletBalance(),
+        ]);
 
-        // SORT mới nhất lên đầu
-        const sorted = [...data].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        setTransactions(
+          transactionsData.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+          ),
         );
 
-        setTransactions(sorted);
+        setBalance(balanceData.walletBalance || 0);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
+        setLoadingBalance(false);
       }
     };
 
-    fetchData();
+    fetchAll();
   }, []);
 
   useEffect(() => {
@@ -72,13 +80,12 @@ export default function TransactionsPage() {
 
   // ===== STATUS MAP =====
   const STATUS_MAP = {
-    1: { label: "Hoàn thành", color: "bg-emerald-500" },
-    0: { label: "Đang xử lý", color: "bg-yellow-500" },
-    // "-1": { label: "Thất bại", color: "bg-red-500" },
+    1: { label: "Hoàn thành" },
+    2: { label: "Đang xử lý" },
+    3: { label: "Thất bại" },
   };
 
   // ===== BALANCE (tạm) =====
-  const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
 
   // ===== LOADING =====
   if (loading) {
@@ -114,7 +121,9 @@ export default function TransactionsPage() {
         <div>
           <p className="text-sm text-gray-500">Số dư khả dụng</p>
           <p className="text-2xl font-bold text-emerald-600">
-            {balance.toLocaleString("vi-VN")}₫
+            {loadingBalance
+              ? "Đang tải..."
+              : balance.toLocaleString("vi-VN") + "₫"}
           </p>
         </div>
       </div>
@@ -140,6 +149,7 @@ export default function TransactionsPage() {
             {paginatedTransactions.map((item) => {
               const type = TYPE_MAP[item.description];
               const status = STATUS_MAP[item.status];
+              const isWithdrawal = item.description === "Withdrawal";
 
               return (
                 <tr
@@ -156,7 +166,6 @@ export default function TransactionsPage() {
                       {formatDate(item.createdAt)}
                     </div>
                   </td>
-
                   {/* TYPE */}
                   <td className="p-3">
                     {type && (
@@ -168,29 +177,27 @@ export default function TransactionsPage() {
                       </span>
                     )}
                   </td>
-
                   {/* DESCRIPTION */}
                   <td className="p-3">{item.description}</td>
-
                   {/* AMOUNT */}
+
                   <td
                     className={`p-3 text-right font-semibold ${
-                      item.amount > 0 ? "text-emerald-600" : "text-red-500"
+                      isWithdrawal ? "text-red-500" : "text-emerald-600"
                     }`}
                   >
-                    {item.amount > 0 ? "+" : ""}
+                    {isWithdrawal ? "-" : "+"}
                     {formatCurrency(item.amount)}
                   </td>
-
                   {/* STATUS */}
                   <td className="p-3 text-right">
                     <span
                       className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
                         item.status === 1
                           ? "bg-emerald-100 text-emerald-700"
-                          : item.status === 0
+                          : item.status === 2
                             ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-600"
+                            : "bg-red-100 text-red-700"
                       }`}
                     >
                       <span className="w-2 h-2 rounded-full bg-current"></span>

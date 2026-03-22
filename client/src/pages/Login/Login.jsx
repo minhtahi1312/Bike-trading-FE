@@ -135,11 +135,15 @@ const LoginForm = ({ role, tab, setTab }) => {
 
         console.log("Role chuẩn hóa:", serverRoleStr);
 
-        // --- BƯỚC 2: LƯU TOKEN ---
-        const token = response.data.token || response.data.accessToken; // Lấy cái nào có dữ liệu
-        const rToken = response.data.refreshToken;
-        if (token) localStorage.setItem("accessToken", token);
-        if (rToken) localStorage.setItem("refreshToken", rToken);
+       // --- BƯỚC 2: LƯU TOKEN ---
+       const token = response.data.token || response.data.accessToken; 
+        
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
+        
+        // Trình duyệt đã tự lưu Cookie HttpOnly từ BE rồi, FE không cần quan tâm refreshToken nữa!
+        
         localStorage.setItem("role", serverRoleStr);
         localStorage.setItem(
           "user",
@@ -163,7 +167,7 @@ const LoginForm = ({ role, tab, setTab }) => {
         }
 
         // === NHÓM NGƯỜI DÙNG (BUYER & SELLER) ===
-        const uiRoleUpper = role.toUpperCase(); // Role đang chọn trên UI
+        const uiRoleUpper = role.toUpperCase();
 
         if (serverRoleStr === uiRoleUpper) {
           toast.success("Đăng nhập thành công!");
@@ -171,8 +175,6 @@ const LoginForm = ({ role, tab, setTab }) => {
           if (serverRoleStr === "BUYER") {
             navigate("/homebuyer");
           } else {
-            // [TODO]: SAU NÀY CÓ TRANG SELLER THÌ SỬA DÒNG DƯỚI
-            // Ví dụ: navigate("/homeseller");
             navigate("/seller");
           }
         } else {

@@ -135,7 +135,7 @@ const Categories = () => {
         <div className="flex border-b border-[#e5e7eb] px-6 pt-2">
           {[
             { id: "brands", label: "Thương hiệu (Brands)", icon: <Tag size={16} /> },
-            { id: "types", label: "Loại xe (Types)", icon: <Layers size={16} /> },
+            { id: "types", label: "Danh mục xe (Categories)", icon: <Layers size={16} /> },
           ].map((tab) => (
             <button
               key={tab.id}

@@ -275,18 +275,18 @@ export default function Complaints() {
                   Người Gửi
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[20%]">
-                  Đối tượng 
+                  Đối tượng
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[20%]">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[150px]">
                   Nội dung / Lý do
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[15%]">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[140px]">
                   Trạng thái
                 </th>
                 {/* Thay cột Hành động thành cột Loại báo cáo */}
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[18%] whitespace-nowrap">
-  Loại báo cáo
-</th>
+                  Loại báo cáo
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e7eb]">
@@ -360,12 +360,12 @@ export default function Complaints() {
                     </td>
 
                     {/* Nội dung */}
-                    <td className="px-6 py-4 w-[25%] relative">
+                    <td className="px-6 py-4 max-w-[200px] relative">
                       <div className="flex items-start gap-2">
                         {/* Nút bấm để mở/đóng ô nội dung */}
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             setActiveReasonId(
                               activeReasonId === item.reportId
                                 ? null
@@ -374,7 +374,7 @@ export default function Complaints() {
                           }}
                           className={`shrink-0 mt-0.5 transition-colors ${activeReasonId === item.reportId ? "text-emerald-500" : "text-gray-400 hover:text-emerald-500"}`}
                         >
-                          <MessageSquare size={18} />
+                          <MessageSquare size={16} />
                         </button>
 
                         {/* Nội dung thu gọn (line-clamp) */}
@@ -403,10 +403,10 @@ export default function Complaints() {
                     {/* Trạng thái */}
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${getStatusBadge(item.status)}`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${getStatusDot(item.status)}`}
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDot(item.status)}`}
                         ></span>
                         {getStatusText(item.status)}
                       </span>

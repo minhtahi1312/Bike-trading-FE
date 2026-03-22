@@ -107,7 +107,7 @@ const Users = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-    }, 500); // Đợi 0.5 giây sau khi ngừng gõ mới chốt từ khóa
+    }, 500); 
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
@@ -129,8 +129,6 @@ const Users = () => {
 
       setUsersList(data.items || []);
       setTotalPages(data.totalPage || 1);
-
-      
     } catch (error) {
       console.error("Lỗi khi tải danh sách người dùng:", error);
       setUsersList([]);
@@ -318,7 +316,7 @@ const Users = () => {
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-right">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-center">
                   Hành động
                 </th>
               </tr>
@@ -373,14 +371,8 @@ const Users = () => {
                       {user.joinedDate}
                     </td>
                     <td className="px-6 py-4">{renderStatus(user.status)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                          title="Xem chi tiết"
-                        >
-                          <Eye size={18} />
-                        </button>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         {user.status === "Active" ? (
                           <button
                             onClick={() =>

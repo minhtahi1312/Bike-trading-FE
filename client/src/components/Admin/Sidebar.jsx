@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, FileText, Users, Receipt, List, AlertTriangle, Settings, LogOut, Bike, ChevronDown, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Receipt, List, AlertTriangle, Settings, LogOut, Bike, ChevronDown, ChevronUp, Wallet } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import axiosClient from '../../services/axiosClient'; 
+import { toast } from 'react-toastify';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const Sidebar = () => {
     }
   }, [currentPath]);
 
-  const isTransactionActive = currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy');
+  const isTransactionActive = currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy') || currentPath.includes('/admin/withdrawals');
 
   // Chia menu làm 2 phần (bỏ mục Giao dịch cũ ra)
   const menuItemsTop = [
@@ -31,17 +33,31 @@ const Sidebar = () => {
   const menuItemsBottom = [
     { icon: List, label: 'Danh mục', path: '/admin/categories' },
     { icon: AlertTriangle, label: 'Khiếu nại', path: '/admin/complaints' },
+    { icon: Wallet, label: 'Rút tiền', path: '/admin/withdrawals' }
     
   ];
 
   // Hàm xử lý khi nhấn "Xác nhận"
-  const handleLogout = () => {
-    // 1. Xóa token hoặc thông tin đăng nhập (nếu có lưu trong localStorage)
-    localStorage.removeItem('user'); 
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    try {
+      // Bật Cookie để gửi lên cho BE tự xóa
+      await axiosClient.post(
+        '/api/Auth/logout',
+        {}, 
+        { withCredentials: true } 
+      );
+      toast.success("Đăng xuất thành công!");
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    } finally {
+      // Chỉ xóa accessToken và thông tin user (BE đã tự xóa Cookie rồi)
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
 
-    // 2. Chuyển hướng về trang Login
-    navigate('/login');
+      setShowLogoutModal(false);
+      navigate('/login');
+    }
   };
 
   return (

@@ -3,86 +3,121 @@
 /**
  * ===== AXIOS INSTANCE SETUP =====
  */
+const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
+
+/**
+ * ===== BIẾN HÀNG ĐỢI (QUEUE) ĐỂ CHỐNG KẸT TOKEN =====
+ * Phải đặt ở ngoài để dùng chung cho toàn bộ ứng dụng
+ */
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+/**
+ * ===== AXIOS INSTANCE SETUP =====
+ */
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://localhost:7161",
+  baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 seconds
+  timeout: 10000,
+  withCredentials: true,
 });
+
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-  console.log("Token đang gửi đi:", token);
-  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Bắt buộc phải return config để Axios tiếp tục gửi request đi
-  return config; 
+  return config;
 });
+
 /**
  * ===== RESPONSE INTERCEPTOR =====
- * Xử lý lỗi, token expiry, etc.
  */
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
 
-    // Chỉ xử lý nếu lỗi 401 và chưa retry
+    // 1. Kiểm tra nếu lỗi là 401 (Hết hạn Access Token)
     if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // Chống gọi chồng chéo API Renew
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return axiosClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const storedRefreshToken = localStorage.getItem("refreshToken");
-        if (!storedRefreshToken) throw new Error("No refresh token");
+        console.log("🔄 Access Token hết hạn. Đang âm thầm Renew...");
 
-        console.log("🔄 Đang gửi yêu cầu làm mới token...");
+        // 2. Gọi API Renew (Giai đoạn 3)
+        // Trình duyệt tự đính kèm Cookie refreshToken nhờ withCredentials: true
+        const response = await axios.post(
+          `${apiBaseUrl}/api/Auth/renew-token`, 
+          {}, 
+          { withCredentials: true }
+        );
 
-        // GỌI API RENEW
-        const response = await axios.post(`${apiBaseUrl}/api/Auth/renew-token`, {
-          refreshToken: storedRefreshToken
-        });
+        const newAccessToken = response.data?.token || response.data?.accessToken;
 
-        // Kiểm tra logic thành công dựa trên cấu trúc API của bạn
-        // Giả sử thành công trả về dữ liệu trong response.data
-        if (response.data && (response.data.token || response.data.accessToken)) {
-          const newAccessToken = response.data.token || response.data.accessToken;
-          const newRefreshToken = response.data.refreshToken;
-
-          // 1. Cập nhật lại kho lưu trữ
+        if (newAccessToken) {
+          // 3. Lưu Access Token mới vào LocalStorage
           localStorage.setItem("accessToken", newAccessToken);
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
-          }
-
-          console.log("✅ Token đã được cập nhật tự động.");
-
-          // 2. Thực hiện lại request bị lỗi với token mới
+          console.log("✅ Renew thành công!");
+          
+          processQueue(null, newAccessToken);
+          
+          // 4. Thực hiện lại request bị lỗi ban đầu với Token mới
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosClient(originalRequest);
+        } else {
+          throw new Error("BE không trả về Access Token mới");
         }
       } catch (refreshError) {
-        // Nếu API renew trả về success: false hoặc lỗi 400/500
+        // GIAI ĐOẠN 4: Refresh Token hết hạn hoặc Logout
         console.error("🚨 Phiên đăng nhập hết hạn hoàn toàn.");
+        processQueue(refreshError, null);
         
+        // Dọn dẹp LocalStorage
         localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
         localStorage.removeItem("role");
         localStorage.removeItem("user");
 
+        // Chuyển hướng về Login (Mở lại dòng này sau khi debug xong)
         if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
+           window.location.href = "/login";
         }
+        
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
   }
 );
-
 const getCart = async () => {
   const response = await axiosClient.get(`/api/Cart`);
   return response.data;

@@ -1,25 +1,15 @@
 export const CATEGORY_OPTIONS = [
-  // ===== ROAD =====
-  { value: "road_standard", label: "Xe đạp đua tiêu chuẩn" },
-  { value: "road_aero", label: "Xe đạp đua khí động học (Aero)" },
-  { value: "road_endurance", label: "Xe đạp đua đường dài (Endurance)" },
-  { value: "road_tt", label: "Xe đạp 3 môn phối hợp (Triathlon/TT)" },
-
-  // ===== MTB =====
-  { value: "mtb_xc", label: "Xe đạp địa hình băng đồng (XC)" },
-  { value: "mtb_trail", label: "Xe đạp địa hình Trail" },
-  { value: "mtb_enduro", label: "Xe đạp địa hình Enduro" },
-  { value: "mtb_downhill", label: "Xe đạp địa hình đổ đèo (Downhill)" },
-
-  // ===== OTHER =====
-  { value: "gravel", label: "Xe đạp đường hỗn hợp (Gravel)" },
-  { value: "touring", label: "Xe đạp đường dài (Touring)" },
-  { value: "bmx", label: "Xe đạp biểu diễn (BMX)" },
-  { value: "fixed", label: "Xe đạp líp chết (Fixed Gear)" },
-  { value: "city", label: "Xe đạp đô thị / thể dục (City / Hybrid)" },
-  { value: "fat", label: "Xe đạp bánh béo (Fat Bike)" },
-  { value: "ebike", label: "Xe đạp trợ lực điện (E-Bike)" },
-
+  { label: "Mtb", value: "Mtb" },
+  { label: "Road", value: "Road" },
+  { label: "City-hybrid", value: "City-hybrid" },
+  { label: "E-bike", value: "E-bike" },
+  { label: "Touring", value: "Touring" },
+  { label: "Folding", value: "Folding" },
+  { label: "Gravel", value: "Gravel" },
+  { label: "Fixed-gear", value: "Fixed-gear" },
+  { label: "Kids", value: "Kids" },
+  { label: "Bmx", value: "Bmx" },
+  { label: "Fat-bike", value: "Fat-bike" },
   { value: "other", label: "Khác" },
 ];
 
@@ -29,38 +19,32 @@ export const getCategoryLabel = (value) => {
 };
 
 export const BRAND_OPTIONS = [
-  { value: "giant", label: "Giant" },
-  { value: "trek", label: "Trek" },
-  { value: "specialized", label: "Specialized" },
-  { value: "merida", label: "Merida" },
-  { value: "twitter", label: "Twitter" },
-  { value: "java", label: "Java" },
-  { value: "trinx", label: "Trinx" },
-  { value: "asama", label: "Asama" },
-  { value: "martin", label: "Martin" },
-  { value: "thongnhat", label: "Thống Nhất" },
+  // Top các hãng phổ thông & cao cấp được tìm kiếm nhiều nhất
+  { label: "Giant", value: "Giant" },
+  { label: "Trek", value: "Trek" },
+  { label: "Specialized", value: "Specialized" },
+  { label: "Merida", value: "Merida" },
+  { label: "Cannondale", value: "Cannondale" },
 
-  { value: "cannondale", label: "Cannondale" },
-  { value: "cube", label: "Cube" },
-  { value: "scott", label: "Scott" },
-  { value: "bmc", label: "BMC" },
-  { value: "fuji", label: "Fuji" },
-  { value: "polygon", label: "Polygon" },
-  { value: "orbea", label: "Orbea" },
-  { value: "kona", label: "Kona" },
-  { value: "gt", label: "GT" },
-  { value: "norco", label: "Norco" },
+  // Các hãng phổ biến ở phân khúc tầm trung/giá rẻ tại VN
+  { label: "Trinx", value: "Trinx" },
+  { label: "Galaxy", value: "Galaxy" },
+  { label: "Asama", value: "Asama" },
+  { label: "Fornix", value: "Fornix" },
+  { label: "Twitter", value: "Twitter" },
 
-  { value: "pinarello", label: "Pinarello" },
-  { value: "cervelo", label: "Cervelo" },
-  { value: "colnago", label: "Colnago" },
-  { value: "factor", label: "Factor" },
-  { value: "look", label: "Look" },
-  { value: "time", label: "Time" },
-  { value: "bianchi", label: "Bianchi" },
-  { value: "wilier", label: "Wilier" },
-  { value: "santacruz", label: "Santa Cruz" },
-  { value: "yt", label: "YT Industries" },
+  // Phân khúc cao cấp / Châu Âu
+  { label: "Scott", value: "Scott" },
+  { label: "Canyon", value: "Canyon" },
+  { label: "Bianchi", value: "Bianchi" },
+  { label: "Cervelo", value: "Cervelo" },
+  { label: "Pinarello", value: "Pinarello" },
+  { label: "Bmc", value: "Bmc" },
+  { label: "Santa-cruz", value: "Santa-cruz" }, // Nổi tiếng về MTB
+  { label: "Orbea", value: "Orbea" },
+  { label: "Cube", value: "Cube" },
+  { label: "Colnago", value: "Colnago" },
+  { label: "Brompton", value: "Brompton" }, // Nổi tiếng về xe gấp
 
   { value: "other", label: "Khác" },
 ];
@@ -71,9 +55,14 @@ export const getBrandLabel = (value) => {
 };
 
 export const FRAME_OPTIONS = [
-  { value: "carbon", label: "Carbon" },
-  { value: "aluminum", label: "Nhôm" },
-  { value: "steel", label: "Thép" },
+  { value: "Carbon", label: "Carbon" },
+  { value: "Nhôm", label: "Nhôm" },
+  { value: "Thép", label: "Thép" },
+  { value: "Titan", label: "Titan" },
+  { value: "Tổng hợp", label: "Tổng hợp" },
+
+  // cho user nhập
+  { value: "other", label: "Khác" },
 ];
 
 export const getFrameLabel = (value) => {
@@ -82,9 +71,10 @@ export const getFrameLabel = (value) => {
 };
 
 export const PAINT_OPTIONS = [
-  { value: "new", label: "Như mới" },
-  { value: "light_scratch", label: "Mòn nhẹ" },
-  { value: "repaint", label: "Cần sơn lại" },
+  { value: "Như mới", label: "Như mới" },
+  { value: "Mòn nhẹ", label: "Mòn nhẹ" },
+  { value: "Cần sơn lại", label: "Cần sơn lại" },
+  { value: "other", label: "Khác" },
 ];
 
 export const getPaintLabel = (value) => {
@@ -93,9 +83,10 @@ export const getPaintLabel = (value) => {
 };
 
 export const DRIVETRAIN_CONDITION_OPTIONS = [
-  { value: "new", label: "Như mới" },
-  { value: "good", label: "Mòn nhẹ" },
-  { value: "bad", label: "Cần thay" },
+  { value: "Như mới", label: "Như mới" },
+  { value: "Mòn nhẹ", label: "Mòn nhẹ" },
+  { value: "Cần thay thayd", label: "Cần thay" },
+  { value: "other", label: "Khác" },
 ];
 
 export const getDrivetrainConditionLabel = (value) => {
@@ -105,16 +96,18 @@ export const getDrivetrainConditionLabel = (value) => {
 };
 
 export const RIM_OPTIONS = [
-  { value: "shimano_rs100", label: "Shimano RS100" },
-  { value: "dt_r470", label: "DT Swiss R470" },
-  { value: "fulcrum_racing", label: "Fulcrum Racing" },
-  { value: "zipp_303", label: "Zipp 303" },
+  { value: "Shimano RS100", label: "Shimano RS100" },
+  { value: "DT Swiss R470", label: "DT Swiss R470" },
+  { value: "Fulcrum Racing", label: "Fulcrum Racing" },
+  { value: "Zipp 303", label: "Zipp 303" },
   { value: "other", label: "Khác" },
 ];
 
 export const BRAKE_OPTIONS = [
-  { value: "disc", label: "Phanh đĩa" },
-  { value: "rim", label: "Phanh vành" },
+  { value: "Phanh đĩa", label: "Phanh đĩa" },
+  { value: "Phanh vành", label: "Phanh vành" },
+  { value: "Phanh đùm", label: "Phanh đùm" },
+  { value: "other", label: "Khác" },
 ];
 
 export const getRimLabel = (value) => {
@@ -126,9 +119,9 @@ export const getBrakeLabel = (value) => {
 };
 
 export const OVERALL_OPTIONS = [
-  { value: "new", label: "Như mới" },
-  { value: "good", label: "Tốt" },
-  { value: "fair", label: "Khá" },
+  { value: "Như mới", label: "Như mới" },
+  { value: "Tốt", label: "Tốt" },
+  { value: "Khá", label: "Khá" },
 ];
 
 export const getOverallLabel = (value) => {

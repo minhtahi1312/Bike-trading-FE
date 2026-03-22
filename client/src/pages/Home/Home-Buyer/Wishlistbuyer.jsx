@@ -64,7 +64,7 @@ export default function Wishlist() {
     try {
       await removeFromWishlist(bikeId);
       setBikes((prevBikes) => prevBikes.filter((b) => b.bikeId !== bikeId));
-      toast.info("Đã xóa khỏi danh sách yêu thích");
+      toast.success("Đã xóa khỏi danh sách yêu thích");
     } catch (e) {
       console.error('❌ Lỗi khi xóa:', e);
       toast.error("Không thể xóa sản phẩm");

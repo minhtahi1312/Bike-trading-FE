@@ -1,9 +1,54 @@
-import { useState } from "react";
-import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist } from "../../../services/axiosClient";
+import { useState, useEffect } from "react";
+import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist, filterBuyerListings } from "../../../services/axiosClient";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChartColumnStacked, ChevronLeft, ChevronRight, Heart, ShieldCheck, SlidersHorizontal, Trello } from "lucide-react";
+
+export const CATEGORY_OPTIONS = [
+  { label: "Mtb", value: "Mtb" },
+  { label: "Road", value: "Road" },
+  { label: "City-hybrid", value: "City-hybrid" },
+  { label: "E-bike", value: "E-bike" },
+  { label: "Touring", value: "Touring" },
+  { label: "Folding", value: "Folding" },
+  { label: "Gravel", value: "Gravel" },
+  { label: "Fixed-gear", value: "Fixed-gear" },
+  { label: "Kids", value: "Kids" },
+  { label: "Bmx", value: "Bmx" },
+  { label: "Fat-bike", value: "Fat-bike" },
+  { label: "Other", value: "Other" }
+];
+
+export const BRAND_OPTIONS = [
+  // Top các hãng phổ thông & cao cấp được tìm kiếm nhiều nhất
+  { label: "Giant", value: "Giant" },
+  { label: "Trek", value: "Trek" },
+  { label: "Specialized", value: "Specialized" },
+  { label: "Merida", value: "Merida" },
+  { label: "Cannondale", value: "Cannondale" },
+  
+  // Các hãng phổ biến ở phân khúc tầm trung/giá rẻ tại VN
+  { label: "Trinx", value: "Trinx" },
+  { label: "Galaxy", value: "Galaxy" },
+  { label: "Asama", value: "Asama" },
+  { label: "Fornix", value: "Fornix" },
+  { label: "Twitter", value: "Twitter" },
+
+  // Phân khúc cao cấp / Châu Âu
+  { label: "Scott", value: "Scott" },
+  { label: "Canyon", value: "Canyon" },
+  { label: "Bianchi", value: "Bianchi" },
+  { label: "Cervelo", value: "Cervelo" },
+  { label: "Pinarello", value: "Pinarello" },
+  { label: "Bmc", value: "Bmc" },
+  { label: "Santa-cruz", value: "Santa-cruz" }, // Nổi tiếng về MTB
+  { label: "Orbea", value: "Orbea" },
+  { label: "Cube", value: "Cube" },
+  { label: "Colnago", value: "Colnago" },
+  { label: "Brompton", value: "Brompton" }, // Nổi tiếng về xe gấp
+  
+  { label: "Other", value: "Other" }
+];
 
 export default function Homebuyer() {
   const [sortBy, setSortBy] = useState("Mới nhất");
@@ -12,6 +57,35 @@ export default function Homebuyer() {
   const [loading, setLoading] = useState(false);
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const [watchedBikes, setWatchedBikes] = useState([]);
+  
+  /*---------------------------------------*/
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 3;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  /*---------------------------------------*/
+
+
+  // 1. Thêm state lưu trữ bộ lọc đang chọn
+  const [filters, setFilters] = useState({
+    category: "",
+    brand: ""
+  });
+
+  // 2. Hàm xử lý khi bấm chọn bộ lọc (có chặn event để không bị đóng menu)
+  const handleSelectFilter = (e, type, value) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setFilters(prev => ({
+      ...prev,
+      [type]: prev[type] === value ? "" : value // Bấm lại thì hủy chọn
+    }));
+  };
 
   // Toggle wishlist (Thêm hoặc Xóa)
   const handleWishlistToggle = async (bikeId) => {
@@ -42,8 +116,10 @@ export default function Homebuyer() {
 
   useEffect(() => {
     loadSellerListings();
-    loadWishlist();
+    
   }, []);
+
+  useEffect(() => { loadWishlist(); }, []);
 
   const loadWishlist = async () => {
     try {
@@ -73,28 +149,50 @@ export default function Homebuyer() {
     }
   };
 
+  // 1. Cập nhật useEffect: Lắng nghe sự thay đổi của filters
+  useEffect(() => {
+    loadSellerListings();
+  }, [filters]); // <-- Đưa filters vào đây để tự động gọi lại API khi bộ lọc thay đổi
+
+  // Lấy wishlist 1 lần lúc mới vào trang
+  useEffect(() => {
+    loadWishlist();
+  }, []);
+
+  // 2. Cập nhật hàm gọi danh sách xe
   const loadSellerListings = async () => {
     setLoading(true);
     try {
-      const data = await getSellerListings();
-      const formattedBikes = (data || []).map((item) => ({
-        listingId: item.id,
-        id: item.bikeId,
-        name: item.title || "Chưa có tên xe",
+      const filterList = [filters.category, filters.brand].filter(Boolean);
+
+      const responseData = await filterBuyerListings(filterList, 1, 12);
+      
+      const rawBikes = Array.isArray(responseData) 
+        ? responseData 
+        : (responseData?.items || responseData?.data || []);
+
+      const formattedBikes = rawBikes.map((item) => ({
+        listingId: item.id || item.listingId,
+        id: item.bikeId || item.id,
+        name: item.title || item.name || "Chưa có tên xe",
         price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
         size: item.size || "N/A",
         location: item.location || "Chưa xác định",
-        image: item.thumbnail || "https://via.placeholder.com/400x300",
+        image: item.thumbnail || item.imageUrl || "https://via.placeholder.com/400x300",
         verified: item.isInspected || false,
         condition: item.overall || "N/A",
         newTag: item.isNew || false,
         brand: item.brand || "Chưa xác định",
         category: item.category || "Chưa xác định",
       }));
+
+      setTotalItems(formattedBikes.length); 
+      setTotalPages(Math.ceil(formattedBikes.length / itemsPerPage));
+      console.log("🚀 ~ file: Homebuyer.jsx:172 ~ loadSellerListings ~ formattedBikes:", formattedBikes);
       setBikes(formattedBikes);
     } catch (error) {
       console.error("❌ Failed to load seller listings:", error);
-      setBikes([]);
+      setBikes([]); // Nếu lỗi thì hiển thị mảng rỗng
     } finally {
       setLoading(false);
     }
@@ -131,7 +229,6 @@ export default function Homebuyer() {
                 <p className="text-white/90 text-sm font-normal leading-normal md:text-lg">
                   Hành trình mới bắt đầu từ đây! Chúng tôi tìm thấy <span className="font-bold text-white">{bikes.length}</span> lựa chọn hoàn hảo dành riêng cho bạn
                 </p>
-               
               </div>
             </div>
           </div>
@@ -141,34 +238,7 @@ export default function Homebuyer() {
             
             {/* Sidebar */}
             <div className="lg:col-span-4 flex flex-col gap-8">
-              <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-[#111813]">Đơn hàng hiện tại</h3>
-                  <a className="text-emerald-600 text-sm font-bold hover:underline" href="#">Chi tiết</a>
-                </div>
-                <div className="flex gap-4">
-                  <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-16 shrink-0"
-                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAXjxvX0p-T7AAY5XVNWApZ6MPrPPP2zUR8foAOg7_MHFq1nK83fWL4baMD28IB0zGAZ44dQT8p5E_RdfBendVUxGUTetz8D8qsFO6rxYDsTVws0QEv-t2HAGYOmTrQ_c_uIVeHUqYmbI9VwfinbodIlqV1O4Ejq-vUqFOh2pCdVwVkfvgJ6ty8mMuGQhWNXo7AXQ4XL8dzBrt1KcAGKGk7DyCBB201kQt-aRTuTRECiCL5mvyPMHsd2eMW4Q2--sF4TjMmL_pYCKYs")' }}></div>
-                  <div className="flex flex-col justify-center gap-1">
-                    <p className="text-[#111813] text-sm font-bold leading-tight">Trek Madone SL 6</p>
-                    <p className="text-emerald-700 text-xs">Mã đơn: #882910</p>
-                    <div className="inline-flex items-center gap-1 text-[#111813] text-xs font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
-                      <span className="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                      Đang vận chuyển
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-[#f0f4f2]">
-                  <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-[#111813]">Tiến độ giao hàng</span>
-                    <span className="text-emerald-600">75%</span>
-                  </div>
-                  <div className="w-full overflow-hidden rounded-full bg-emerald-50 h-2">
-                    <div className="h-full rounded-full bg-emerald-500" style={{ width: "75%" }}></div>
-                  </div>
-                  <p className="text-emerald-700 text-xs mt-2 text-right">Dự kiến: 25/10/2023</p>
-                </div>
-              </div>
+           
 
               <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-sm flex flex-col gap-4">
                 <div className="flex justify-between items-center">
@@ -209,7 +279,7 @@ export default function Homebuyer() {
 
             {/* Main Area */}
             <div className="lg:col-span-8 flex flex-col gap-6">
-              <div className="relative z-[50] bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between z-30">
+              <div className="relative z-[50] bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                 <div className="flex flex-wrap gap-2 items-center">
                   <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -226,31 +296,58 @@ export default function Homebuyer() {
                     </button>
 
                     {isFilterOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-[700px] bg-white rounded-xl shadow-xl border border-gray-100 p-6 z-[9999] flex gap-8">
+                      <div className="absolute top-full left-0 mt-2 w-[600px] bg-white rounded-xl shadow-xl border border-gray-100 p-6 z-[9999] flex gap-6 cursor-default" onClick={(e) => e.stopPropagation()}>
+                        
+                        {/* CỘT 1: DANH MỤC XE */}
                         <div className="flex-1">
-                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 border-b border-emerald-100">Xe Road</div>
-                          <div className="flex flex-col gap-1 mt-2">
-                            {["Xe đua tiêu chuẩn", "Khí động học (Aero)", "Đường dài (Endurance)", "3 môn phối hợp (TT)"].map(item => (
-                              <button key={item} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors">{item}</button>
+                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 border-b border-emerald-100">
+                            Danh mục xe
+                          </div>
+                          <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                          
+
+                            {CATEGORY_OPTIONS?.map((cat) => (
+                              <button 
+                                key={cat.value}
+                                type="button"
+                                onClick={(e) => handleSelectFilter(e, "category", cat.value)}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                                  filters.category === cat.value 
+                                    ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-200" 
+                                    : "text-[#111813] hover:bg-emerald-50 hover:text-emerald-600"
+                                }`}
+                              >
+                                {cat.label}
+                              </button>
                             ))}
                           </div>
                         </div>
-                        <div className="flex-1 border-x border-gray-100 px-4">
-                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 border-b border-emerald-100">Xe MTB</div>
-                          <div className="flex flex-col gap-1 mt-2">
-                            {["Băng đồng (XC)", "Địa hình Trail", "Địa hình Enduro", "Đổ đèo (Downhill)"].map(item => (
-                              <button key={item} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors">{item}</button>
+
+                        {/* CỘT 2: HÃNG XE */}
+                        <div className="flex-1 border-l border-gray-100 pl-6">
+                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 border-b border-emerald-100">
+                            Thương hiệu
+                          </div>
+                          <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                           
+
+                            {BRAND_OPTIONS?.map((brand) => (
+                              <button 
+                                key={brand.value}
+                                type="button"
+                                onClick={(e) => handleSelectFilter(e, "brand", brand.value)}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                                  filters.brand === brand.value 
+                                    ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-200" 
+                                    : "text-[#111813] hover:bg-emerald-50 hover:text-emerald-600"
+                                }`}
+                              >
+                                {brand.label}
+                              </button>
                             ))}
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 border-b border-emerald-100">Dòng khác</div>
-                          <div className="grid grid-cols-1 gap-1 mt-2">
-                            {["Gravel", "Touring", "BMX", "Fixed Gear", "City / Hybrid", "Fat Bike", "E-Bike"].map((item) => (
-                              <button key={item} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors">{item}</button>
-                            ))}
-                          </div>
-                        </div>
+
                       </div>
                     )}
                   </div>
@@ -289,7 +386,7 @@ export default function Homebuyer() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {bikes.map((bike) => (
+                 {bikes.slice(indexOfFirstItem, indexOfLastItem).map((bike) => (
                     <div key={bike.listingId} className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
                       onClick={() => navigate(`/homebuyer/details/${bike.listingId}`)}>
                       <div className="relative aspect-[4/3] overflow-hidden">
@@ -326,21 +423,61 @@ export default function Homebuyer() {
               )}
 
               {/* Pagination */}
-              <div className="flex justify-center mt-6">
-                <nav className="flex items-center gap-2">
-                  <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-gray-500 disabled:opacity-50">
-                    <ChevronLeft size={20} strokeWidth={3} />
-                  </button>
-                  <button className="w-10 h-10 rounded-lg bg-emerald-500 text-white font-bold text-sm">1</button>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">2</button>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">3</button>
-                  <span className="text-gray-400">...</span>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">12</button>
-                  <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-gray-500">
-                    <ChevronRight size={20} strokeWidth={3} />
-                  </button>
-                </nav>
-              </div>
+             {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-center px-5 py-4 bg-white border border-[#e5e7eb] rounded-xl gap-4 mt-4 shadow-sm">
+                  {/* <span className="text-sm text-[#637588]">
+                    Hiển thị{" "}
+                    <span className="font-bold text-[#111813]">
+                      {totalItems > 0 ? indexOfFirstItem + 1 : 0}
+                    </span>{" "}
+                    đến{" "}
+                    <span className="font-bold text-[#111813]">
+                      {Math.min(indexOfLastItem, totalItems)}
+                    </span>{" "}
+                    trong số{" "}
+                    <span className="font-bold text-[#111813]">
+                      {totalItems}
+                    </span>{" "}
+                    xe
+                  </span> */}
+
+                  <div className="flex justify-center items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (number) => (
+                        <button
+                          key={number}
+                          onClick={() => setCurrentPage(number)}
+                          className={`w-8 h-8 flex items-center justify-center text-sm font-bold border rounded-lg transition-colors ${
+                            currentPage === number
+                              ? "bg-emerald-500 text-white border-emerald-500"
+                              : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {number}
+                        </button>
+                      ),
+                    )}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

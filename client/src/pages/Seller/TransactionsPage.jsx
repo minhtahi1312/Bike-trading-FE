@@ -1,46 +1,91 @@
-import { Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getWithdrawals } from "../../services/axiosClient";
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
 
-  const transactions = [
-    {
-      id: 1,
-      date: "24/10/2023",
-      type: "sale",
-      description: "Bán xe Giant TCR Advanced 1",
-      amount: 45000000,
-      status: "Thành công",
-    },
-    {
-      id: 2,
-      date: "23/10/2023",
-      type: "fee",
-      description: "Phí nền tảng (5%)",
-      amount: -2250000,
-      status: "Đã trừ",
-    },
-    {
-      id: 3,
-      date: "22/10/2023",
-      type: "withdraw",
-      description: "Rút tiền về Vietcombank",
-      amount: -50000000,
-      status: "Hoàn thành",
-    },
-  ];
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const balance = 69130000;
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
+  const totalPages = Math.ceil(transactions.length / pageSize);
+
+  const paginatedTransactions = transactions.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  // ===== FETCH API =====
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getWithdrawals();
+
+        // SORT mới nhất lên đầu
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        );
+
+        setTransactions(sorted);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // ===== FORMAT =====
   const formatCurrency = (value) => value.toLocaleString("vi-VN") + "₫";
+
+  const formatDate = (date) => new Date(date).toLocaleDateString("vi-VN");
+
+  // ===== TYPE MAP =====
+  const TYPE_MAP = {
+    Withdrawal: {
+      label: "Rút tiền",
+      icon: ArrowDownLeft,
+      className: "text-red-500",
+    },
+    Sale: {
+      label: "Bán xe",
+      icon: ArrowUpRight,
+      className: "text-emerald-600",
+    },
+    Fee: {
+      label: "Phí dịch vụ",
+      icon: null,
+      className: "text-gray-500",
+    },
+  };
+
+  // ===== STATUS MAP =====
+  const STATUS_MAP = {
+    1: { label: "Hoàn thành", color: "bg-emerald-500" },
+    0: { label: "Đang xử lý", color: "bg-yellow-500" },
+    // "-1": { label: "Thất bại", color: "bg-red-500" },
+  };
+
+  // ===== BALANCE (tạm) =====
+  const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+  // ===== LOADING =====
+  if (loading) {
+    return <div className="p-6 text-gray-500">Đang tải giao dịch...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Lịch sử giao dịch</h1>
+          <h1 className="text-2xl font-bold">Giao dịch</h1>
           <p className="text-gray-500 text-sm">
             Theo dõi các giao dịch ví tiền của bạn
           </p>
@@ -56,24 +101,27 @@ export default function TransactionsPage() {
       </div>
 
       {/* BALANCE */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex items-center gap-4">
-        <Wallet className="text-emerald-600" size={28} />
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <Wallet className="text-emerald-600" size={24} />
+        </div>
+
         <div>
           <p className="text-sm text-gray-500">Số dư khả dụng</p>
           <p className="text-2xl font-bold text-emerald-600">
-            {formatCurrency(balance)}
+            {balance.toLocaleString("vi-VN")}₫
           </p>
         </div>
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b">
           <h2 className="font-semibold">Lịch sử giao dịch</h2>
         </div>
 
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
             <tr>
               <th className="p-3 text-left">Ngày</th>
               <th className="p-3 text-left">Loại giao dịch</th>
@@ -84,46 +132,122 @@ export default function TransactionsPage() {
           </thead>
 
           <tbody>
-            {transactions.map((item) => (
-              <tr key={item.id} className="border-t">
-                <td className="p-3">{item.date}</td>
+            {paginatedTransactions.map((item) => {
+              const type = TYPE_MAP[item.description];
+              const status = STATUS_MAP[item.status];
 
-                <td className="p-3">
-                  {item.type === "sale" && (
-                    <span className="flex items-center gap-1 text-emerald-600">
-                      <ArrowUpRight size={16} />
-                      Bán xe
-                    </span>
-                  )}
-
-                  {item.type === "withdraw" && (
-                    <span className="flex items-center gap-1 text-red-500">
-                      <ArrowDownLeft size={16} />
-                      Rút tiền
-                    </span>
-                  )}
-
-                  {item.type === "fee" && (
-                    <span className="text-gray-500">Phí dịch vụ</span>
-                  )}
-                </td>
-
-                <td className="p-3">{item.description}</td>
-
-                <td
-                  className={`p-3 text-right font-medium ${
-                    item.amount > 0 ? "text-emerald-600" : "text-red-500"
-                  }`}
+              return (
+                <tr
+                  key={item.transactionId}
+                  className="border-t hover:bg-emerald-50/40 transition-all duration-200 hover:shadow-sm"
                 >
-                  {item.amount > 0 ? "+" : ""}
-                  {formatCurrency(item.amount)}
-                </td>
+                  {/* DATE */}
+                  <td className="p-3">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Calendar
+                        size={16}
+                        className="text-gray-400 group-hover:text-emerald-500 transition"
+                      />
+                      {formatDate(item.createdAt)}
+                    </div>
+                  </td>
 
-                <td className="p-3 text-right text-gray-500">{item.status}</td>
-              </tr>
-            ))}
+                  {/* TYPE */}
+                  <td className="p-3">
+                    {type && (
+                      <span
+                        className={`flex items-center gap-1 ${type.className}`}
+                      >
+                        {type.icon && <type.icon size={16} />}
+                        {type.label}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* DESCRIPTION */}
+                  <td className="p-3">{item.description}</td>
+
+                  {/* AMOUNT */}
+                  <td
+                    className={`p-3 text-right font-semibold ${
+                      item.amount > 0 ? "text-emerald-600" : "text-red-500"
+                    }`}
+                  >
+                    {item.amount > 0 ? "+" : ""}
+                    {formatCurrency(item.amount)}
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="p-3 text-right">
+                    <span
+                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+                        item.status === 1
+                          ? "bg-emerald-100 text-emerald-700"
+                          : item.status === 0
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-current"></span>
+                      {status?.label || "Không rõ"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+
+        {/* EMPTY */}
+        {transactions.length === 0 && (
+          <div className="p-10 text-center text-gray-400 flex flex-col items-center gap-2">
+            <Wallet size={32} />
+            <p>Chưa có giao dịch nào</p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center px-4 py-3 text-sm text-gray-500">
+        {/* TEXT */}
+        <span>
+          Hiển thị {(currentPage - 1) * pageSize + 1} –{" "}
+          {Math.min(currentPage * pageSize, transactions.length)} /{" "}
+          {transactions.length}
+        </span>
+
+        {/* BUTTON */}
+        <div className="flex gap-2">
+          {/* PREV */}
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            {"<"}
+          </button>
+
+          {/* PAGE NUMBERS */}
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1 ? "bg-emerald-500 text-white" : "border"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          {/* NEXT */}
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            {">"}
+          </button>
+        </div>
       </div>
     </div>
   );

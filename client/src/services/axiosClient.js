@@ -1,4 +1,4 @@
-  import axios from "axios";
+import axios from "axios";
 
 /**
  * ===== AXIOS INSTANCE SETUP =====
@@ -6,8 +6,6 @@
 const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
 
 /**
- * ===== BIẾN HÀNG ĐỢI (QUEUE) ĐỂ CHỐNG KẸT TOKEN =====
- * Phải đặt ở ngoài để dùng chung cho toàn bộ ứng dụng
  */
 let isRefreshing = false;
 let failedQueue = [];
@@ -37,6 +35,9 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
+  
+  console.log("Token đang gửi đi:", token);
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -51,10 +52,8 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Kiểm tra nếu lỗi là 401 (Hết hạn Access Token)
     if (error.response?.status === 401 && !originalRequest._retry) {
       
-      // Chống gọi chồng chéo API Renew
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -70,10 +69,9 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log("🔄 Access Token hết hạn. Đang âm thầm Renew...");
+        console.log(" Access Token hết hạn. Đang Renew...");
 
-        // 2. Gọi API Renew (Giai đoạn 3)
-        // Trình duyệt tự đính kèm Cookie refreshToken nhờ withCredentials: true
+      
         const response = await axios.post(
           `${apiBaseUrl}/api/Auth/renew-token`, 
           {}, 
@@ -83,29 +81,24 @@ axiosClient.interceptors.response.use(
         const newAccessToken = response.data?.token || response.data?.accessToken;
 
         if (newAccessToken) {
-          // 3. Lưu Access Token mới vào LocalStorage
           localStorage.setItem("accessToken", newAccessToken);
-          console.log("✅ Renew thành công!");
+          console.log(" Renew thành công!");
           
           processQueue(null, newAccessToken);
           
-          // 4. Thực hiện lại request bị lỗi ban đầu với Token mới
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosClient(originalRequest);
         } else {
           throw new Error("BE không trả về Access Token mới");
         }
       } catch (refreshError) {
-        // GIAI ĐOẠN 4: Refresh Token hết hạn hoặc Logout
-        console.error("🚨 Phiên đăng nhập hết hạn hoàn toàn.");
+        console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
         processQueue(refreshError, null);
         
-        // Dọn dẹp LocalStorage
         localStorage.removeItem("accessToken");
         localStorage.removeItem("role");
         localStorage.removeItem("user");
 
-        // Chuyển hướng về Login (Mở lại dòng này sau khi debug xong)
         if (window.location.pathname !== "/login") {
            window.location.href = "/login";
         }
@@ -115,15 +108,15 @@ axiosClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
-  }
+  },
 );
 const getCart = async () => {
   const response = await axiosClient.get(`/api/Cart`);
   return response.data;
-}
+};
 const getCartItems = async () => {
-
   const response = await axiosClient.get(`/api/CartItem`);
   return response.data;
 };
@@ -139,7 +132,9 @@ const deleteCartItem = async (cartItemId) => {
 };
 
 const toggleCartItem = async (cartItemId) => {
-  const response = await axiosClient.patch(`/api/CartItem/toggle/${cartItemId}`);
+  const response = await axiosClient.patch(
+    `/api/CartItem/toggle/${cartItemId}`,
+  );
   return response.data;
 };
 
@@ -170,7 +165,10 @@ const addToWishlist = async (bikeId) => {
     console.log(" POST /api/Wishlist/{bikeId} success", response.data);
     return response.data;
   } catch (error) {
-    console.error(" addToWishlist failed:", error.response?.data || error.message);
+    console.error(
+      " addToWishlist failed:",
+      error.response?.data || error.message,
+    );
     throw error;
   }
 };
@@ -213,7 +211,6 @@ const isBuying = async () => {
 ///////////////
 const CheckOut = async (data) => {
   try {
-
     const response = await axiosClient.post(`/api/Order/checkout`, data);
 
     console.log(" POST /api/Order/checkout success:", response.data);
@@ -248,7 +245,6 @@ const getMyOrder = async (id) => {
 
 const getBikeDetail = async (id) => {
   try {
-
     const response = await axiosClient.get(`/api/buyer/listings/${id}`, {
       // params: { id: listingId }
     });
@@ -264,7 +260,9 @@ const getBikeDetail = async (id) => {
 
 const getPayos = async (id) => {
   try {
-    const response = await axiosClient.post(`/api/payos/checkout`, { orderId: id });
+    const response = await axiosClient.post(`/api/payos/checkout`, {
+      orderId: id,
+    });
     return response.data;
   } catch (error) {
     throw error;
@@ -273,25 +271,24 @@ const getPayos = async (id) => {
 
 const cancelOrder = async (id) => {
   try {
-    
     const response = await axiosClient.post(`/api/Order/${id}/cancel`);
     return response.data;
   } catch (error) {
     console.error(`Lỗi hủy đơn ${id}:`, error);
-    throw error; 
+    throw error;
   }
 };
 
 const searchListings = async (name = "", pageNumber = 1, pageSize = 12) => {
-    // Truyền params cho phương thức GET
-    const response = await axiosClient.get('/api/buyer/listings/search', {
-        params: {
-            name: name,
-            pageNumber: pageNumber,
-            pageSize: pageSize
-        }
-    });
-    return response.data;
+  // Truyền params cho phương thức GET
+  const response = await axiosClient.get("/api/buyer/listings/search", {
+    params: {
+      name: name,
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+    },
+  });
+  return response.data;
 };
 
 const postReview = async (data) => {
@@ -303,10 +300,110 @@ const postReview = async (data) => {
   }
 };
 
+/**Seller */
+
+// lấy danh sách review
+const getSellerReviews = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReview`);
+    console.log("GET /api/SellerReview success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getSellerReviews failed:", error.message);
+  }
+};
+
+const postReport = async (payload) => {
+  try {
+    const { data } = await axiosClient.post(`/api/Report/send-report`, payload);
+    return data;
+  } catch (error) {
+    console.error("API Report Error:", error.response?.data || error.message);
+
+    throw error;
+  }
+};
+
+// lấy thống kê review
+const getReviewSummary = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReview/summary`);
+    console.log("GET /api/SellerReview/summary success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getReviewSummary failed:", error.message);
+    throw error;
+  }
+};
+
+const getSellerReports = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerReport`);
+    console.log("GET /api/SellerReport success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getSellerReports failed:", error.message);
+  }
+};
+
+const buyNowOrder = async (bikeId) => {
+  try {
+    // API này nhận bikeId qua Path, không thấy khai báo Body trong tài liệu
+    const { data } = await axiosClient.post(`/api/Order/buy-now/${bikeId}`);
+    return data;
+  } catch (error) {
+    // Log lỗi chi tiết để dễ debug
+    console.error("API Buy Now Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+const filterBuyerListings = async (
+  filterList = [],
+  pageNumber = 1,
+  pageSize = 12,
+) => {
+  try {
+    // filterList chính là Request body dạng mảng string: ["Mtb", "Giant", ...]
+    const { data } = await axiosClient.post(
+      "/api/buyer/listings/filter",
+      filterList,
+      {
+        params: {
+          pageNumber: pageNumber,
+          pageSize: pageSize,
+        },
+      },
+    );
+    return data;
+  } catch (error) {
+    console.error(
+      "API Filter Listings Error:",
+      error.response?.data || error.message,
+    );
+
+    throw error;
+  }
+};
+
+// ===== WALLET =====
+const getWithdrawals = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerWallet/withdrawals`);
+    console.log("GET withdrawals success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("getWithdrawals failed:", error.message);
+    throw error;
+  }
+};
+
 /**
  * ===== EXPORTS =====
  */
 export {
+  filterBuyerListings,
+  buyNowOrder,
+  postReport,
   postReview,
   searchListings,
   cancelOrder,
@@ -325,7 +422,11 @@ export {
   isBuying,
   CheckOut,
   getOrder,
-  getMyOrder
+  getMyOrder,
+  getSellerReviews,
+  getReviewSummary,
+  getSellerReports,
+  getWithdrawals,
 };
 
-  export default axiosClient;
+export default axiosClient;

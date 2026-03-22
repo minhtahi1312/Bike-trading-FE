@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
-import { addCartItem, getBikeDetail } from '../../../services/axiosClient';
+import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail, removeFromWishlist } from '../../../services/axiosClient';
 import { toast } from 'react-toastify';
+import { Heart } from 'lucide-react';
 
 const BikeMarketDetail = () => {
     const { id } = useParams();
@@ -11,8 +12,21 @@ const BikeMarketDetail = () => {
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeIndex, setActiveIndex] = useState(0); 
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
+    // Giả sử khi fetch bike detail, API trả về thông tin này, hãy set nó:
+    useEffect(() => {
+        if (bike?.is_wishlisted) { // Tên field tùy vào API của bạn
+            setIsWishlisted(true);
+        }
+    }, [bike]);
+
+
+
+    // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
+    const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
+    const [selectedItems, setSelectedItems] = useState(initialSelected);
     // 2. FETCH DỮ LIỆU
     useEffect(() => {
         const fetchListingDetail = async () => {
@@ -34,7 +48,28 @@ const BikeMarketDetail = () => {
         fetchListingDetail();
     }, [id]);
 
-    
+    /* --------- API WISHLIST--------- */
+    const handleWishlistToggle = async (bikeId) => {
+        if (!bikeId) return;
+
+        try {
+            if (isWishlisted) {
+                await removeFromWishlist(bikeId);
+
+                setIsWishlisted(false);
+                toast.success("Đã xóa khỏi danh sách yêu thích");
+            } else {
+                await addToWishlist(bikeId);
+
+                setIsWishlisted(true);
+                toast.success("Đã thêm vào danh sách yêu thích");
+            }
+        } catch (error) {
+            console.error("❌ Lỗi khi cập nhật wishlist:", error);
+            toast.error("Xe đã có trong danh sách yêu thích!");
+        }
+    };
+    /* --------- API CART --------- */
     const handleAddCartItem = async () => {
         try {
             await addCartItem(bike.bikes[0].id);
@@ -45,7 +80,28 @@ const BikeMarketDetail = () => {
         }
     };
 
-    // 4. KIỂM TRA TRẠNG THÁI LOADING & ERROR
+
+
+
+    /* --------- API BUY NOW --------- */
+    const handleBuyNow = async () => {
+        const bikeId = bike?.bikes?.[0]?.id;
+
+        if (!bikeId) {
+            toast.error("Không tìm thấy mã sản phẩm.");
+            return;
+        }
+
+        try {
+            const response = await buyNowOrder(bikeId);
+
+            toast.success("Đặt hàng thành công!");
+            navigate('/homebuyer/cart');
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại!";
+            toast.error(errorMessage);
+        }
+    };
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f6] dark:bg-[#102216]">
@@ -76,11 +132,30 @@ const BikeMarketDetail = () => {
         );
     }
 
-    // 5. KHAI BÁO BIẾN CHO HÌNH ẢNH
     const medias = bike?.bikes?.[0]?.medias || [];
     const activeMedia = medias[activeIndex] || {};
     const isActiveVideo = activeMedia.videoUrl || activeMedia.video;
+    const renderInspectionItem = (label, value) => (
+        <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
+            <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+            <span className={`text-sm font-bold ${value === true ? 'text-emerald-500' : 'text-red-500'}`}>
 
+                {value === true ? "Tốt" : value === false ? "Không đạt" : "N/A"}
+            </span>
+        </div>
+    );
+
+    const bikeInfo = bike?.bikes?.[0] || {};
+    const inspectionData = bike?.bikes?.[0]?.inspections?.[0] || {};
+    const status = bike?.status === 3 ? "Active" : "Sold";
+
+   
+    const reviews = bike?.sellerReviewSummary?.latestReviews || [];
+    const sellerName = bike?.sellerReviewSummary?.sellerName;
+    const joinDate = bike?.sellerReviewSummary?.joinDate;
+    const averageRating = bike?.sellerReviewSummary?.averageRating;
+    const totalReviews = bike?.sellerReviewSummary?.totalReviews;
+    console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews, sellerName, joinDate);
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -115,7 +190,7 @@ const BikeMarketDetail = () => {
 
                                         {isActiveVideo ? (
                                             <video
-                                                key={isActiveVideo} 
+                                                key={isActiveVideo}
                                                 src={isActiveVideo}
                                                 controls
                                                 autoPlay
@@ -141,7 +216,7 @@ const BikeMarketDetail = () => {
                                             return (
                                                 <div
                                                     key={index}
-                                                    onClick={() => setActiveIndex(index)} 
+                                                    onClick={() => setActiveIndex(index)}
                                                     className={`aspect-square rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all relative ${activeIndex === index ? 'border-2 border-[#2bee6c] scale-[1.02] shadow-md' : 'opacity-70'
                                                         }`}
                                                     style={{ backgroundImage: `url("${media.image || ''}")` }}
@@ -169,10 +244,203 @@ const BikeMarketDetail = () => {
                                         {bike.description || 'Chưa có mô tả cho sản phẩm này.'}
                                     </div>
                                 </div>
+                                <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+
+                                        {/* Phần Trái: Avatar + Thông tin cơ bản */}
+                                        <div className="flex items-center gap-5">
+                                            {/* Avatar & Badge Tích xanh */}
+                                            <div className="relative">
+                                                <div className="w-[84px] h-[84px] rounded-full bg-[#f6aa41] p-1 shadow-sm">
+                                                    <img
+                                                        src="https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg"
+                                                        alt="Avatar Người Bán"
+                                                        className="w-full h-full rounded-full object-cover bg-white"
+                                                    />
+                                                </div>
+                                                <div className="absolute bottom-0 right-0 bg-[#00d856] rounded-full w-6 h-6 flex items-center justify-center border-2 border-white dark:border-[#1c2e22]">
+                                                    <span className="material-symbols-outlined text-black text-[14px] font-bold">check_circle</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Tên, Rating & Labels */}
+                                            <div className="flex flex-col gap-1.5">
+                                                <h2 className="text-2xl font-bold text-[#111813] dark:text-white">
+                                                    {sellerName}
+                                                </h2>
+
+                                                {/* Rating & Total Reviews */}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center text-[#ffc107]">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <span key={i} className="material-symbols-outlined text-[18px] [font-variation-settings:'FILL'_1]">star</span>
+                                                        ))}
+                                                    </div>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-base">
+                                                        {averageRating}
+                                                    </span>
+                                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                        ({totalReviews} đánh giá)
+                                                    </span>
+                                                </div>
+
+                                                {/* Tags (Uy tín & Kiểm định) */}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[11px] font-bold text-[#059669] bg-[#d1fae5] dark:bg-[#064e3b]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                                        Người bán uy tín
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                                        Đã kiểm định
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
+                                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+
+                                            {/* Box 1: Tỷ lệ phản hồi */}
+                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                                    Tỷ lệ phản hồi
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[#10b981] text-[20px] [font-variation-settings:'FILL'_1]">bolt</span>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
+                                                        98% <span className="font-normal">(trong 1h)</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Box 2: Thời gian tham gia */}
+                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                                    Thời gian tham gia
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[#3b82f6] text-[18px]">calendar_today</span>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
+                                                        {joinDate}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Phần đánh giá từ người mua */}
+                                <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
+                                    <div className="flex items-center justify-between mb-6 border-b border-[#f0f4f2] dark:border-[#2a3c30] pb-4">
+                                        <h3 className="text-lg font-bold text-[#111813] dark:text-white">
+                                            Đánh giá từ người mua ({reviews.length})
+                                        </h3>
+                                        {bike?.sellerReviewSummary?.totalReviews > 0 && (
+                                            <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-100 dark:border-yellow-800/50">
+                                                <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">
+                                                    {/* Lấy thẳng điểm trung bình từ API, thêm toFixed(1) để luôn hiển thị dạng 5.0, 4.5... */}
+                                                    {bike?.sellerReviewSummary?.averageRating?.toFixed(1) || "0.0"}
+                                                </span>
+                                                <span className="material-symbols-outlined text-yellow-500 text-[18px] [font-variation-settings:'FILL'_1]">star</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {reviews.length > 0 ? (
+                                            reviews.map((review, index) => (
+                                                <div key={index} className="flex flex-col gap-3 pb-6 border-b border-gray-50 dark:border-gray-800 last:border-0 last:pb-0">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Avatar lấy chữ cái đầu của reviewerName */}
+                                                            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-sm uppercase">
+                                                                {review.reviewerName?.charAt(0) || "U"}
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-[#111813] dark:text-white capitalize">
+                                                                    {review.reviewerName}
+                                                                </h4>
+                                                                <div className="flex items-center gap-1 mt-0.5">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <span
+                                                                            key={i}
+                                                                            className={`material-symbols-outlined text-[14px] ${i < review.rating
+                                                                                ? 'text-yellow-400 [font-variation-settings:\'FILL\'_1]'
+                                                                                : 'text-gray-200 dark:text-gray-700'
+                                                                                }`}
+                                                                        >
+                                                                            star
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {/* Hiển thị ngày tháng có sẵn từ API */}
+                                                        <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded-md">
+                                                            {review.date}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Nội dung đánh giá */}
+                                                    <p className="text-sm text-[#374151] dark:text-[#cbd5e1] leading-relaxed italic mt-1 bg-gray-50/50 dark:bg-[#1a271d] p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                                                        "{review.comment}"
+                                                    </p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="py-8 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-black/10 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                                                <span className="material-symbols-outlined text-gray-300 dark:text-gray-600 text-5xl mb-3">rate_review</span>
+                                                <p className="text-sm text-gray-500 font-medium">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                                <p className="text-xs text-gray-400 mt-1">Hãy là người đầu tiên để lại nhận xét sau khi mua hàng nhé!</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Right Column (Payment Card) */}
                             <div className="flex flex-col gap-6">
+                                {(status === "Active" || status === "Sold") && (
+                                    <div className="bg-white dark:bg-[#1c2e22] p-6 rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] shadow-sm mt-6">
+                                        <h3 className="font-bold text-[#111813] dark:text-white mb-4 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-emerald-500">verified_user</span>
+                                            Trạng thái kiểm định
+                                        </h3>
+
+                                        <div className="space-y-1 mb-6">
+                                            {/* Truyền đúng key từ dữ liệu: frame, paintCondition, drivetrain, v.v. */}
+                                            {renderInspectionItem("Khung xe", inspectionData.frame)}
+                                            {renderInspectionItem("Chất lượng sơn", inspectionData.paintCondition)}
+                                            {/* Lưu ý: Kiểm tra lại API xem key cho phanh và truyền động là gì, ví dụ: */}
+                                            {renderInspectionItem("Hệ thống truyền động", inspectionData.drivetrain)}
+                                            {renderInspectionItem("Phanh", inspectionData.brakes)}
+                                        </div>
+
+                                        <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-lg border border-gray-100 dark:border-gray-800">
+                                            <div className="flex justify-between items-end mb-2">
+                                                <p className="text-xs font-bold uppercase text-gray-500">Chất lượng tổng thể</p>
+                                                <p className="font-black text-emerald-600 dark:text-emerald-400 text-lg">
+                                                    {inspectionData.score || 0}/100
+                                                </p>
+                                            </div>
+
+                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                                                <div
+                                                    className="bg-emerald-500 h-2.5 rounded-full transition-all duration-1000"
+                                                    style={{ width: `${inspectionData.score || 0}%` }}
+                                                />
+                                            </div>
+
+                                            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+                                                <p className="text-xs font-bold uppercase text-gray-500 mb-2">Nhận xét từ chuyên gia</p>
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed">
+                                                    "{inspectionData.comment && inspectionData.comment.trim() !== ""
+                                                        ? inspectionData.comment
+                                                        : "Không có nhận xét chi tiết"}"
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-2xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-md flex flex-col gap-6">
                                     <div className="flex justify-between items-start">
                                         <div className="flex flex-col gap-2">
@@ -182,8 +450,17 @@ const BikeMarketDetail = () => {
                                                 <span className="text-[10px] font-bold uppercase tracking-wider">Độ mới: {bike?.bikes?.[0]?.overall}</span>
                                             </div>
                                         </div>
-                                        <button className="text-gray-300 hover:text-red-500 transition-colors">
-                                            <span className="material-symbols-outlined text-[28px]">favorite</span>
+                                        <button
+                                            onClick={() => handleWishlistToggle(bike?.bikes?.[0]?.id)}
+                                            className="transition-all active:scale-90 p-2"
+                                        >
+                                            <Heart
+                                                size={28}
+                                                // Nếu isWishlisted true thì đỏ đặc, false thì rỗng
+                                                fill={isWishlisted ? "#ef4444" : "none"}
+                                                color={isWishlisted ? "#ef4444" : "#9ca3af"}
+                                                strokeWidth={2}
+                                            />
                                         </button>
                                     </div>
 
@@ -202,7 +479,7 @@ const BikeMarketDetail = () => {
                                     </div>
 
                                     <div className="flex flex-col gap-3 pt-2">
-                                        <button onClick={() => navigate('/homebuyer/checkout', { state: { bike: bike?.bikes?.[0] } })} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
+                                        <button onClick={handleBuyNow} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>
@@ -217,44 +494,45 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-5 shadow-sm">
                                     <h3 className="text-base font-bold text-[#111813] dark:text-white mb-4">Thông số kỹ thuật</h3>
                                     <div className="space-y-5">
-                                       <div>
+                                        <div>
                                             <h4 className="text-xs font-bold uppercase text-[#94a3b8] dark:text-[#64748b] mb-3 flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-[16px]">info</span> Tổng quan
                                             </h4>
                                             <div className="grid grid-cols-2 gap-y-2 text-sm">
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Thương hiệu</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.brand || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.brand || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Loại xe</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.category || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.category || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Kích thước</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">Size {bike?.bikes?.[0]?.frameSize || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">Size {bikeInfo.frameSize || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Chất liệu khung</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.frameMaterial || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.frameMaterial || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Màu sơn</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.paint || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.paint || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Bộ truyền động</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.groupset || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.groupset || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vận hành</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.operating || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.operating || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Vành / Lốp</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.tireRim || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.tireRim || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Loại phanh</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.brakeType || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.brakeType || 'N/A'}</div>
 
                                                 <div className="text-[#637588] dark:text-[#a0aec0]">Tổng thể</div>
-                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bike?.bikes?.[0]?.overall || 'N/A'}</div>
+                                                <div className="text-right font-medium text-[#111813] dark:text-white">{bikeInfo.overall || 'N/A'}</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                          
                             </div>
                         </div>
                     </div>

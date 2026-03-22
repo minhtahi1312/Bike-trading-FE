@@ -27,7 +27,7 @@ export default function OrderDetail() {
 
         } catch (error) {
             console.error("Lỗi:", error);
-            toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+            toast.error("Đơn hàng đã được đánh giá hoặc có lỗi xảy ra!");
         }
     };
 

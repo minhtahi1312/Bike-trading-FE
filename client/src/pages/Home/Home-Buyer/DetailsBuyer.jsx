@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useParams, useNavigate } from 'react-router-dom';
-import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail, removeFromWishlist } from '../../../services/axiosClient';
+import { Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail, getWishlist, removeFromWishlist } from '../../../services/axiosClient';
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 
@@ -13,16 +13,33 @@ const BikeMarketDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [isWishlisted, setIsWishlisted] = useState(false);
+    
 
     // Giả sử khi fetch bike detail, API trả về thông tin này, hãy set nó:
-    useEffect(() => {
-        if (bike?.is_wishlisted) { // Tên field tùy vào API của bạn
-            setIsWishlisted(true);
-        }
-    }, [bike]);
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+   useEffect(() => {
+    loadWishlist();
+}, []);
 
+const loadWishlist = async () => {
+    try {
+        const response = await getWishlist();
+        const dataArray = Array.isArray(response) ? response : response?.data || [];
 
+        const ids = new Set();
+        dataArray.forEach(item => {
+            const bikeId = item.bikeId || item?.bike?.id;
+            if (bikeId) ids.add(bikeId);
+        });
+
+        setWishlistIds(ids);
+    } catch (err) {
+        console.error("Load wishlist lỗi:", err);
+    }
+};
+const bikeId = bike?.bikes?.[0]?.id;
+const isWishlisted = wishlistIds.has(bikeId);
+    /*---------------------------------------*/
 
     // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
     const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
@@ -49,27 +66,34 @@ const BikeMarketDetail = () => {
     }, [id]);
 
     /* --------- API WISHLIST--------- */
-    const handleWishlistToggle = async (bikeId) => {
-        if (!bikeId) return;
+   const handleWishlistToggle = async (bikeId) => {
+    try {
+        if (wishlistIds.has(bikeId)) {
+            await removeFromWishlist(bikeId);
 
-        try {
-            if (isWishlisted) {
-                await removeFromWishlist(bikeId);
+            setWishlistIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(bikeId);
+                return newSet;
+            });
 
-                setIsWishlisted(false);
-                toast.success("Đã xóa khỏi danh sách yêu thích");
-            } else {
-                await addToWishlist(bikeId);
+            toast.info("Đã xóa khỏi danh sách yêu thích");
+        } else {
+            await addToWishlist(bikeId);
 
-                setIsWishlisted(true);
-                toast.success("Đã thêm vào danh sách yêu thích");
-            }
-        } catch (error) {
-            console.error("❌ Lỗi khi cập nhật wishlist:", error);
-            toast.error("Xe đã có trong danh sách yêu thích!");
+            setWishlistIds(prev => {
+                const newSet = new Set(prev);
+                newSet.add(bikeId);
+                return newSet;
+            });
+
+            toast.success("Đã thêm vào danh sách yêu thích");
         }
-    };
-    /* --------- API CART --------- */
+    } catch (err) {
+        toast.error("Lỗi wishlist");
+    }
+};
+/*-------- API CART --------- */
     const handleAddCartItem = async () => {
         try {
             await addCartItem(bike.bikes[0].id);
@@ -149,7 +173,7 @@ const BikeMarketDetail = () => {
     const inspectionData = bike?.bikes?.[0]?.inspections?.[0] || {};
     const status = bike?.status === 3 ? "Active" : "Sold";
 
-   
+
     const reviews = bike?.sellerReviewSummary?.latestReviews || [];
     const sellerName = bike?.sellerReviewSummary?.sellerName;
     const joinDate = bike?.sellerReviewSummary?.joinDate;
@@ -402,10 +426,10 @@ const BikeMarketDetail = () => {
                                         </h3>
 
                                         <div className="space-y-1 mb-6">
-                                           
+
                                             {renderInspectionItem("Khung xe", inspectionData.frame)}
                                             {renderInspectionItem("Chất lượng sơn", inspectionData.paintCondition)}
-                                           
+
                                             {renderInspectionItem("Hệ thống truyền động", inspectionData.drivetrain)}
                                             {renderInspectionItem("Phanh", inspectionData.brakes)}
                                         </div>
@@ -451,9 +475,8 @@ const BikeMarketDetail = () => {
                                         >
                                             <Heart
                                                 size={28}
-                                               
+                                                color={isWishlisted ? "#ef4444" : "currentColor"}
                                                 fill={isWishlisted ? "#ef4444" : "none"}
-                                                color={isWishlisted ? "#ef4444" : "#9ca3af"}
                                                 strokeWidth={2}
                                             />
                                         </button>
@@ -527,7 +550,7 @@ const BikeMarketDetail = () => {
                                         </div>
                                     </div>
                                 </div>
-                          
+
                             </div>
                         </div>
                     </div>

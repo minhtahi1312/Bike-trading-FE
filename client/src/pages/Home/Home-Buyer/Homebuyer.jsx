@@ -63,6 +63,13 @@ export default function Homebuyer() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+/*---------------------------------------*/
+const handleView = (listingId, likedStatus) => {
+  navigate(`/homebuyer/details/${listingId}`, { 
+    // Từ khóa "state" và "isWishlisted" phải viết y hệt thế này
+    state: { isWishlisted: likedStatus } 
+  });
+};
 
   /*---------------------------------------*/
   const [allBikes, setAllBikes] = useState([]);
@@ -457,7 +464,9 @@ const handleSearch = (e) => {
                           <div className="flex items-center gap-1"><Trello size={16} strokeWidth={1.25} /> Brand: {bike.brand}</div>
                           <div className="flex items-center gap-1"><ChartColumnStacked size={16} strokeWidth={1.25} /> {bike.category}</div>
                         </div>
-                        <button className="mt-auto w-full py-2.5 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-700 font-bold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleView(bike.listingId, wishlistIds.has(bike.id))}
+                          className="mt-auto w-full py-2.5 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-700 font-bold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
                           Xem chi tiết <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_forward</span>
                         </button>
                       </div>

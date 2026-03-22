@@ -183,7 +183,7 @@ const BikeMarketDetail = () => {
                         </div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                            {/* Left Column (Images & Description) */}
+                            {/* Left Column  */}
                             <div className="xl:col-span-2 flex flex-col gap-6">
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-4 shadow-sm">
                                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 mb-4 relative group">
@@ -247,7 +247,7 @@ const BikeMarketDetail = () => {
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
 
-                                        {/* Phần Trái: Avatar + Thông tin cơ bản */}
+                                        {/* Phần Trái */}
                                         <div className="flex items-center gap-5">
                                             {/* Avatar & Badge Tích xanh */}
                                             <div className="relative">
@@ -299,7 +299,6 @@ const BikeMarketDetail = () => {
                                         {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
                                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
 
-                                            {/* Box 1: Tỷ lệ phản hồi */}
                                             <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Tỷ lệ phản hồi
@@ -311,8 +310,6 @@ const BikeMarketDetail = () => {
                                                     </span>
                                                 </div>
                                             </div>
-
-                                            {/* Box 2: Thời gian tham gia */}
                                             <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Thời gian tham gia
@@ -328,7 +325,6 @@ const BikeMarketDetail = () => {
                                         </div>
                                     </div>
                                 </div>
-                                {/* Phần đánh giá từ người mua */}
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
                                     <div className="flex items-center justify-between mb-6 border-b border-[#f0f4f2] dark:border-[#2a3c30] pb-4">
                                         <h3 className="text-lg font-bold text-[#111813] dark:text-white">
@@ -397,7 +393,6 @@ const BikeMarketDetail = () => {
                                 </div>
                             </div>
 
-                            {/* Right Column (Payment Card) */}
                             <div className="flex flex-col gap-6">
                                 {(status === "Active" || status === "Sold") && (
                                     <div className="bg-white dark:bg-[#1c2e22] p-6 rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] shadow-sm mt-6">
@@ -407,10 +402,10 @@ const BikeMarketDetail = () => {
                                         </h3>
 
                                         <div className="space-y-1 mb-6">
-                                            {/* Truyền đúng key từ dữ liệu: frame, paintCondition, drivetrain, v.v. */}
+                                           
                                             {renderInspectionItem("Khung xe", inspectionData.frame)}
                                             {renderInspectionItem("Chất lượng sơn", inspectionData.paintCondition)}
-                                            {/* Lưu ý: Kiểm tra lại API xem key cho phanh và truyền động là gì, ví dụ: */}
+                                           
                                             {renderInspectionItem("Hệ thống truyền động", inspectionData.drivetrain)}
                                             {renderInspectionItem("Phanh", inspectionData.brakes)}
                                         </div>
@@ -456,7 +451,7 @@ const BikeMarketDetail = () => {
                                         >
                                             <Heart
                                                 size={28}
-                                                // Nếu isWishlisted true thì đỏ đặc, false thì rỗng
+                                               
                                                 fill={isWishlisted ? "#ef4444" : "none"}
                                                 color={isWishlisted ? "#ef4444" : "#9ca3af"}
                                                 strokeWidth={2}

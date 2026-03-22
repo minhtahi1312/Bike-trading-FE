@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist, filterBuyerListings } from "../../../services/axiosClient";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { ChartColumnStacked, ChevronLeft, ChevronRight, Heart, ShieldCheck, SlidersHorizontal, Trello } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ChartColumnStacked, ChevronLeft, ChevronRight, Heart, Search, ShieldCheck, SlidersHorizontal, Trello } from "lucide-react";
 
 export const CATEGORY_OPTIONS = [
   { label: "Mtb", value: "Mtb" },
@@ -20,32 +20,29 @@ export const CATEGORY_OPTIONS = [
 ];
 
 export const BRAND_OPTIONS = [
-  // Top các hãng phổ thông & cao cấp được tìm kiếm nhiều nhất
   { label: "Giant", value: "Giant" },
   { label: "Trek", value: "Trek" },
   { label: "Specialized", value: "Specialized" },
   { label: "Merida", value: "Merida" },
   { label: "Cannondale", value: "Cannondale" },
   
-  // Các hãng phổ biến ở phân khúc tầm trung/giá rẻ tại VN
   { label: "Trinx", value: "Trinx" },
   { label: "Galaxy", value: "Galaxy" },
   { label: "Asama", value: "Asama" },
   { label: "Fornix", value: "Fornix" },
   { label: "Twitter", value: "Twitter" },
 
-  // Phân khúc cao cấp / Châu Âu
   { label: "Scott", value: "Scott" },
   { label: "Canyon", value: "Canyon" },
   { label: "Bianchi", value: "Bianchi" },
   { label: "Cervelo", value: "Cervelo" },
   { label: "Pinarello", value: "Pinarello" },
   { label: "Bmc", value: "Bmc" },
-  { label: "Santa-cruz", value: "Santa-cruz" }, // Nổi tiếng về MTB
+  { label: "Santa-cruz", value: "Santa-cruz" }, 
   { label: "Orbea", value: "Orbea" },
   { label: "Cube", value: "Cube" },
   { label: "Colnago", value: "Colnago" },
-  { label: "Brompton", value: "Brompton" }, // Nổi tiếng về xe gấp
+  { label: "Brompton", value: "Brompton" }, 
   
   { label: "Other", value: "Other" }
 ];
@@ -68,26 +65,38 @@ export default function Homebuyer() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   /*---------------------------------------*/
+  const [allBikes, setAllBikes] = useState([]);
+const [searchParams, setSearchParams] = useSearchParams();
+const [searchTerm, setSearchTerm] = useState(searchParams.get('keyword') || '');
+const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      const keyword = searchTerm.trim();
+      
+      if (keyword !== '') {
+        searchParams.set('keyword', keyword);
+        setSearchParams(searchParams);
+      } else {
+        searchParams.delete('keyword');
+        setSearchParams(searchParams);
+      }
+    }
+  };
 
-
-  // 1. Thêm state lưu trữ bộ lọc đang chọn
   const [filters, setFilters] = useState({
     category: "",
     brand: ""
   });
 
-  // 2. Hàm xử lý khi bấm chọn bộ lọc (có chặn event để không bị đóng menu)
   const handleSelectFilter = (e, type, value) => {
     e.preventDefault();
     e.stopPropagation();
     
     setFilters(prev => ({
       ...prev,
-      [type]: prev[type] === value ? "" : value // Bấm lại thì hủy chọn
+      [type]: prev[type] === value ? "" : value 
     }));
   };
 
-  // Toggle wishlist (Thêm hoặc Xóa)
   const handleWishlistToggle = async (bikeId) => {
     try {
       if (wishlistIds.has(bikeId)) {
@@ -149,17 +158,14 @@ export default function Homebuyer() {
     }
   };
 
-  // 1. Cập nhật useEffect: Lắng nghe sự thay đổi của filters
   useEffect(() => {
     loadSellerListings();
-  }, [filters]); // <-- Đưa filters vào đây để tự động gọi lại API khi bộ lọc thay đổi
+  }, [filters]); 
 
-  // Lấy wishlist 1 lần lúc mới vào trang
   useEffect(() => {
     loadWishlist();
   }, []);
 
-  // 2. Cập nhật hàm gọi danh sách xe
   const loadSellerListings = async () => {
     setLoading(true);
     try {
@@ -171,7 +177,7 @@ export default function Homebuyer() {
         ? responseData 
         : (responseData?.items || responseData?.data || []);
 
-      const formattedBikes = rawBikes.map((item) => ({
+      let formattedBikes = rawBikes.map((item) => ({
         listingId: item.id || item.listingId,
         id: item.bikeId || item.id,
         name: item.title || item.name || "Chưa có tên xe",
@@ -185,6 +191,7 @@ export default function Homebuyer() {
         brand: item.brand || "Chưa xác định",
         category: item.category || "Chưa xác định",
       }));
+    setAllBikes(formattedBikes);
 
       setTotalItems(formattedBikes.length); 
       setTotalPages(Math.ceil(formattedBikes.length / itemsPerPage));
@@ -192,11 +199,32 @@ export default function Homebuyer() {
       setBikes(formattedBikes);
     } catch (error) {
       console.error("❌ Failed to load seller listings:", error);
-      setBikes([]); // Nếu lỗi thì hiển thị mảng rỗng
+      setBikes([]); 
     } finally {
       setLoading(false);
     }
   };
+
+  /*---------------------------------------*/
+  useEffect(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    let filteredBikes = [...allBikes];
+
+    if (keyword) {
+      filteredBikes = filteredBikes.filter(bike => 
+        bike.name.toLowerCase().includes(keyword)
+      );
+    }
+    
+    setBikes(filteredBikes);
+    setTotalItems(filteredBikes.length); 
+    setTotalPages(Math.ceil(filteredBikes.length / itemsPerPage) || 1); 
+    setCurrentPage(1); 
+  }, [searchTerm, allBikes]); 
+/*---------------------------------------*/
+
+
+
 
   const navigate = useNavigate();
   const handleWishlistClick = () => navigate('/homebuyer/wishlist');
@@ -232,7 +260,23 @@ export default function Homebuyer() {
               </div>
             </div>
           </div>
-
+               <label className=" w-full hidden md:flex flex-col min-w-40 !h-10 w-96 mx-auto">
+              <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
+                <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
+                    <Search strokeWidth={1.25} />
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  // onKeyDown={handleSearch}
+                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111813] focus:outline-0 focus:ring-0 border-none bg-[#f0f4f2] focus:border-none h-full placeholder:text-[#61896f] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal"
+                  placeholder="Tìm kiếm xe đạp mơ ước..."
+                />
+              </div>
+            </label>
           {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
@@ -425,21 +469,7 @@ export default function Homebuyer() {
               {/* Pagination */}
              {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-center px-5 py-4 bg-white border border-[#e5e7eb] rounded-xl gap-4 mt-4 shadow-sm">
-                  {/* <span className="text-sm text-[#637588]">
-                    Hiển thị{" "}
-                    <span className="font-bold text-[#111813]">
-                      {totalItems > 0 ? indexOfFirstItem + 1 : 0}
-                    </span>{" "}
-                    đến{" "}
-                    <span className="font-bold text-[#111813]">
-                      {Math.min(indexOfLastItem, totalItems)}
-                    </span>{" "}
-                    trong số{" "}
-                    <span className="font-bold text-[#111813]">
-                      {totalItems}
-                    </span>{" "}
-                    xe
-                  </span> */}
+                 
 
                   <div className="flex justify-center items-center gap-1">
                     <button

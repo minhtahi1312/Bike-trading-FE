@@ -3,6 +3,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCategoryLabel, getBrandLabel } from "../../utils/format";
+import Pagination from "../../components/Seller/Pagination";
 
 const PAGE_SIZE = 5;
 
@@ -326,42 +327,12 @@ export default function SellerOrders() {
         </table>
 
         {/* ===== PAGINATION ===== */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <p className="text-sm text-gray-500">
-            Hiển thị {start + 1} đến {Math.min(end, total)} của {total} đơn hàng
-          </p>
-
-          <div className="flex gap-1">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 border rounded-lg text-sm disabled:opacity-40"
-            >
-              Trước
-            </button>
-
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                  page === i + 1
-                    ? "bg-emerald-500 text-white"
-                    : "border hover:bg-gray-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 border rounded-lg text-sm disabled:opacity-40"
-            >
-              Tiếp
-            </button>
-          </div>
+        <div className="border-t">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>

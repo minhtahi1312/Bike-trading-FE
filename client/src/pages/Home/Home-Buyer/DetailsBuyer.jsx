@@ -22,7 +22,7 @@ const BikeMarketDetail = () => {
         }
     }, [bike]);
 
-  
+
 
     // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
     const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
@@ -149,10 +149,13 @@ const BikeMarketDetail = () => {
     const inspectionData = bike?.bikes?.[0]?.inspections?.[0] || {};
     const status = bike?.status === 3 ? "Active" : "Sold";
 
-    // Lấy danh sách review từ API (nếu API trả về mảng rỗng hoặc undefined thì mặc định là [])
-// Thay dòng 263 thành:
-const reviews = bike?.sellerReviewSummary?.latestReviews || []; 
-console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews);
+   
+    const reviews = bike?.sellerReviewSummary?.latestReviews || [];
+    const sellerName = bike?.sellerReviewSummary?.sellerName;
+    const joinDate = bike?.sellerReviewSummary?.joinDate;
+    const averageRating = bike?.sellerReviewSummary?.averageRating;
+    const totalReviews = bike?.sellerReviewSummary?.totalReviews;
+    console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews, sellerName, joinDate);
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -241,21 +244,105 @@ console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", r
                                         {bike.description || 'Chưa có mô tả cho sản phẩm này.'}
                                     </div>
                                 </div>
-                                 {/* Phần đánh giá từ người mua */}
+                                <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+
+                                        {/* Phần Trái: Avatar + Thông tin cơ bản */}
+                                        <div className="flex items-center gap-5">
+                                            {/* Avatar & Badge Tích xanh */}
+                                            <div className="relative">
+                                                <div className="w-[84px] h-[84px] rounded-full bg-[#f6aa41] p-1 shadow-sm">
+                                                    <img
+                                                        src="https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg"
+                                                        alt="Avatar Người Bán"
+                                                        className="w-full h-full rounded-full object-cover bg-white"
+                                                    />
+                                                </div>
+                                                <div className="absolute bottom-0 right-0 bg-[#00d856] rounded-full w-6 h-6 flex items-center justify-center border-2 border-white dark:border-[#1c2e22]">
+                                                    <span className="material-symbols-outlined text-black text-[14px] font-bold">check_circle</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Tên, Rating & Labels */}
+                                            <div className="flex flex-col gap-1.5">
+                                                <h2 className="text-2xl font-bold text-[#111813] dark:text-white">
+                                                    {sellerName}
+                                                </h2>
+
+                                                {/* Rating & Total Reviews */}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center text-[#ffc107]">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <span key={i} className="material-symbols-outlined text-[18px] [font-variation-settings:'FILL'_1]">star</span>
+                                                        ))}
+                                                    </div>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-base">
+                                                        {averageRating}
+                                                    </span>
+                                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                        ({totalReviews} đánh giá)
+                                                    </span>
+                                                </div>
+
+                                                {/* Tags (Uy tín & Kiểm định) */}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[11px] font-bold text-[#059669] bg-[#d1fae5] dark:bg-[#064e3b]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                                        Người bán uy tín
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                                        Đã kiểm định
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
+                                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+
+                                            {/* Box 1: Tỷ lệ phản hồi */}
+                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                                    Tỷ lệ phản hồi
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[#10b981] text-[20px] [font-variation-settings:'FILL'_1]">bolt</span>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
+                                                        98% <span className="font-normal">(trong 1h)</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Box 2: Thời gian tham gia */}
+                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                                    Thời gian tham gia
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[#3b82f6] text-[18px]">calendar_today</span>
+                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
+                                                        {joinDate}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Phần đánh giá từ người mua */}
                                 <div className="bg-[#ffffff] dark:bg-[#1c2e22] rounded-xl border border-[#e5e7eb] dark:border-[#2a3c30] p-6 shadow-sm mt-6">
                                     <div className="flex items-center justify-between mb-6 border-b border-[#f0f4f2] dark:border-[#2a3c30] pb-4">
                                         <h3 className="text-lg font-bold text-[#111813] dark:text-white">
                                             Đánh giá từ người mua ({reviews.length})
                                         </h3>
-                                    {bike?.sellerReviewSummary?.totalReviews > 0 && (
-    <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-100 dark:border-yellow-800/50">
-        <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">
-            {/* Lấy thẳng điểm trung bình từ API, thêm toFixed(1) để luôn hiển thị dạng 5.0, 4.5... */}
-            {bike?.sellerReviewSummary?.averageRating?.toFixed(1) || "0.0"}
-        </span>
-        <span className="material-symbols-outlined text-yellow-500 text-[18px] [font-variation-settings:'FILL'_1]">star</span>
-    </div>
-)}
+                                        {bike?.sellerReviewSummary?.totalReviews > 0 && (
+                                            <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-100 dark:border-yellow-800/50">
+                                                <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">
+                                                    {/* Lấy thẳng điểm trung bình từ API, thêm toFixed(1) để luôn hiển thị dạng 5.0, 4.5... */}
+                                                    {bike?.sellerReviewSummary?.averageRating?.toFixed(1) || "0.0"}
+                                                </span>
+                                                <span className="material-symbols-outlined text-yellow-500 text-[18px] [font-variation-settings:'FILL'_1]">star</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-6">
@@ -277,8 +364,8 @@ console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", r
                                                                         <span
                                                                             key={i}
                                                                             className={`material-symbols-outlined text-[14px] ${i < review.rating
-                                                                                    ? 'text-yellow-400 [font-variation-settings:\'FILL\'_1]'
-                                                                                    : 'text-gray-200 dark:text-gray-700'
+                                                                                ? 'text-yellow-400 [font-variation-settings:\'FILL\'_1]'
+                                                                                : 'text-gray-200 dark:text-gray-700'
                                                                                 }`}
                                                                         >
                                                                             star
@@ -309,7 +396,7 @@ console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", r
                                     </div>
                                 </div>
                             </div>
-                                            
+
                             {/* Right Column (Payment Card) */}
                             <div className="flex flex-col gap-6">
                                 {(status === "Active" || status === "Sold") && (
@@ -445,8 +532,7 @@ console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", r
                                         </div>
                                     </div>
                                 </div>
-
-                               
+                          
                             </div>
                         </div>
                     </div>

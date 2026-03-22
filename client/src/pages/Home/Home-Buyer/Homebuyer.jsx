@@ -58,6 +58,18 @@ export default function Homebuyer() {
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const [watchedBikes, setWatchedBikes] = useState([]);
   
+  /*---------------------------------------*/
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 3;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  /*---------------------------------------*/
+
+
   // 1. Thêm state lưu trữ bộ lọc đang chọn
   const [filters, setFilters] = useState({
     category: "",
@@ -173,7 +185,10 @@ export default function Homebuyer() {
         brand: item.brand || "Chưa xác định",
         category: item.category || "Chưa xác định",
       }));
-      
+
+      setTotalItems(formattedBikes.length); 
+      setTotalPages(Math.ceil(formattedBikes.length / itemsPerPage));
+      console.log("🚀 ~ file: Homebuyer.jsx:172 ~ loadSellerListings ~ formattedBikes:", formattedBikes);
       setBikes(formattedBikes);
     } catch (error) {
       console.error("❌ Failed to load seller listings:", error);
@@ -371,7 +386,7 @@ export default function Homebuyer() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {bikes.map((bike) => (
+                 {bikes.slice(indexOfFirstItem, indexOfLastItem).map((bike) => (
                     <div key={bike.listingId} className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
                       onClick={() => navigate(`/homebuyer/details/${bike.listingId}`)}>
                       <div className="relative aspect-[4/3] overflow-hidden">
@@ -408,21 +423,61 @@ export default function Homebuyer() {
               )}
 
               {/* Pagination */}
-              <div className="flex justify-center mt-6">
-                <nav className="flex items-center gap-2">
-                  <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-gray-500 disabled:opacity-50">
-                    <ChevronLeft size={20} strokeWidth={3} />
-                  </button>
-                  <button className="w-10 h-10 rounded-lg bg-emerald-500 text-white font-bold text-sm">1</button>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">2</button>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">3</button>
-                  <span className="text-gray-400">...</span>
-                  <button className="w-10 h-10 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-[#111813] font-medium text-sm">12</button>
-                  <button className="p-2 rounded-lg border border-[#e5e7eb] hover:bg-emerald-50 text-gray-500">
-                    <ChevronRight size={20} strokeWidth={3} />
-                  </button>
-                </nav>
-              </div>
+             {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-center px-5 py-4 bg-white border border-[#e5e7eb] rounded-xl gap-4 mt-4 shadow-sm">
+                  {/* <span className="text-sm text-[#637588]">
+                    Hiển thị{" "}
+                    <span className="font-bold text-[#111813]">
+                      {totalItems > 0 ? indexOfFirstItem + 1 : 0}
+                    </span>{" "}
+                    đến{" "}
+                    <span className="font-bold text-[#111813]">
+                      {Math.min(indexOfLastItem, totalItems)}
+                    </span>{" "}
+                    trong số{" "}
+                    <span className="font-bold text-[#111813]">
+                      {totalItems}
+                    </span>{" "}
+                    xe
+                  </span> */}
+
+                  <div className="flex justify-center items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (number) => (
+                        <button
+                          key={number}
+                          onClick={() => setCurrentPage(number)}
+                          className={`w-8 h-8 flex items-center justify-center text-sm font-bold border rounded-lg transition-colors ${
+                            currentPage === number
+                              ? "bg-emerald-500 text-white border-emerald-500"
+                              : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {number}
+                        </button>
+                      ),
+                    )}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

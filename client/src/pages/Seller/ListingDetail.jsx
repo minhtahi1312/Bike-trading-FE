@@ -22,6 +22,40 @@ const ListingDetail = () => {
 
   const bikeStatus = listing?.bike?.status;
 
+  const LuxurySection = ({ title, children }) => (
+    <div>
+      <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-3">
+        {title}
+      </p>
+
+      <div className="grid grid-cols-2 gap-y-5 gap-x-8">{children}</div>
+    </div>
+  );
+
+  const LuxuryItem = ({ label, value, full, highlight }) => (
+    <div
+      className={`
+      ${full ? "col-span-2" : ""}
+      group transition-all duration-200
+      hover:bg-gray-50/60 rounded-lg px-2 py-1
+    `}
+    >
+      <p className="text-gray-400 text-xs mb-1">{label}</p>
+
+      <p
+        className={`
+        font-medium transition-all
+        ${
+          highlight
+            ? "text-emerald-600"
+            : "text-gray-900 group-hover:text-gray-700"
+        }
+      `}
+      >
+        {value || "—"}
+      </p>
+    </div>
+  );
   useEffect(() => {
     const fetchListing = async () => {
       try {
@@ -363,56 +397,84 @@ const ListingDetail = () => {
             renderStatusMessage()
           )}
 
-          {/* TECHNICAL INFO */}
-          <div className="bg-white p-6 rounded-xl shadow">
-            <h3 className="font-semibold mb-4">Thông số kỹ thuật</h3>
+          <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+                Thông số kỹ thuật
+              </h3>
 
-            <p className="text-2xl font-bold text-emerald-600 mb-3">
-              {listing.bike?.price?.toLocaleString("vi-VN")} đ
-            </p>
+              <span className="text-sm text-gray-400">Bike Specs</span>
+            </div>
 
-            <div className="text-sm text-gray-700 space-y-2">
-              <p>
-                <strong>Hãng xe:</strong> {getBrandLabel(listing.bike?.brand)}
-              </p>
+            {/* CONTENT */}
+            <div className="space-y-6">
+              {/* SECTION 1 */}
+              <LuxurySection title="Thông tin chung">
+                <LuxuryItem
+                  label="Hãng xe"
+                  value={getBrandLabel(listing.bike?.brand)}
+                />
+                <LuxuryItem
+                  label="Danh mục"
+                  value={getCategoryLabel(listing.bike?.category)}
+                />
+                <LuxuryItem
+                  label="Kích thước"
+                  value={listing.bike?.frameSize}
+                />
+                <LuxuryItem
+                  label="Tình trạng"
+                  value={getOverallLabel(listing.bike?.overall)}
+                  highlight
+                />
+              </LuxurySection>
 
-              <p>
-                <strong>Danh mục:</strong>{" "}
-                {getCategoryLabel(listing.bike?.category)}
-              </p>
+              {/* SECTION 2 */}
+              <LuxurySection title="Khung & Sơn">
+                <LuxuryItem
+                  label="Sơn xe"
+                  value={getPaintLabel(listing.bike?.paint)}
+                />
+                <LuxuryItem
+                  label="Khung"
+                  value={getFrameLabel(listing.bike?.frameMaterial)}
+                />
+              </LuxurySection>
 
-              <p>
-                <strong>Kích thước:</strong> {listing.bike?.frameSize}
-              </p>
+              {/* SECTION 3 */}
+              <LuxurySection title="Truyền động">
+                <LuxuryItem
+                  label="Hệ thống truyền động"
+                  value={listing.bike?.groupset}
+                  full
+                />
+                <LuxuryItem
+                  label="Tình trạng"
+                  value={getDrivetrainConditionLabel(listing.bike?.operating)}
+                />
+              </LuxurySection>
 
-              <p>
-                <strong>Tình trạng xe:</strong>{" "}
-                {getOverallLabel(listing.bike?.overall)}
-              </p>
-              <p>
-                <strong>Sơn xe:</strong> {getPaintLabel(listing.bike?.paint)}
-              </p>
+              {/* SECTION 4 */}
+              <LuxurySection title="Phanh & Bánh">
+                <LuxuryItem
+                  label="Phanh"
+                  value={getBrakeLabel(listing.bike?.brakeType)}
+                />
+                <LuxuryItem
+                  label="Vành xe"
+                  value={getRimLabel(listing.bike?.tireRim)}
+                />
+              </LuxurySection>
 
-              <p>
-                <strong>Khung:</strong>{" "}
-                {getFrameLabel(listing.bike?.frameMaterial)}
-              </p>
+              {/* PRICE */}
+              <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                <span className="text-sm text-gray-400">Giá</span>
 
-              <p>
-                <strong>Hệ thống truyền động:</strong> {listing.bike?.groupset}
-              </p>
-              <p>
-                <strong>Tình trạng truyền động:</strong>{" "}
-                {getDrivetrainConditionLabel(listing.bike?.operating)}
-              </p>
-
-              <p>
-                <strong>Phanh:</strong> {getBrakeLabel(listing.bike?.brakeType)}
-              </p>
-
-              <p>
-                <strong>Vành xe:</strong> {getRimLabel(listing.bike?.tireRim)}
-              </p>
+                <span className="text-xl font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent">
+                  {listing.bike?.price?.toLocaleString("vi-VN")} đ
+                </span>
+              </div>
             </div>
           </div>
         </div>

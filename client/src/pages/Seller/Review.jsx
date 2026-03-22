@@ -1,32 +1,30 @@
-import React from "react";
-
-const mockReviews = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    rating: 5,
-    content:
-      "Xe đạp Trek Marlin 7 mình nhận được rất ưng ý. Ngoại hình còn mới 98% như shop mô tả. Giao hàng nhanh, đóng gói cẩn thận.",
-    product: "Trek Marlin 7 - Size M",
-    date: "20/05/2024 14:30",
-    reply:
-      "Cảm ơn bạn đã tin tưởng ủng hộ shop! Chúc bạn có trải nghiệm tuyệt vời 🚴‍♂️",
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    rating: 4,
-    content:
-      "Xe Giant Escape đi khá ổn trong tầm giá. Tuy nhiên giao hàng hơi chậm.",
-    product: "Giant Escape 3",
-    date: "19/05/2024 09:15",
-    reply: null,
-  },
-];
+import { getSellerReviews, getReviewSummary } from "../../services/axiosClient";
+import { useEffect, useState } from "react";
 
 export default function ReviewPage() {
-  const avgRating = 4.9;
-  const totalReviews = 128;
+  const [reviews, setReviews] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [filterStar, setFilterStar] = useState("all");
+  const filteredReviews =
+    filterStar === "all"
+      ? reviews
+      : reviews.filter((r) => r.rating === filterStar);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const reviewData = await getSellerReviews();
+        const summaryData = await getReviewSummary();
+
+        setReviews(reviewData);
+        setSummary(summaryData);
+      } catch (err) {
+        console.error("Fetch review error:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -45,29 +43,35 @@ export default function ReviewPage() {
         {/* LEFT */}
         <div className="w-56 text-center flex flex-col justify-center">
           <p className="text-5xl font-bold text-gray-900 leading-none">
-            4.9<span className="text-xl text-gray-400">/5</span>
+            {summary?.averageRating?.toFixed(1) || 0}
+            <span className="text-xl text-gray-400">/5</span>
           </p>
 
           <div className="flex justify-center gap-1 text-yellow-400 text-lg mt-2">
-            {"★★★★★"}
+            {"★".repeat(Math.round(summary?.averageRating || 0))}
           </div>
 
-          <p className="text-sm text-gray-500 mt-2">128 Đánh giá</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {summary?.totalReviews || 0} Đánh giá
+          </p>
         </div>
 
         {/* RIGHT */}
         <div className="flex-1 space-y-3">
           {[
-            { star: 5, value: 108 },
-            { star: 4, value: 12 },
-            { star: 3, value: 4 },
-            { star: 2, value: 2 },
-            { star: 1, value: 2 },
+            { star: 5, value: summary?.fiveStars || 0 },
+            { star: 4, value: summary?.fourStars || 0 },
+            { star: 3, value: summary?.threeStars || 0 },
+            { star: 2, value: summary?.twoStars || 0 },
+            { star: 1, value: summary?.oneStar || 0 },
           ].map((item, i) => {
-            const percent = (item.value / 128) * 100;
+            const percent =
+              summary?.totalReviews > 0
+                ? (item.value / summary.totalReviews) * 100
+                : 0;
 
             return (
-              <div key={i} className="flex items-center gap-3">
+              <div key={item.star} className="flex items-center gap-3">
                 <span className="w-10 text-sm text-gray-600">
                   {item.star} sao
                 </span>
@@ -89,26 +93,35 @@ export default function ReviewPage() {
       </div>
 
       {/* FILTER */}
+      {/* ===== FILTER ===== */}
       <div className="flex gap-2">
-        {["Tất cả", "5 Sao", "4 Sao", "3 Sao"].map((f, i) => (
+        {[
+          { label: "Tất cả", value: "all" },
+          { label: "5 Sao", value: 5 },
+          { label: "4 Sao", value: 4 },
+          { label: "3 Sao", value: 3 },
+          { label: "2 Sao", value: 2 },
+          { label: "1 Sao", value: 1 },
+        ].map((f) => (
           <button
-            key={i}
+            key={f.value}
+            onClick={() => setFilterStar(f.value)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-              i === 0
+              filterStar === f.value
                 ? "bg-emerald-500 text-white shadow-sm"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
 
       {/* REVIEW LIST */}
       <div className="space-y-4">
-        {mockReviews.map((r) => (
+        {filteredReviews.map((r) => (
           <div
-            key={r.id}
+            key={r.reviewId}
             className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
           >
             {/* HEADER */}
@@ -116,11 +129,15 @@ export default function ReviewPage() {
               <div className="flex gap-3">
                 {/* AVATAR */}
                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
-                  {r.name.charAt(0)}
+                  {r.reviewerName
+                    ? r.reviewerName.charAt(0).toUpperCase()
+                    : "?"}
                 </div>
 
                 <div>
-                  <p className="font-semibold text-gray-900">{r.name}</p>
+                  <p className="font-semibold text-gray-900">
+                    {r.reviewerName?.trim() ? r.reviewerName : "Người dùng"}
+                  </p>
 
                   <div className="flex items-center gap-1 text-yellow-400 text-sm">
                     {"★".repeat(r.rating)}
@@ -129,12 +146,14 @@ export default function ReviewPage() {
                 </div>
               </div>
 
-              <span className="text-xs text-gray-400">{r.date}</span>
+              <span className="text-xs text-gray-400">
+                {new Date(r.createdAt).toLocaleString("vi-VN")}
+              </span>
             </div>
 
             {/* CONTENT */}
             <p className="mt-3 text-sm text-gray-700 leading-relaxed">
-              {r.content}
+              {r.comment}
             </p>
 
             {/* PRODUCT */}
@@ -157,14 +176,6 @@ export default function ReviewPage() {
                 </p>
               </div>
             </div>
-
-            {/* REPLY */}
-            {r.reply && (
-              <div className="mt-4 bg-emerald-50 border border-emerald-100 p-3 rounded-lg text-sm text-emerald-700">
-                <span className="font-semibold">Phản hồi của shop:</span>{" "}
-                {r.reply}
-              </div>
-            )}
           </div>
         ))}
       </div>

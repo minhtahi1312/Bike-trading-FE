@@ -11,12 +11,13 @@ const CartBuyer = () => {
   const [items, setItems] = useState([]); 
   
   const [summary, setSummary] = useState({ totalAmount: 0 }); 
-  
+  const hasInvalidItem = items.some(item => item.isSelected && item.bikeStatus !== 'Available');
 
   const loadItems = async () => {
     try {
-      const data = await getCartItems();
-      setItems(data || []);
+      const item = await getCartItems();
+      setItems(item || []);
+      console.log("Lấy danh sách giỏ hàng:", item);
     } catch (err) {
       console.error("Lỗi lấy danh sách:", err);
     }
@@ -26,6 +27,7 @@ const CartBuyer = () => {
     try {
       const data = await getCart();
       setSummary(data || { totalAmount: 0 });
+      connssole.log("Lấy thông tin giỏ hàng:", data);
     } catch (err) {
       console.error("Lỗi lấy tổng tiền:", err);
     }
@@ -64,6 +66,12 @@ const CartBuyer = () => {
     };
 
     initData();
+    // Tự động làm mới sau 10s 
+    const interval = setInterval(() => {
+    loadItems();
+    loadSummary();
+  }, 1000);
+  return () => clearInterval(interval); 
   }, []);
 
   const handleToggle = async (id) => {
@@ -167,7 +175,7 @@ const CartBuyer = () => {
               onClick={() => navigate('/homebuyer/checkout')}
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-white disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
             >
-              Xác Nhận
+              {hasInvalidItem ? "Có sản phẩm không khả dụng" : "Xác Nhận"}
             </button>
           </div>
         </div>

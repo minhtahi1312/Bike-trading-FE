@@ -22,7 +22,7 @@ const CheckoutPage = () => {
       [name]: value
     }));
   };
-
+  // Tạo Đơn Hàng
   const handleCheckout = async () => {
     const requestBody = {
       receiverName: formData.receiverName,
@@ -34,6 +34,7 @@ const CheckoutPage = () => {
       const result = await CheckOut(requestBody);
       const orders = await getMyOrder();
       const orderId = orders[0].id;
+      // const orderId = result.id;
       navigate(`/homebuyer/payment/${orderId}`);
     } catch (error) {
       console.error("Lỗi khi thanh toán", error);
@@ -69,7 +70,7 @@ const CheckoutPage = () => {
             <div className="lg:col-span-8">
               <div className="bg-white p-6 lg:p-8 rounded-2xl shadow-sm border border-gray-100">
                 
-                {/* Header Section - Đảm bảo hiển thị tiêu đề */}
+                {/* Header Section */}
                 <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-50">
                   <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
                     <span

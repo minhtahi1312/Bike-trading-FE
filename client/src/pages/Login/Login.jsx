@@ -106,11 +106,10 @@ const LoginForm = ({ role, tab, setTab }) => {
       console.log("UI ROLE:", role);
 
       if (response.data && response.data.success === true) {
-        // --- BƯỚC 1: CHUẨN HÓA ROLE (SỐ -> CHỮ) ---
+        // --- BƯỚC 1: CHUẨN HÓA ROLE  ---
         const rawRole = response.data.role || response.data.Role;
         let serverRoleStr = "UNKNOWN";
 
-        // Nếu Server trả về Số (1, 2, 3...)
         if (!isNaN(rawRole) && Number(rawRole) > 0) {
           const roleId = Number(rawRole);
           switch (roleId) {
@@ -127,47 +126,34 @@ const LoginForm = ({ role, tab, setTab }) => {
               serverRoleStr = "INSPECTOR";
               break;
           }
-        }
-        // Nếu Server trả về Chữ ("Admin", "Buyer"...)
-        else if (typeof rawRole === "string") {
+        } else if (typeof rawRole === "string") {
           serverRoleStr = rawRole.toUpperCase();
         }
 
         console.log("Role chuẩn hóa:", serverRoleStr);
 
-       // --- BƯỚC 2: LƯU TOKEN ---
-       const token = response.data.token || response.data.accessToken; 
+        if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
+          toast.error("Tài khoản quản trị vui lòng đăng nhập tại trang nội bộ!");
+          
+          axiosClient.post("/api/Auth/logout").catch(()=>{}); 
+          
+          return; 
+        }
+
+        const token = response.data.token || response.data.accessToken; 
         
         if (token) {
           localStorage.setItem("accessToken", token);
         }
-        
-        // Trình duyệt đã tự lưu Cookie HttpOnly từ BE rồi, FE không cần quan tâm refreshToken nữa!
         
         localStorage.setItem("role", serverRoleStr);
         localStorage.setItem(
           "user",
           JSON.stringify({ email: email, role: serverRoleStr }),
         );
-
         // --- BƯỚC 3: ĐIỀU HƯỚNG THEO ROLE ---
 
-        // === NHÓM QUẢN TRỊ (ADMIN & INSPECTOR) ===
-        if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
-          toast.success(
-            `Xin chào ${serverRoleStr === "ADMIN" ? "Quản trị viên" : "Kiểm duyệt viên"}!`,
-          );
-
-          if (serverRoleStr === "ADMIN") {
-            navigate("/admin/dashboard");
-          } else {
-            navigate("/inspector/dashboard");
-          }
-          return;
-        }
-
-        // === NHÓM NGƯỜI DÙNG (BUYER & SELLER) ===
-        const uiRoleUpper = role.toUpperCase();
+       const uiRoleUpper = role.toUpperCase();
 
         if (serverRoleStr === uiRoleUpper) {
           toast.success("Đăng nhập thành công!");
@@ -178,13 +164,8 @@ const LoginForm = ({ role, tab, setTab }) => {
             navigate("/seller");
           }
         } else {
-          // Báo lỗi nếu chọn sai tab
-          let roleNameTV = serverRoleStr;
-          if (serverRoleStr === "ADMIN") roleNameTV = "Quản trị viên";
-          if (serverRoleStr === "BUYER") roleNameTV = "Người mua";
-          if (serverRoleStr === "SELLER") roleNameTV = "Người bán";
-          if (serverRoleStr === "INSPECTOR") roleNameTV = "Người kiểm duyệt";
-
+          // Báo lỗi nếu chọn sai tab (Ví dụ: Tài khoản Buyer nhưng bấm tab Seller)
+          let roleNameTV = serverRoleStr === "BUYER" ? "Người mua" : "Người bán";
           toast.error(
             `Tài khoản này là ${roleNameTV}. Vui lòng chọn đúng vai trò phía trên!`,
           );
@@ -582,9 +563,6 @@ const LoginForm = ({ role, tab, setTab }) => {
               />{" "}
               Ghi nhớ đăng nhập
             </label>
-            <a href="#" onClick={(e) => e.preventDefault()}>
-              Quên mật khẩu?
-            </a>
           </div>
 
           {/* Cập nhật nút bấm để hiện Loading */}

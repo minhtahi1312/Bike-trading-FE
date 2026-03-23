@@ -14,7 +14,6 @@ const Sidebar = () => {
   // State quản lý Dropdown Tổng giao dịch
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
 
-  // Tự động mở menu khi f5 nếu đang ở trong trang Giao dịch hoặc Phí dịch vụ
   useEffect(() => {
     if (currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy')) {
       setIsTransactionOpen(true);
@@ -23,7 +22,7 @@ const Sidebar = () => {
 
   const isTransactionActive = currentPath.includes('/admin/transactions') || currentPath.includes('/admin/policy') || currentPath.includes('/admin/withdrawals');
 
-  // Chia menu làm 2 phần (bỏ mục Giao dịch cũ ra)
+  // Chia menu làm 2 phần 
   const menuItemsTop = [
     { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin/dashboard' },
     { icon: FileText, label: 'Tin đăng', path: '/admin/listings' },
@@ -40,7 +39,6 @@ const Sidebar = () => {
   // Hàm xử lý khi nhấn "Xác nhận"
   const handleLogout = async () => {
     try {
-      // Bật Cookie để gửi lên cho BE tự xóa
       await axiosClient.post(
         '/api/Auth/logout',
         {}, 
@@ -50,7 +48,7 @@ const Sidebar = () => {
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
     } finally {
-      // Chỉ xóa accessToken và thông tin user (BE đã tự xóa Cookie rồi)
+      
       localStorage.removeItem('accessToken');
       localStorage.removeItem('role');
       localStorage.removeItem('user');

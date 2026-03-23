@@ -59,12 +59,12 @@ const Categories = () => {
     }
   };
 
-  // --- TRIGGER GỌI API KHI DEPENDENCIES THAY ĐỔI ---
+  
   useEffect(() => {
     fetchCategoryData();
   }, [activeTab, debouncedSearch, currentPage]);
 
-  // --- RESET TRANG VÀ SEARCH KHI CHUYỂN TAB ---
+  
   useEffect(() => {
     setCurrentPage(1);
     setSearchTerm("");

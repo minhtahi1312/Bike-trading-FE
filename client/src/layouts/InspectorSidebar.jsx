@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { LayoutDashboard, History, User, LogOut, Bike } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import axiosClient from '../services/axiosClient';
+import { toast } from 'react-toastify';
 
 const InspectorSidebar = () => {
   const navigate = useNavigate();
@@ -13,17 +15,27 @@ const InspectorSidebar = () => {
     { icon: User, label: 'Hồ sơ cá nhân', path: '/inspector/profile' },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('user'); 
-    localStorage.removeItem('token');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await axiosClient.post('/api/Auth/logout');
+    } catch (error) {
+      console.warn("Lỗi gọi API Logout, tiến hành dọn dẹp LocalStorage:", error);
+    } finally {
+      localStorage.clear();
+      
+      setShowLogoutModal(false);
+
+      // Thông báo và chuyển hướng
+      toast.success("Đã đăng xuất khỏi tài khoản Kiểm định viên!");
+      navigate('/login');
+    }
   };
 
   return (
     <>
       <aside className="w-64 flex-shrink-0 border-r border-[#e5e7eb] bg-white flex flex-col h-full hidden md:flex font-display fixed inset-y-0 left-0 z-50">
         
-        {/* 👉 1. LOGO SECTION (Giống hệt Admin) */}
+        {/*  1. LOGO SECTION (Giống hệt Admin) */}
         <div className="p-6 pb-2">
           <div className="flex items-center gap-3">
             {/* Khối xanh bao quanh icon */}

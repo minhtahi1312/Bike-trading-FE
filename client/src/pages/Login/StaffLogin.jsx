@@ -142,7 +142,6 @@ const StaffLogin = () => {
                 />{" "}
                 Ghi nhớ đăng nhập
               </label>
-              <a href="#" onClick={(e) => e.preventDefault()}>Quên mật khẩu?</a>
             </div>
 
             <button

@@ -11,6 +11,7 @@ import {
   Bike,
 } from "lucide-react";
 import { useState } from "react";
+import axiosClient from "../../services/axiosClient";
 
 const menu = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/seller/dashboard" },
@@ -40,14 +41,23 @@ const menu = [
 export default function SellerSidebar() {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(null);
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    try {
+      // Gọi API Logout để BE dọn Session và Cookie refreshToken
+      await axiosClient.post("/api/Auth/logout");
+    } catch (error) {
+      console.warn("Lỗi gọi API Logout, tiến hành dọn dẹp FE:", error);
+    } finally {
+      // Dọn sạch toàn bộ LocalStorage
+      localStorage.clear();
 
-    toast.success("Đăng xuất thành công");
+      toast.success("Đăng xuất thành công");
 
-    navigate("/", { replace: true });
+      // Chuyển hướng về trang login
+      navigate("/login", { replace: true });
+    }
   };
+
   return (
     <aside className="w-64 hidden md:flex flex-col border-r border-[#e5e7eb] bg-white">
       {/* LOGO */}

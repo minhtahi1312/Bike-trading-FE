@@ -95,14 +95,6 @@ axiosClient.interceptors.response.use(
         console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
         processQueue(refreshError, null);
         
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("role");
-        localStorage.removeItem("user");
-
-        if (window.location.pathname !== "/login") {
-           window.location.href = "/login";
-        }
-        
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

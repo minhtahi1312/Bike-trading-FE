@@ -11,10 +11,10 @@ export default function PaymentBuyer() {
     try {
       console.log("🔍 Lấy thông tin đơn hàng với ID:", id);
       const order = await getOrder(id);
-      console.log("✅ Dữ liệu đơn hàng:", order);
+      console.log(" Dữ liệu đơn hàng:", order);
       setOrder(order);
     } catch (err) {
-      console.error("❌ Lỗi lấy thông tin đơn hàng:", err);
+      console.error(" Lỗi lấy thông tin đơn hàng:", err);
     }
   };
 

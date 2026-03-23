@@ -18,7 +18,7 @@ export default function Wishlist() {
     document.title = "Danh sách yêu thích - BikeMarket";
     loadWishlist();
   }, []);
-
+  /*---------------------- Load danh sách yêu thích ----------------------*/
   const loadWishlist = async () => {
     setLoading(true);
     try {
@@ -51,13 +51,13 @@ export default function Wishlist() {
       
       setBikes(formattedData);
     } catch (e) {
-      console.error('❌ Failed to load wishlist:', e);
+      console.error(' Failed to load wishlist:', e);
       toast.error("Không thể tải danh sách yêu thích");
     } finally {
       setLoading(false);
     }
   };
-
+  /*---------------------- Xóa khỏi danh sách yêu thích ----------------------*/
   const handleDelete = async (bikeId) => {
     if (!window.confirm("Bạn có muốn xóa xe này khỏi danh sách yêu thích?")) return;
 
@@ -66,11 +66,11 @@ export default function Wishlist() {
       setBikes((prevBikes) => prevBikes.filter((b) => b.bikeId !== bikeId));
       toast.success("Đã xóa khỏi danh sách yêu thích");
     } catch (e) {
-      console.error('❌ Lỗi khi xóa:', e);
+      console.error(' Lỗi khi xóa:', e);
       toast.error("Không thể xóa sản phẩm");
     }
   };
-
+  /*---------------------- Xem chi tiết xe ----------------------*/
   const handleView = (id) => {
     navigate(`/homebuyer/details/${id}`);
   };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ListFilter, Trash, Heart, MapPin, RulerDimensionLine, Shapes, Settings, Truck } from "lucide-react";
+import { ListFilter, Trash, Heart, MapPin, RulerDimensionLine, Shapes, Settings, Truck, Trello, ChartColumnStacked } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getWishlist, removeFromWishlist } from "../../../services/axiosClient";
 import { toast } from "react-toastify";
@@ -164,8 +164,8 @@ export default function Wishlist() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-[#066e48] mb-2">
-                      <div className="flex items-center gap-1.5"><RulerDimensionLine size={14} /><span>Size {b.size}</span></div>
-                      <div className="flex items-center gap-1.5"><MapPin size={14} /><span className="truncate">{b.location}</span></div>
+                      <div className="flex items-center gap-1.5"><Trello size={16} strokeWidth={1.25} /><span>Brand: {b.brand}</span></div>
+                      <div className="flex items-center gap-1.5"><ChartColumnStacked size={16} strokeWidth={1.25} /><span className="truncate">Category: {b.category}</span></div>
                     </div>
                   </div>
                   

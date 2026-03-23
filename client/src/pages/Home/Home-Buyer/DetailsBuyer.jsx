@@ -77,7 +77,7 @@ const isWishlisted = wishlistIds.has(bikeId);
                 return newSet;
             });
 
-            toast.info("Đã xóa khỏi danh sách yêu thích");
+            toast.success("Đã xóa khỏi danh sách yêu thích");
         } else {
             await addToWishlist(bikeId);
 

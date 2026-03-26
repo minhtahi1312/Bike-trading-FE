@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axiosClient from "../../services/axiosClient";
 import { toast } from "react-toastify";
 import { FcGoogle } from "react-icons/fc";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../../config/firebase";
 
 const RoleSelector = ({ role, setRole }) => {
   return (
@@ -265,11 +267,8 @@ const LoginForm = ({ role, tab, setTab }) => {
           { autoClose: 4000 },
         );
 
-        // CHUYỂN NGAY SANG TAB ĐĂNG NHẬP
         setTab("login");
 
-        // Mẹo: Lúc này Email và Pass người dùng vừa nhập vẫn còn trong State
-        // Họ chỉ cần bấm nút "Đăng nhập" bên tab kia là sẽ kích hoạt luồng gửi OTP
       } else {
         toast.error(resData?.message || "Đăng ký thất bại!");
       }
@@ -287,7 +286,6 @@ const LoginForm = ({ role, tab, setTab }) => {
     try {
       setLoading(true);
 
-      // Gọi API Verify chuẩn
       const response = await axiosClient.post("/api/Auth/verify-otp", {
         email: email,
         otp: otpCode,
@@ -321,7 +319,74 @@ const LoginForm = ({ role, tab, setTab }) => {
     }
   };
 
-  // --- SỬA LẠI PHẦN RETURN CUỐI CÙNG NHƯ SAU ---
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+
+      // 1. Mở popup đăng nhập Google
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      // 2. Lấy idToken từ Firebase
+      const idToken = await result.user.getIdToken();
+
+      // 3. Quy đổi Role cho Backend (Buyer = 2, Seller = 3)
+      const roleId = role === "seller" ? 3 : 2;
+
+      // 4. Gọi API của Backend
+      const response = await axiosClient.post("/api/Auth/google-login", {
+        idToken: idToken,
+        role: roleId,
+      });
+
+      console.log("GOOGLE LOGIN RESPONSE:", response.data);
+
+      if (response.data && response.data.success === true) {
+        toast.success("Đăng nhập bằng Google thành công!");
+
+        // Lưu Token
+        const token = response.data.token || response.data.accessToken;
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
+
+        // Lấy Role từ backend trả về (nếu có) hoặc dùng role người dùng đang chọn
+        const rawRole = response.data.role || response.data.Role;
+        let finalRole = role.toUpperCase(); // Mặc định theo UI
+        
+        if (rawRole) {
+           // Nếu BE trả về role cụ thể (1,2,3,4) thì map lại giống hàm login thường
+           if (Number(rawRole) === 2) finalRole = "BUYER";
+           if (Number(rawRole) === 3) finalRole = "SELLER";
+        }
+
+        localStorage.setItem("role", finalRole);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ email: result.user.email, role: finalRole })
+        );
+
+        // Điều hướng
+        if (finalRole === "BUYER") {
+          navigate("/homebuyer");
+        } else {
+          navigate("/seller");
+        }
+      } else {
+        toast.error(response.data.message || "Đăng nhập Google thất bại từ hệ thống!");
+      }
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      // Bắt lỗi khi người dùng tắt popup giữa chừng
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast.info("Đã hủy đăng nhập Google.");
+      } else {
+        toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi kết nối với Google!");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       {/* 1. NẾU LÀ TAB ĐĂNG KÝ THÌ HIỆN FORM ĐĂNG KÝ */}
@@ -465,7 +530,6 @@ const LoginForm = ({ role, tab, setTab }) => {
             Đăng ký ngay &rarr;
           </button>
 
-          {/* CODE PHÂN CÁCH (DIVIDER) BẠN ĐÃ LÀM */}
           <div
             style={{
               display: "flex",
@@ -493,10 +557,20 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button type="button" className="google-btn">
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với
-            Google
+          <button 
+            type="button" 
+            className="google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
+
           <div className="footer-text">
             Đã có tài khoản?{" "}
             <strong
@@ -606,9 +680,18 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button type="button" className="google-btn">
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với
-            Google
+          <button 
+            type="button" 
+            className="google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
 
           <div className="footer-text">

@@ -48,7 +48,7 @@ const Users = () => {
       };
 
       const response = await axiosClient.post(
-        "/api/admin/listing/create-inspector",
+        "/api/admin/create-inspector",
         payload,
       );
 

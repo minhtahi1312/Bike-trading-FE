@@ -387,6 +387,34 @@ const LoginForm = ({ role, tab, setTab }) => {
     }
   };
 
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.warning("Vui lòng nhập email của bạn để khôi phục mật khẩu!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axiosClient.post("/api/Auth/forgot-password", {
+        email: email,
+      });
+
+      if (response.data && response.data.success === true) {
+        toast.success("Đã gửi liên kết khôi phục! Vui lòng kiểm tra email của bạn.");
+        // Gửi thành công thì cho người dùng nán lại hoặc tự chuyển về tab login
+        // setTab("login"); 
+      } else {
+        toast.error(response.data.message || "Không thể gửi yêu cầu. Vui lòng thử lại!");
+      }
+    } catch (error) {
+      console.error("Forgot Password Error:", error);
+      toast.error(error.response?.data?.message || "Lỗi hệ thống khi gửi yêu cầu!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       {/* 1. NẾU LÀ TAB ĐĂNG KÝ THÌ HIỆN FORM ĐĂNG KÝ */}
@@ -628,7 +656,7 @@ const LoginForm = ({ role, tab, setTab }) => {
             </div>
           </div>
 
-          <div className="options">
+          <div className="options" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label className="remember-me">
               <input
                 type="checkbox"
@@ -637,7 +665,16 @@ const LoginForm = ({ role, tab, setTab }) => {
               />{" "}
               Ghi nhớ đăng nhập
             </label>
+
+            {/* Thêm nút Quên mật khẩu */}
+            <span 
+              style={{ color: "var(--green)", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
+              onClick={() => setTab("forgot")}
+            >
+              Quên mật khẩu?
+            </span>
           </div>
+
 
           {/* Cập nhật nút bấm để hiện Loading */}
           <button
@@ -709,6 +746,46 @@ const LoginForm = ({ role, tab, setTab }) => {
           </div>
         </form>
       )}
+
+    {tab === "forgot" && (
+        <form onSubmit={handleForgotPasswordSubmit}>
+          <div className="form-group" style={{ marginTop: "10px" }}>
+            <label style={{ marginBottom: 8, display: "block" }}>
+              Email đã đăng ký
+            </label>
+            <input
+              type="email"
+              placeholder="example@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={loading}
+            style={{
+              marginTop: 20,
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading ? "Đang gửi email..." : "Gửi liên kết khôi phục"}
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: "24px" }}>
+            <span 
+              style={{ color: "#666", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
+              onClick={() => setTab("login")}
+            >
+              &larr; Quay lại đăng nhập
+            </span>
+          </div>
+        </form>
+      )}
+
 
       {/* 3. POPUP OTP (ĐỂ RA NGOÀI CÙNG ĐỂ NÓ HIỆN ĐƯỢC Ở CẢ 2 TAB) */}
       {showOtpModal && (
@@ -841,34 +918,44 @@ const Login = () => {
       <div className="right-panel">
         <div className="form-content">
           <div className="header">
-            <h2>{tab === "login" ? "Đăng nhập" : "Đăng ký tài khoản mới"}</h2>
+            <h2>
+              {tab === "login" ? "Đăng nhập" : tab === "register" ? "Đăng ký tài khoản mới" : "Khôi phục mật khẩu"}
+            </h2>
             <p>
               {tab === "login"
                 ? "Vui lòng chọn vai trò để tiếp tục."
-                : "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."}
+                : tab === "register"
+                ? "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."
+                : "Nhập email của bạn để nhận liên kết đặt lại mật khẩu."}
             </p>
           </div>
-          <RoleSelector role={role} setRole={setRole} />
 
-          <div
-            className="auth-tabs"
-            role="tablist"
-            aria-label="Auth tabs"
-            style={{ marginBottom: 18 }}
-          >
-            <div
-              className={`tab ${tab === "login" ? "active" : ""}`}
-              onClick={() => setTab("login")}
-            >
-              Đăng nhập
-            </div>
-            <div
-              className={`tab ${tab === "register" ? "active" : ""}`}
-              onClick={() => setTab("register")}
-            >
-              Đăng ký
-            </div>
-          </div>
+          {/* CHỈ HIỂN THỊ CHỌN ROLE VÀ TABS NẾU KHÔNG PHẢI MÀN HÌNH QUÊN MẬT KHẨU */}
+          {tab !== "forgot" && (
+            <>
+              <RoleSelector role={role} setRole={setRole} />
+
+              <div
+                className="auth-tabs"
+                role="tablist"
+                aria-label="Auth tabs"
+                style={{ marginBottom: 18 }}
+              >
+                <div
+                  className={`tab ${tab === "login" ? "active" : ""}`}
+                  onClick={() => setTab("login")}
+                >
+                  Đăng nhập
+                </div>
+                <div
+                  className={`tab ${tab === "register" ? "active" : ""}`}
+                  onClick={() => setTab("register")}
+                >
+                  Đăng ký
+                </div>
+              </div>
+            </>
+          )}
 
           <LoginForm role={role} tab={tab} setTab={setTab} />
         </div>

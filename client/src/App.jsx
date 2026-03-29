@@ -9,6 +9,7 @@ import Listings from "./pages/Admin/Listings";
 import WithdrawalManagement from "./pages/Admin/WithdrawalManagement";
 import Login from "./pages/Login/Login";
 import StaffLogin from "./pages/Login/StaffLogin";
+import ResetPassword from './pages/Login/ResetPassword'
 import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
 import Wishlistbuyer from "./pages/Home/Home-Buyer/Wishlistbuyer";
 import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
@@ -67,6 +68,7 @@ function App() {
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/system" element={<StaffLogin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/inspector" element={<InspectorLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<HomeInspector />} />

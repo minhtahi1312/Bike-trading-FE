@@ -98,7 +98,7 @@ const ListingDetail = () => {
     );
   }
 
-  // Lấy dữ liệu xe đầu tiên (vì API trả về mảng bikes)
+  // Lấy dữ liệu xe đầu tiên 
   const bikeInfo =
     listingData.bikes && listingData.bikes.length > 0
       ? listingData.bikes[0]
@@ -309,7 +309,7 @@ const ListingDetail = () => {
               </div>
             </div>
 
-            {/* BẢNG THÔNG SỐ KỸ THUẬT (Dữ liệu từ API bikes[0]) */}
+            {/* BẢNG THÔNG SỐ KỸ THUẬT  */}
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2 border-t border-gray-100 pt-6">
               <Bike size={20} className="text-emerald-600" /> Thông số kỹ thuật
               xe
@@ -379,7 +379,7 @@ const ListingDetail = () => {
           
         </div>
       
-        {/* === CỘT PHẢI: SIDEBAR (1/3) === */}
+        {/* === CỘT PHẢI: SIDEBAR  === */}
         <div className="lg:col-span-1 space-y-6">
           {/* 1. Quyết định duyệt tin */}
           {listingData.status === 2 && (
@@ -413,7 +413,7 @@ const ListingDetail = () => {
                     <XCircle size={18} /> Từ chối
                   </button>
 
-                  {/* ĐÃ GẮN HÀM onClick={handleApprove} VÀO ĐÂY */}
+                 
                   <button
                     onClick={handleApprove}
                     className="flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all"

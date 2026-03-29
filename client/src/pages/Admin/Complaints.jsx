@@ -39,7 +39,6 @@ export default function Complaints() {
       try {
         setIsLoading(true);
         const response = await axiosClient.get("/api/admin/list-reports");
-        // Vì API trả về mảng trực tiếp, nên ta set thẳng response.data
         setReportsData(response.data);
       } catch (error) {
         console.error("Lỗi khi tải danh sách báo cáo:", error);
@@ -51,7 +50,6 @@ export default function Complaints() {
     fetchReports();
   }, []);
 
-  // Reset về trang 1 khi thay đổi tìm kiếm hoặc bộ lọc
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
@@ -70,7 +68,7 @@ export default function Complaints() {
     };
   }, [activeReasonId]);
 
-  // --- LOGIC MAP STATUS (API trả về tiếng Anh: Pending, Resolved, Rejected...) ---
+  // --- LOGIC MAP STATUS ---
   const getStatusBadge = (status) => {
     const s = status?.toLowerCase() || "";
     switch (s) {
@@ -187,8 +185,6 @@ export default function Complaints() {
       (report.status &&
         report.status.toLowerCase() === statusFilter.toLowerCase());
 
-    // 3. (Tùy chọn nâng cao) Lọc theo ngày - Hiện tại mình cứ để true vì cần xử lý chuỗi ngày giờ hơi phức tạp
-    // const matchesDate = true;
 
     return matchesSearch && matchesStatus;
   });
@@ -362,7 +358,6 @@ export default function Complaints() {
                     {/* Nội dung */}
                     <td className="px-6 py-4 max-w-[200px] relative">
                       <div className="flex items-start gap-2">
-                        {/* Nút bấm để mở/đóng ô nội dung */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

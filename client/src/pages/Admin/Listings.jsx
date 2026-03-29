@@ -181,9 +181,8 @@ const Listings = () => {
                           : ""
                       }`}
                     >
-                      {/* Đã xóa phần Checkbox ở đây */}
 
-                      {/* 1. Thông tin xe (trước đó là mục 2) */}
+                      {/* 1. Thông tin xe  */}
                       <td className="px-6 py-4">
                         <div className="flex gap-4">
                           <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-50">
@@ -218,14 +217,12 @@ const Listings = () => {
 
                       {/* 2. Người bán */}
                       <td className="px-6 py-4">
-                        {/* Thêm justify-center để đưa cụm Avatar + Tên vào giữa ô */}
                         <div className="flex items-center justify-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700 flex-shrink-0">
                             {item.sellerName
                               ? item.sellerName.charAt(0).toUpperCase()
                               : "U"}
                           </div>
-                          {/* Thêm text-left ở đây để Tên và chữ "Thành viên..." vẫn thẳng lề với nhau */}
                           <div className="flex flex-col text-left">
                             <span className="text-sm font-medium text-[#111813] whitespace-nowrap">
                               {item.sellerName || "Chưa rõ"}
@@ -238,7 +235,6 @@ const Listings = () => {
                       </td>
 
                       {/* 3. Giá bán */}
-                      {/* Thêm text-center trực tiếp vào thẻ td */}
                       <td className="px-6 py-4 text-center">
                         <div className="text-sm font-bold text-[#111813] whitespace-nowrap">
                           {item.price
@@ -345,7 +341,7 @@ const Listings = () => {
                 Trước
               </button>
 
-              {/* Vòng lặp in ra các nút số trang */}
+              
               {[...Array(totalPages)].map((_, index) => {
                 const pageNum = index + 1;
                 return (

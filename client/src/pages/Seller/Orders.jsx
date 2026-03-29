@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCategoryLabel, getBrandLabel } from "../../utils/format";
@@ -124,48 +123,6 @@ export default function SellerOrders() {
   const end = start + PAGE_SIZE;
 
   const pageOrders = filteredOrders.slice(start, end);
-
-  const confirmOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/confirm",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
-
-  const shippingOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/shipping",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
-
-  const completeOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/complete",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
 
   // ===== LOADING =====
   if (loading) {

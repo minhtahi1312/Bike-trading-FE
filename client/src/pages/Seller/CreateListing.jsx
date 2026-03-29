@@ -123,7 +123,7 @@ export default function CreateListing() {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
 
-      // 1️⃣ CREATE LISTING
+      // CREATE LISTING
       const listingRes = await fetch(
         isEdit
           ? `https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/listings/${id}`
@@ -145,8 +145,6 @@ export default function CreateListing() {
       const listingData = await listingRes.json();
       const listingId = isEdit ? id : listingData.id;
 
-      // 2️⃣ CREATE BIKE
-      // 2️⃣ CREATE BIKE
       let bikeId = formData.bikeId;
 
       if (!bikeId) {
@@ -221,7 +219,7 @@ export default function CreateListing() {
         );
       }
 
-      // 3️⃣ UPLOAD IMAGES
+      //  UPLOAD IMAGES
       if (formData.images.length > 0) {
         for (const img of formData.images) {
           const imgForm = new FormData();
@@ -241,7 +239,7 @@ export default function CreateListing() {
         }
       }
 
-      // 4️⃣ UPLOAD VIDEO
+      //  UPLOAD VIDEO
       if (formData.video) {
         const videoForm = new FormData();
         videoForm.append("file", formData.video.file);
@@ -826,7 +824,7 @@ function StepTechnical({
               </div>
             </div>
           </div>
-          {/* 5️⃣ PHANH & BÁNH XE */}
+          {/*  PHANH & BÁNH XE */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             {/* HEADER */}
             <div className="flex items-center gap-2 mb-4">
@@ -856,7 +854,7 @@ function StepTechnical({
                   ))}
                 </select>
 
-                {/* 👇 HIỆN INPUT KHI CHỌN KHÁC */}
+                {/*  HIỆN INPUT KHI CHỌN KHÁC */}
                 {formData.tireRim === "other" && (
                   <input
                     type="text"
@@ -899,7 +897,7 @@ function StepTechnical({
             </div>
           </div>
 
-          {/* 6️⃣ TỔNG QUAN XE */}
+          {/*  TỔNG QUAN XE */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold text-lg mb-4">Tổng quan xe</h3>
 
@@ -930,7 +928,7 @@ function StepTechnical({
             </div>
           </div>
 
-          {/* 7️⃣ GIÁ MONG MUỐN */}
+          {/*  GIÁ MONG MUỐN */}
           <div className="bg-white border rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <DollarSign className="w-5 h-5 text-emerald-600" />

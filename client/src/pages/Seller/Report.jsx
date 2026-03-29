@@ -1,6 +1,6 @@
 import { getSellerReports } from "../../services/axiosClient";
 import Pagination from "../../components/Seller/Pagination";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ReportPage() {
   const [reports, setReports] = useState([]);

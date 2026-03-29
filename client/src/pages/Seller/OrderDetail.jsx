@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";

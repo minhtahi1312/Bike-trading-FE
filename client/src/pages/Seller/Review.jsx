@@ -93,7 +93,7 @@ export default function ReviewPage() {
       </div>
 
       {/* FILTER */}
-      {/* ===== FILTER ===== */}
+
       <div className="flex gap-2">
         {[
           { label: "Tất cả", value: "all" },
@@ -119,65 +119,71 @@ export default function ReviewPage() {
 
       {/* REVIEW LIST */}
       <div className="space-y-4">
-        {filteredReviews.map((r) => (
-          <div
-            key={r.reviewId}
-            className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
-          >
-            {/* HEADER */}
-            <div className="flex justify-between items-start">
-              <div className="flex gap-3">
-                {/* AVATAR */}
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
-                  {r.reviewerName
-                    ? r.reviewerName.charAt(0).toUpperCase()
-                    : "?"}
-                </div>
+        {filteredReviews.map((r) => {
+          const bike = r.bikes?.[0];
+          return (
+            <div
+              key={r.reviewId}
+              className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
+            >
+              {/* HEADER */}
+              <div className="flex justify-between items-start">
+                <div className="flex gap-3">
+                  {/* AVATAR */}
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+                    {r.reviewerName
+                      ? r.reviewerName.charAt(0).toUpperCase()
+                      : "?"}
+                  </div>
 
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {r.reviewerName?.trim() ? r.reviewerName : "Người dùng"}
-                  </p>
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {r.reviewerName?.trim() ? r.reviewerName : "Người dùng"}
+                    </p>
 
-                  <div className="flex items-center gap-1 text-yellow-400 text-sm">
-                    {"★".repeat(r.rating)}
-                    {"☆".repeat(5 - r.rating)}
+                    <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                      {"★".repeat(r.rating)}
+                      {"☆".repeat(5 - r.rating)}
+                    </div>
                   </div>
                 </div>
+
+                <span className="text-xs text-gray-400">
+                  {new Date(r.createdAt).toLocaleString("vi-VN")}
+                </span>
               </div>
 
-              <span className="text-xs text-gray-400">
-                {new Date(r.createdAt).toLocaleString("vi-VN")}
-              </span>
+              {/* CONTENT */}
+              <p className="mt-3 text-sm text-gray-700 leading-relaxed">
+                {r.comment}
+              </p>
+
+              {/* PRODUCT */}
+              <div className="mt-3 flex items-center gap-3 bg-gray-50 border border-gray-100 p-3 rounded-xl">
+                {/* IMAGE */}
+                <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1485965120184-e220f721d03e"
+                    alt="bike"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* INFO */}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">
+                    {bike?.bikeName || "Không có tên"}
+                  </p>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    Mã đơn: #{r.orderId?.slice(0, 6)} •{" "}
+                    {bike?.unitPrice?.toLocaleString("vi-VN")} đ
+                  </p>
+                </div>
+              </div>
             </div>
-
-            {/* CONTENT */}
-            <p className="mt-3 text-sm text-gray-700 leading-relaxed">
-              {r.comment}
-            </p>
-
-            {/* PRODUCT */}
-            <div className="mt-3 flex items-center gap-3 bg-gray-50 border border-gray-100 p-3 rounded-xl">
-              {/* IMAGE */}
-              <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                <img
-                  src="https://images.unsplash.com/photo-1485965120184-e220f721d03e"
-                  alt="bike"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* INFO */}
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">{r.product}</p>
-
-                <p className="text-xs text-gray-400 mt-1">
-                  Mã đơn: #DH2024 • Xe địa hình
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

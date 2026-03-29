@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, Landmark, CheckCircle } from "lucide-react";
+import { Landmark, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { withdrawMoney, getWalletBalance } from "../../services/axiosClient";
@@ -42,11 +42,6 @@ export default function WithdrawPage() {
   }, [availableBalance]);
 
   const formatCurrency = (value) => value.toLocaleString("vi-VN") + "₫";
-
-  const formatDisplay = (value) => {
-    if (!value) return "";
-    return value.toLocaleString("vi-VN");
-  };
 
   const handleAmountChange = (e) => {
     const raw = e.target.value.replace(/\D/g, "");

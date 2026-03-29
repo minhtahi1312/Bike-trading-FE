@@ -80,8 +80,8 @@ export default function TransactionsPage() {
 
   // ===== STATUS MAP =====
   const STATUS_MAP = {
-    1: { label: "Hoàn thành" },
-    2: { label: "Đang xử lý" },
+    1: { label: "Đang chờ" },
+    2: { label: "Thành công" },
     3: { label: "Thất bại" },
   };
 
@@ -194,9 +194,9 @@ export default function TransactionsPage() {
                     <span
                       className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
                         item.status === 1
-                          ? "bg-emerald-100 text-emerald-700"
+                          ? "bg-yellow-100 text-yellow-700"
                           : item.status === 2
-                            ? "bg-yellow-100 text-yellow-700"
+                            ? "bg-emerald-100 text-emerald-700"
                             : "bg-red-100 text-red-700"
                       }`}
                     >

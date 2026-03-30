@@ -39,21 +39,24 @@ import Wallet from "./pages/Seller/Wallet";
 import Withdraw from "./pages/Seller/Withdraw";
 import TransactionsPage from "./pages/Seller/TransactionsPage";
 
+import GuestLayout from "./layouts/GuestLayout";
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
 import BikeDetailPage from "./pages/Home/Home-Buyer/DetailsBuyer";
 import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
 import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
 import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
-
+import DetailsGuest from "./pages/Home/Home-guest/DetailsGuest";
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Homeguest />} />
-        <Route path="/homeguest" element={<Homeguest />} />
-
+        <Route path="/homeguest" element={<GuestLayout />}>
+          <Route index element={<Homeguest />} />
+          
+          <Route path="details/:id" element={<DetailsGuest />} />
+        </Route>
         <Route path="/homebuyer" element={<BuyerLayout />}>
           <Route index element={<Homebuyer />} />
           <Route path="wishlist" element={<Wishlistbuyer />} />
@@ -86,7 +89,9 @@ function App() {
           <Route path="reports/:id" element={<ComplaintDetail />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+        <Route path="/" element={<Navigate to="/homeguest" replace />} />
+        <Route path="*" element={<Navigate to="/homeguest" replace />} />
 
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />

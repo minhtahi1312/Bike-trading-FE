@@ -202,7 +202,7 @@ const handleSearch = (e) => {
 
       setTotalItems(formattedBikes.length); 
       setTotalPages(Math.ceil(formattedBikes.length / itemsPerPage));
-      console.log("🚀 ~ file: Homebuyer.jsx:172 ~ loadSellerListings ~ formattedBikes:", formattedBikes);
+      // console.log("🚀 ~ file: Homebuyer.jsx:172 ~ loadSellerListings ~ formattedBikes:", formattedBikes);
       setBikes(formattedBikes);
     } catch (error) {
       console.error("❌ Failed to load seller listings:", error);

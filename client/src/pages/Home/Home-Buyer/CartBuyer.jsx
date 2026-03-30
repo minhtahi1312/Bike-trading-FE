@@ -38,7 +38,7 @@ const CartBuyer = () => {
       const data = await isBuying();
       console.log("isBuying response:", data);
     } catch (err) {
-      console.error("Lỗi lấy tổng tiền:", err);
+      console.error("Lỗi không lấy được item:", err);
     }
   };
 

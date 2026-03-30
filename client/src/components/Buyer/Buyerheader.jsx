@@ -87,15 +87,23 @@ useEffect(() => {
             <li>
              <button onClick={() => navigate('/homebuyer/order')} className="w-full text-left">
                <a className="block px-4 py-2 hover:bg-gray-100 transition-colors">
+                Thông tin cá nhân
+              </a>
+             </button>
+            </li>
+            <li>
+             <button onClick={() => navigate('/homebuyer/order')} className="w-full text-left">
+               <a className="block px-4 py-2 hover:bg-gray-100 transition-colors">
                 Đơn hàng của tôi
               </a>
              </button>
             </li>
+            
             <hr className="border-gray-100 my-1" />
             <li>
               <button 
                 onClick={() => {
-                  navigate('/login');
+                  navigate('/homeguest');
                   toast.success("Đăng xuất thành công");
                 }}
                 className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 transition-colors"

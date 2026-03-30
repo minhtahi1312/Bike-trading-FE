@@ -128,7 +128,7 @@ const validateCart = async (cartId) => {
 const getWishlist = async () => {
   try {
     const response = await axiosClient.get(`/api/Wishlist`);
-    console.log(" GET /api/Wishlist success", response.data);
+   
     return response.data;
   } catch (error) {
     console.error(" getWishlist failed:", error.message);
@@ -177,7 +177,7 @@ const getSellerListings = async () => {
 
 const isBuying = async () => {
   try {
-    const cart = await getCart(); // Lấy thông tin cart hiện tại
+    const cart = await getCart(); 
     const response = await axiosClient.get(`/api/CartItem/validate`);
     console.log("✅ GET /api/CartItem/validate success:", response.data);
     return response.data;

@@ -30,7 +30,7 @@ export default function OrderDetail() {
             toast.error("Đơn hàng đã được đánh giá hoặc có lỗi xảy ra!");
         }
     };
-
+    /*--------------------- Load thông tin chi tiết đơn hàng ---------------------*/
     const loadOrder = async () => {
         setIsLoading(true);
         try {
@@ -49,7 +49,7 @@ export default function OrderDetail() {
             loadOrder();
         }
     }, [id]);
-
+    
     const formatPrice = (price) => {
         if (price === undefined || price === null) return "0đ";
         return price.toLocaleString('vi-VN') + 'đ';

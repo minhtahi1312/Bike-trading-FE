@@ -136,18 +136,18 @@ const LoginForm = ({ role, tab, setTab }) => {
 
         if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
           toast.error("Tài khoản quản trị vui lòng đăng nhập tại trang nội bộ!");
-          
-          axiosClient.post("/api/Auth/logout").catch(()=>{}); 
-          
-          return; 
+
+          axiosClient.post("/api/Auth/logout").catch(() => { });
+
+          return;
         }
 
-        const token = response.data.token || response.data.accessToken; 
-        
+        const token = response.data.token || response.data.accessToken;
+
         if (token) {
           localStorage.setItem("accessToken", token);
         }
-        
+
         localStorage.setItem("role", serverRoleStr);
         localStorage.setItem(
           "user",
@@ -155,7 +155,7 @@ const LoginForm = ({ role, tab, setTab }) => {
         );
         // --- BƯỚC 3: ĐIỀU HƯỚNG THEO ROLE ---
 
-       const uiRoleUpper = role.toUpperCase();
+        const uiRoleUpper = role.toUpperCase();
 
         if (serverRoleStr === uiRoleUpper) {
           toast.success("Đăng nhập thành công!");
@@ -325,7 +325,7 @@ const LoginForm = ({ role, tab, setTab }) => {
 
       // 1. Mở popup đăng nhập Google
       const result = await signInWithPopup(auth, googleProvider);
-      
+
       // 2. Lấy idToken từ Firebase
       const idToken = await result.user.getIdToken();
 
@@ -348,15 +348,48 @@ const LoginForm = ({ role, tab, setTab }) => {
         if (token) {
           localStorage.setItem("accessToken", token);
         }
+        /* ------------- Lấy avartar -------------- */
+        console.log("DATA GOOGLE:", response.data);
+        const avatar = response.data.avatar ||
+          response.data.avtUrl ||
+          response.data.user?.avatar ||
+          response.data.user?.avtUrl ||
+          response.data.user?.picture;
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
 
+        if (avatar) {
+          localStorage.setItem("user_avatar", avatar);
+          // THÊM DÒNG NÀY: Phát tín hiệu để Header cập nhật ảnh ngay lập tức
+          window.dispatchEvent(new Event('avatar_updated'));
+        }
+
+        localStorage.setItem("role", serverRoleStr);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: response.data.email || email, // Lấy email từ response nếu có
+            role: serverRoleStr,
+            avatar: avatar || null
+          }),
+        ); localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: email,
+            role: serverRoleStr,
+            avatar: avatar // Lưu thêm vào object user cho đồng bộ
+          }),
+        );
+        /* ----------------------------------------------- -------------- */
         // Lấy Role từ backend trả về (nếu có) hoặc dùng role người dùng đang chọn
         const rawRole = response.data.role || response.data.Role;
         let finalRole = role.toUpperCase(); // Mặc định theo UI
-        
+
         if (rawRole) {
-           // Nếu BE trả về role cụ thể (1,2,3,4) thì map lại giống hàm login thường
-           if (Number(rawRole) === 2) finalRole = "BUYER";
-           if (Number(rawRole) === 3) finalRole = "SELLER";
+          // Nếu BE trả về role cụ thể (1,2,3,4) thì map lại giống hàm login thường
+          if (Number(rawRole) === 2) finalRole = "BUYER";
+          if (Number(rawRole) === 3) finalRole = "SELLER";
         }
 
         localStorage.setItem("role", finalRole);
@@ -585,8 +618,8 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="google-btn"
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -595,7 +628,7 @@ const LoginForm = ({ role, tab, setTab }) => {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            <FcGoogle size={22} style={{ marginRight: 10 }} />
             {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
 
@@ -667,7 +700,7 @@ const LoginForm = ({ role, tab, setTab }) => {
             </label>
 
             {/* Thêm nút Quên mật khẩu */}
-            <span 
+            <span
               style={{ color: "var(--green)", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
               onClick={() => setTab("forgot")}
             >
@@ -717,8 +750,8 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="google-btn"
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -727,7 +760,7 @@ const LoginForm = ({ role, tab, setTab }) => {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            <FcGoogle size={22} style={{ marginRight: 10 }} />
             {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
 
@@ -747,7 +780,7 @@ const LoginForm = ({ role, tab, setTab }) => {
         </form>
       )}
 
-    {tab === "forgot" && (
+      {tab === "forgot" && (
         <form onSubmit={handleForgotPasswordSubmit}>
           <div className="form-group" style={{ marginTop: "10px" }}>
             <label style={{ marginBottom: 8, display: "block" }}>
@@ -776,7 +809,7 @@ const LoginForm = ({ role, tab, setTab }) => {
           </button>
 
           <div style={{ textAlign: "center", marginTop: "24px" }}>
-            <span 
+            <span
               style={{ color: "#666", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
               onClick={() => setTab("login")}
             >
@@ -925,8 +958,8 @@ const Login = () => {
               {tab === "login"
                 ? "Vui lòng chọn vai trò để tiếp tục."
                 : tab === "register"
-                ? "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."
-                : "Nhập email của bạn để nhận liên kết đặt lại mật khẩu."}
+                  ? "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."
+                  : "Nhập email của bạn để nhận liên kết đặt lại mật khẩu."}
             </p>
           </div>
 

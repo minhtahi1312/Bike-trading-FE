@@ -9,9 +9,7 @@ const CheckoutPage = () => {
   const [formData, setFormData] = useState({
     receiverName: 'Nguyễn Văn A',
     receiverPhone: '0901234567',
-    city: 'Hồ Chí Minh',
-    district: 'Quận 1',
-    ward: 'Phường Bến Nghé',
+   
     addressDetail: ''
   });
 
@@ -27,7 +25,7 @@ const CheckoutPage = () => {
     const requestBody = {
       receiverName: formData.receiverName,
       receiverPhone: formData.receiverPhone,
-      receiverAddress: `${formData.addressDetail}, ${formData.ward}, ${formData.district}, ${formData.city}`
+      receiverAddress: `${formData.addressDetail}`
     };
 
     try {
@@ -41,7 +39,7 @@ const CheckoutPage = () => {
       alert("Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.");
     }
   };
-
+  // load những thông tin đã được chọn trong giỏ hàng
   const loadItems = async () => {
     try {
       const data = await getCartItems();
@@ -124,7 +122,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  {/* <div className="flex items-center gap-3 pt-2">
                     <input
                       className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                       id="save-address"
@@ -133,7 +131,7 @@ const CheckoutPage = () => {
                     <label className="text-sm text-[#61896f] cursor-pointer select-none" htmlFor="save-address">
                       Lưu địa chỉ này cho lần sau
                     </label>
-                  </div>
+                  </div> */}
                 </form>
               </div>
 

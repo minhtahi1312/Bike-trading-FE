@@ -50,12 +50,13 @@ import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
 import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
 import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
 import DetailsGuest from "./pages/Home/Home-guest/DetailsGuest";
+import ProfileBuyer from "./pages/Home/Home-Buyer/ProfileBuyer";
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/homeguest" element={<GuestLayout />}>
+        <Route path="/" element={<GuestLayout />}>
           <Route index element={<Homeguest />} />
           
           <Route path="details/:id" element={<DetailsGuest />} />
@@ -69,6 +70,7 @@ function App() {
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order/:id" element={<OrderDetail />} />
+          <Route path="profile" element={<ProfileBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/system" element={<StaffLogin />} />
@@ -94,9 +96,9 @@ function App() {
           <Route path="withdrawals" element={<WithdrawalManagement />} />
         </Route>
 
-        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-        <Route path="/" element={<Navigate to="/homeguest" replace />} />
-        <Route path="*" element={<Navigate to="/homeguest" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* <Route path="/" element={<Navigate to="/homeguest" replace />} />
+        <Route path="*" element={<Navigate to="/homeguest" replace />} /> */}
 
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />

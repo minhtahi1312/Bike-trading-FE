@@ -445,7 +445,7 @@ export default function Homeguest() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {bikes.slice(indexOfFirstItem, indexOfLastItem).map((bike) => (
                     <div key={bike.listingId} className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
-                      onClick={() => navigate(`/homeguest/details/${bike.listingId}`)}>
+                      onClick={() => navigate(`/details/${bike.listingId}`)}>
                       <div className="relative aspect-[4/3] overflow-hidden">
                         {bike.verified && (
                           <div className="absolute top-3 left-3 z-[10] bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">

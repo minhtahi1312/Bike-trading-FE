@@ -422,6 +422,7 @@ const getWalletBalance = async () => {
 
 const getMe = async () => {
   const response = await axiosClient.get(`/api/Auth/me`);
+  console.log("getMe response:", response.data);
   return response.data;
 };
 

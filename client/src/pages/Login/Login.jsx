@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axiosClient from "../../services/axiosClient";
 import { toast } from "react-toastify";
 import { FcGoogle } from "react-icons/fc";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../../config/firebase";
 
 const RoleSelector = ({ role, setRole }) => {
   return (
@@ -106,11 +108,10 @@ const LoginForm = ({ role, tab, setTab }) => {
       console.log("UI ROLE:", role);
 
       if (response.data && response.data.success === true) {
-        // --- BƯỚC 1: CHUẨN HÓA ROLE (SỐ -> CHỮ) ---
+        // --- BƯỚC 1: CHUẨN HÓA ROLE  ---
         const rawRole = response.data.role || response.data.Role;
         let serverRoleStr = "UNKNOWN";
 
-        // Nếu Server trả về Số (1, 2, 3...)
         if (!isNaN(rawRole) && Number(rawRole) > 0) {
           const roleId = Number(rawRole);
           switch (roleId) {
@@ -127,43 +128,34 @@ const LoginForm = ({ role, tab, setTab }) => {
               serverRoleStr = "INSPECTOR";
               break;
           }
-        }
-        // Nếu Server trả về Chữ ("Admin", "Buyer"...)
-        else if (typeof rawRole === "string") {
+        } else if (typeof rawRole === "string") {
           serverRoleStr = rawRole.toUpperCase();
         }
 
         console.log("Role chuẩn hóa:", serverRoleStr);
 
-        // --- BƯỚC 2: LƯU TOKEN ---
-        const token = response.data.token || response.data.accessToken; // Lấy cái nào có dữ liệu
-        const rToken = response.data.refreshToken;
-        if (token) localStorage.setItem("accessToken", token);
-        if (rToken) localStorage.setItem("refreshToken", rToken);
+        if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
+          toast.error("Tài khoản quản trị vui lòng đăng nhập tại trang nội bộ!");
+          
+          axiosClient.post("/api/Auth/logout").catch(()=>{}); 
+          
+          return; 
+        }
+
+        const token = response.data.token || response.data.accessToken; 
+        
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
+        
         localStorage.setItem("role", serverRoleStr);
         localStorage.setItem(
           "user",
           JSON.stringify({ email: email, role: serverRoleStr }),
         );
-
         // --- BƯỚC 3: ĐIỀU HƯỚNG THEO ROLE ---
 
-        // === NHÓM QUẢN TRỊ (ADMIN & INSPECTOR) ===
-        if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
-          toast.success(
-            `Xin chào ${serverRoleStr === "ADMIN" ? "Quản trị viên" : "Kiểm duyệt viên"}!`,
-          );
-
-          if (serverRoleStr === "ADMIN") {
-            navigate("/admin/dashboard");
-          } else {
-            navigate("/inspector/dashboard");
-          }
-          return;
-        }
-
-        // === NHÓM NGƯỜI DÙNG (BUYER & SELLER) ===
-        const uiRoleUpper = role.toUpperCase(); // Role đang chọn trên UI
+       const uiRoleUpper = role.toUpperCase();
 
         if (serverRoleStr === uiRoleUpper) {
           toast.success("Đăng nhập thành công!");
@@ -171,18 +163,11 @@ const LoginForm = ({ role, tab, setTab }) => {
           if (serverRoleStr === "BUYER") {
             navigate("/homebuyer");
           } else {
-            // [TODO]: SAU NÀY CÓ TRANG SELLER THÌ SỬA DÒNG DƯỚI
-            // Ví dụ: navigate("/homeseller");
             navigate("/seller");
           }
         } else {
-          // Báo lỗi nếu chọn sai tab
-          let roleNameTV = serverRoleStr;
-          if (serverRoleStr === "ADMIN") roleNameTV = "Quản trị viên";
-          if (serverRoleStr === "BUYER") roleNameTV = "Người mua";
-          if (serverRoleStr === "SELLER") roleNameTV = "Người bán";
-          if (serverRoleStr === "INSPECTOR") roleNameTV = "Người kiểm duyệt";
-
+          // Báo lỗi nếu chọn sai tab (Ví dụ: Tài khoản Buyer nhưng bấm tab Seller)
+          let roleNameTV = serverRoleStr === "BUYER" ? "Người mua" : "Người bán";
           toast.error(
             `Tài khoản này là ${roleNameTV}. Vui lòng chọn đúng vai trò phía trên!`,
           );
@@ -282,11 +267,8 @@ const LoginForm = ({ role, tab, setTab }) => {
           { autoClose: 4000 },
         );
 
-        // CHUYỂN NGAY SANG TAB ĐĂNG NHẬP
         setTab("login");
 
-        // Mẹo: Lúc này Email và Pass người dùng vừa nhập vẫn còn trong State
-        // Họ chỉ cần bấm nút "Đăng nhập" bên tab kia là sẽ kích hoạt luồng gửi OTP
       } else {
         toast.error(resData?.message || "Đăng ký thất bại!");
       }
@@ -304,7 +286,6 @@ const LoginForm = ({ role, tab, setTab }) => {
     try {
       setLoading(true);
 
-      // Gọi API Verify chuẩn
       const response = await axiosClient.post("/api/Auth/verify-otp", {
         email: email,
         otp: otpCode,
@@ -338,7 +319,102 @@ const LoginForm = ({ role, tab, setTab }) => {
     }
   };
 
-  // --- SỬA LẠI PHẦN RETURN CUỐI CÙNG NHƯ SAU ---
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+
+      // 1. Mở popup đăng nhập Google
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      // 2. Lấy idToken từ Firebase
+      const idToken = await result.user.getIdToken();
+
+      // 3. Quy đổi Role cho Backend (Buyer = 2, Seller = 3)
+      const roleId = role === "seller" ? 3 : 2;
+
+      // 4. Gọi API của Backend
+      const response = await axiosClient.post("/api/Auth/google-login", {
+        idToken: idToken,
+        role: roleId,
+      });
+
+      console.log("GOOGLE LOGIN RESPONSE:", response.data);
+
+      if (response.data && response.data.success === true) {
+        toast.success("Đăng nhập bằng Google thành công!");
+
+        // Lưu Token
+        const token = response.data.token || response.data.accessToken;
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
+
+        // Lấy Role từ backend trả về (nếu có) hoặc dùng role người dùng đang chọn
+        const rawRole = response.data.role || response.data.Role;
+        let finalRole = role.toUpperCase(); // Mặc định theo UI
+        
+        if (rawRole) {
+           // Nếu BE trả về role cụ thể (1,2,3,4) thì map lại giống hàm login thường
+           if (Number(rawRole) === 2) finalRole = "BUYER";
+           if (Number(rawRole) === 3) finalRole = "SELLER";
+        }
+
+        localStorage.setItem("role", finalRole);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ email: result.user.email, role: finalRole })
+        );
+
+        // Điều hướng
+        if (finalRole === "BUYER") {
+          navigate("/homebuyer");
+        } else {
+          navigate("/seller");
+        }
+      } else {
+        toast.error(response.data.message || "Đăng nhập Google thất bại từ hệ thống!");
+      }
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      // Bắt lỗi khi người dùng tắt popup giữa chừng
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast.info("Đã hủy đăng nhập Google.");
+      } else {
+        toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi kết nối với Google!");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.warning("Vui lòng nhập email của bạn để khôi phục mật khẩu!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axiosClient.post("/api/Auth/forgot-password", {
+        email: email,
+      });
+
+      if (response.data && response.data.success === true) {
+        toast.success("Đã gửi liên kết khôi phục! Vui lòng kiểm tra email của bạn.");
+        // Gửi thành công thì cho người dùng nán lại hoặc tự chuyển về tab login
+        // setTab("login"); 
+      } else {
+        toast.error(response.data.message || "Không thể gửi yêu cầu. Vui lòng thử lại!");
+      }
+    } catch (error) {
+      console.error("Forgot Password Error:", error);
+      toast.error(error.response?.data?.message || "Lỗi hệ thống khi gửi yêu cầu!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       {/* 1. NẾU LÀ TAB ĐĂNG KÝ THÌ HIỆN FORM ĐĂNG KÝ */}
@@ -482,7 +558,6 @@ const LoginForm = ({ role, tab, setTab }) => {
             Đăng ký ngay &rarr;
           </button>
 
-          {/* CODE PHÂN CÁCH (DIVIDER) BẠN ĐÃ LÀM */}
           <div
             style={{
               display: "flex",
@@ -510,10 +585,20 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button type="button" className="google-btn">
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với
-            Google
+          <button 
+            type="button" 
+            className="google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
+
           <div className="footer-text">
             Đã có tài khoản?{" "}
             <strong
@@ -571,7 +656,7 @@ const LoginForm = ({ role, tab, setTab }) => {
             </div>
           </div>
 
-          <div className="options">
+          <div className="options" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label className="remember-me">
               <input
                 type="checkbox"
@@ -580,10 +665,16 @@ const LoginForm = ({ role, tab, setTab }) => {
               />{" "}
               Ghi nhớ đăng nhập
             </label>
-            <a href="#" onClick={(e) => e.preventDefault()}>
+
+            {/* Thêm nút Quên mật khẩu */}
+            <span 
+              style={{ color: "var(--green)", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
+              onClick={() => setTab("forgot")}
+            >
               Quên mật khẩu?
-            </a>
+            </span>
           </div>
+
 
           {/* Cập nhật nút bấm để hiện Loading */}
           <button
@@ -626,9 +717,18 @@ const LoginForm = ({ role, tab, setTab }) => {
             ></div>
           </div>
 
-          <button type="button" className="google-btn">
-            <FcGoogle size={22} style={{ marginRight: 10 }} /> Tiếp tục với
-            Google
+          <button 
+            type="button" 
+            className="google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            <FcGoogle size={22} style={{ marginRight: 10 }} /> 
+            {loading ? "Đang xử lý..." : "Tiếp tục với Google"}
           </button>
 
           <div className="footer-text">
@@ -646,6 +746,46 @@ const LoginForm = ({ role, tab, setTab }) => {
           </div>
         </form>
       )}
+
+    {tab === "forgot" && (
+        <form onSubmit={handleForgotPasswordSubmit}>
+          <div className="form-group" style={{ marginTop: "10px" }}>
+            <label style={{ marginBottom: 8, display: "block" }}>
+              Email đã đăng ký
+            </label>
+            <input
+              type="email"
+              placeholder="example@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={loading}
+            style={{
+              marginTop: 20,
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading ? "Đang gửi email..." : "Gửi liên kết khôi phục"}
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: "24px" }}>
+            <span 
+              style={{ color: "#666", fontSize: "14px", cursor: "pointer", fontWeight: 500 }}
+              onClick={() => setTab("login")}
+            >
+              &larr; Quay lại đăng nhập
+            </span>
+          </div>
+        </form>
+      )}
+
 
       {/* 3. POPUP OTP (ĐỂ RA NGOÀI CÙNG ĐỂ NÓ HIỆN ĐƯỢC Ở CẢ 2 TAB) */}
       {showOtpModal && (
@@ -778,34 +918,44 @@ const Login = () => {
       <div className="right-panel">
         <div className="form-content">
           <div className="header">
-            <h2>{tab === "login" ? "Đăng nhập" : "Đăng ký tài khoản mới"}</h2>
+            <h2>
+              {tab === "login" ? "Đăng nhập" : tab === "register" ? "Đăng ký tài khoản mới" : "Khôi phục mật khẩu"}
+            </h2>
             <p>
               {tab === "login"
                 ? "Vui lòng chọn vai trò để tiếp tục."
-                : "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."}
+                : tab === "register"
+                ? "Khám phá ngay hàng ngàn mẫu xe đạp thể thao chất lượng."
+                : "Nhập email của bạn để nhận liên kết đặt lại mật khẩu."}
             </p>
           </div>
-          <RoleSelector role={role} setRole={setRole} />
 
-          <div
-            className="auth-tabs"
-            role="tablist"
-            aria-label="Auth tabs"
-            style={{ marginBottom: 18 }}
-          >
-            <div
-              className={`tab ${tab === "login" ? "active" : ""}`}
-              onClick={() => setTab("login")}
-            >
-              Đăng nhập
-            </div>
-            <div
-              className={`tab ${tab === "register" ? "active" : ""}`}
-              onClick={() => setTab("register")}
-            >
-              Đăng ký
-            </div>
-          </div>
+          {/* CHỈ HIỂN THỊ CHỌN ROLE VÀ TABS NẾU KHÔNG PHẢI MÀN HÌNH QUÊN MẬT KHẨU */}
+          {tab !== "forgot" && (
+            <>
+              <RoleSelector role={role} setRole={setRole} />
+
+              <div
+                className="auth-tabs"
+                role="tablist"
+                aria-label="Auth tabs"
+                style={{ marginBottom: 18 }}
+              >
+                <div
+                  className={`tab ${tab === "login" ? "active" : ""}`}
+                  onClick={() => setTab("login")}
+                >
+                  Đăng nhập
+                </div>
+                <div
+                  className={`tab ${tab === "register" ? "active" : ""}`}
+                  onClick={() => setTab("register")}
+                >
+                  Đăng ký
+                </div>
+              </div>
+            </>
+          )}
 
           <LoginForm role={role} tab={tab} setTab={setTab} />
         </div>

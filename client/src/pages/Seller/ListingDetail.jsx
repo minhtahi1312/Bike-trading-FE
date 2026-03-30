@@ -403,8 +403,6 @@ const ListingDetail = () => {
               <h3 className="text-lg font-semibold tracking-tight text-gray-900">
                 Thông số kỹ thuật
               </h3>
-
-              <span className="text-sm text-gray-400">Bike Specs</span>
             </div>
 
             {/* CONTENT */}
@@ -447,7 +445,6 @@ const ListingDetail = () => {
                 <LuxuryItem
                   label="Hệ thống truyền động"
                   value={listing.bike?.groupset}
-                  full
                 />
                 <LuxuryItem
                   label="Tình trạng"

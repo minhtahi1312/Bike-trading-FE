@@ -1,13 +1,15 @@
 export const CATEGORY_OPTIONS = [
-  // ===== ROAD =====
-  { value: "Xe đạp đua", label: "Xe đạp đua" },
-  { value: "Xe đạp địa hình", label: "Xe đạp địa hình" },
-  { value: "Xe đạp đường hỗn hợp", label: "Xe đạp đường hỗn hợp" },
-  { value: "Xe đạp du lịch", label: "Xe đạp du lịch" },
-  { value: "Xe đạp biểu diễn", label: "Xe đạp biểu diễn" },
-  { value: "Xe đạp thành phố", label: "Xe đạp thành phố" },
-  { value: "Xe đạp bánh béo", label: "Xe đạp bánh béo" },
-  { value: "Xe đạp điện", label: "Xe đạp điện" },
+  { label: "Mtb", value: "Mtb" },
+  { label: "Road", value: "Road" },
+  { label: "City-hybrid", value: "City-hybrid" },
+  { label: "E-bike", value: "E-bike" },
+  { label: "Touring", value: "Touring" },
+  { label: "Folding", value: "Folding" },
+  { label: "Gravel", value: "Gravel" },
+  { label: "Fixed-gear", value: "Fixed-gear" },
+  { label: "Kids", value: "Kids" },
+  { label: "Bmx", value: "Bmx" },
+  { label: "Fat-bike", value: "Fat-bike" },
   { value: "other", label: "Khác" },
 ];
 

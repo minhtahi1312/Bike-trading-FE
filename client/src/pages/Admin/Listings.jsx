@@ -150,7 +150,7 @@ const Listings = () => {
                 <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
                   Trạng thái
                 </th>
-                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-right">
+                <th className="px-6 py-3 text-xs font-bold text-[#637588] uppercase tracking-wider whitespace-nowrap align-middle text-center">
                   Hành động
                 </th>
               </tr>
@@ -181,9 +181,8 @@ const Listings = () => {
                           : ""
                       }`}
                     >
-                      {/* Đã xóa phần Checkbox ở đây */}
 
-                      {/* 1. Thông tin xe (trước đó là mục 2) */}
+                      {/* 1. Thông tin xe  */}
                       <td className="px-6 py-4">
                         <div className="flex gap-4">
                           <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-50">
@@ -218,14 +217,12 @@ const Listings = () => {
 
                       {/* 2. Người bán */}
                       <td className="px-6 py-4">
-                        {/* Thêm justify-center để đưa cụm Avatar + Tên vào giữa ô */}
                         <div className="flex items-center justify-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700 flex-shrink-0">
                             {item.sellerName
                               ? item.sellerName.charAt(0).toUpperCase()
                               : "U"}
                           </div>
-                          {/* Thêm text-left ở đây để Tên và chữ "Thành viên..." vẫn thẳng lề với nhau */}
                           <div className="flex flex-col text-left">
                             <span className="text-sm font-medium text-[#111813] whitespace-nowrap">
                               {item.sellerName || "Chưa rõ"}
@@ -238,7 +235,6 @@ const Listings = () => {
                       </td>
 
                       {/* 3. Giá bán */}
-                      {/* Thêm text-center trực tiếp vào thẻ td */}
                       <td className="px-6 py-4 text-center">
                         <div className="text-sm font-bold text-[#111813] whitespace-nowrap">
                           {item.price
@@ -290,8 +286,8 @@ const Listings = () => {
                       </td>
 
                       {/* 6. Hành động */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center gap-2">
                           <button
                             onClick={() => handleViewDetail(item.id)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -333,28 +329,29 @@ const Listings = () => {
         {totalItems > 0 && (
           <div className="px-6 py-4 border-t border-[#e5e7eb] flex items-center justify-between">
             <span className="text-sm text-[#637588]">
-              Hiển thị {startIndex + 1} đến {Math.min(endIndex, totalItems)} trong {totalItems} tin
+              Hiển thị {startIndex + 1} đến {Math.min(endIndex, totalItems)}{" "}
+              trong {totalItems} tin
             </span>
             <div className="flex gap-1">
-              <button 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-200 rounded text-[#637588] hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
               >
                 Trước
               </button>
+
               
-              {/* Vòng lặp in ra các nút số trang */}
               {[...Array(totalPages)].map((_, index) => {
                 const pageNum = index + 1;
                 return (
-                  <button 
+                  <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`px-3 py-1 text-sm border rounded font-medium transition-colors ${
-                      currentPage === pageNum 
-                        ? 'bg-emerald-600 text-white border-emerald-600' 
-                        : 'border-gray-200 text-[#637588] hover:bg-gray-50'
+                      currentPage === pageNum
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "border-gray-200 text-[#637588] hover:bg-gray-50"
                     }`}
                   >
                     {pageNum}
@@ -362,8 +359,10 @@ const Listings = () => {
                 );
               })}
 
-              <button 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-200 rounded text-[#637588] hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
               >

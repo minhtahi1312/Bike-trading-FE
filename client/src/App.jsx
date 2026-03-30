@@ -6,7 +6,10 @@ import { Toaster } from "react-hot-toast";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Admin/Dashboard";
 import Listings from "./pages/Admin/Listings";
+import WithdrawalManagement from "./pages/Admin/WithdrawalManagement";
 import Login from "./pages/Login/Login";
+import StaffLogin from "./pages/Login/StaffLogin";
+import ResetPassword from './pages/Login/ResetPassword'
 import Homebuyer from "./pages/Home/Home-Buyer/Homebuyer";
 import Wishlistbuyer from "./pages/Home/Home-Buyer/Wishlistbuyer";
 import CartBuyer from "./pages/Home/Home-Buyer/CartBuyer";
@@ -29,11 +32,11 @@ import Policy from "./pages/Admin/Policy";
 import Categories from "./pages/Admin/Categories";
 import ListingDetail from "./pages/Admin/ListingDetail";
 import Complaints from "./pages/Admin/Complaints";
-import ComplaintDetail from "./pages/Admin/ComplaintDetail";
 import Transactions from "./pages/Admin/Transactions";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
+import SellerProfile from "./pages/Seller/Profile";
 
 import Wallet from "./pages/Seller/Wallet";
 import Withdraw from "./pages/Seller/Withdraw";
@@ -68,6 +71,8 @@ function App() {
           <Route path="order/:id" element={<OrderDetail />} />
         </Route>
         <Route path="/login" element={<Login />} />
+        <Route path="/system" element={<StaffLogin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/inspector" element={<InspectorLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<HomeInspector />} />
@@ -86,7 +91,7 @@ function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="listings/:id" element={<ListingDetail />} />
           <Route path="complaints" element={<Complaints />} />
-          <Route path="reports/:id" element={<ComplaintDetail />} />
+          <Route path="withdrawals" element={<WithdrawalManagement />} />
         </Route>
 
         {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
@@ -104,14 +109,14 @@ function App() {
           <Route path="edit-listing/:id" element={<CreateListing />} />
           <Route path="reviews" element={<SellerReview />} />
           <Route path="reports" element={<SellerReport />} />
+          <Route path="profile" element={<SellerProfile />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="transactions" element={<TransactionsPage />} />
         </Route>
       </Routes>
-
-      {/* --- 2. THÊM CÁI KHUNG HIỂN THỊ NÀY VÀO CUỐI --- */}
+      <Toaster position="top-right" />
       <ToastContainer
         position="top-right"
         autoClose={3000}

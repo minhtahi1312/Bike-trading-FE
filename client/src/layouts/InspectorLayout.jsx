@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import InspectorSidebar from './InspectorSidebar'; // Import cái Sidebar vừa tạo
+import InspectorSidebar from './InspectorSidebar'; 
 
 const InspectorLayout = () => {
   return (

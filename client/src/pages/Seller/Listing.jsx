@@ -1,8 +1,8 @@
 // /* eslint-disable */
 
-import { Search, Pencil, Eye, Calendar, Heart, Trash2 } from "lucide-react";
+import { Search, Pencil, Calendar, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SellerListings() {
   const [bikeStatusMap, setBikeStatusMap] = useState({});
@@ -11,7 +11,6 @@ export default function SellerListings() {
   const [listings, setListings] = useState([]);
   const [allListings, setAllListings] = useState([]);
   const [page, setPage] = useState(1);
-  // const [totalPages, setTotalPages] = useState(1);
 
   const [loading, setLoading] = useState(false);
 

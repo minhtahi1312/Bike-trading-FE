@@ -1,6 +1,6 @@
 import { getSellerReports } from "../../services/axiosClient";
-
-import React, { useEffect, useState } from "react";
+import Pagination from "../../components/Seller/Pagination";
+import { useEffect, useState } from "react";
 
 export default function ReportPage() {
   const [reports, setReports] = useState([]);
@@ -73,6 +73,10 @@ export default function ReportPage() {
     selectedType === "all"
       ? reports
       : reports.filter((r) => r.type === Number(selectedType));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedType, sortOrder]);
 
   // SORT
   const sortedReports = [...filteredReports].sort((a, b) => {
@@ -203,42 +207,12 @@ export default function ReportPage() {
         </div>
 
         {/* FOOTER (tạm giữ cứng, lát làm pagination thật) */}
-        <div className="flex justify-between items-center px-6 py-4 text-sm text-gray-500">
-          <span>
-            Hiển thị {(currentPage - 1) * pageSize + 1} –{" "}
-            {Math.min(currentPage * pageSize, sortedReports.length)} trên tổng{" "}
-            {sortedReports.length} khiếu nại
-          </span>
-
-          <div className="flex gap-2">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              {"<"}
-            </button>
-
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === i + 1 ? "bg-emerald-500 text-white" : "border"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              {">"}
-            </button>
-          </div>
+        <div className="border-t">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

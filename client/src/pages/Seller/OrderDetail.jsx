@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SellerOrderStepper from "../../components/Seller/SellerOrderStepper";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -40,6 +39,8 @@ export default function OrderDetail() {
       });
 
       const data = await res.json();
+
+      console.log("createdAt raw:", data.createdAt);
       if (!data) return;
       console.log("order data:", data);
       setOrder(data);
@@ -189,7 +190,7 @@ export default function OrderDetail() {
           </div>
 
           <p className="text-sm text-gray-500 mt-1">
-            Đặt lúc: {new Date(order.createdAt).toLocaleString("vi-VN")}
+            Đặt lúc: {new Date(order.createdAt + "Z").toLocaleString("vi-VN")}
           </p>
         </div>
 

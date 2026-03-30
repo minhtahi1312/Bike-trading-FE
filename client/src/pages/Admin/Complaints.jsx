@@ -39,7 +39,6 @@ export default function Complaints() {
       try {
         setIsLoading(true);
         const response = await axiosClient.get("/api/admin/list-reports");
-        // Vì API trả về mảng trực tiếp, nên ta set thẳng response.data
         setReportsData(response.data);
       } catch (error) {
         console.error("Lỗi khi tải danh sách báo cáo:", error);
@@ -51,7 +50,6 @@ export default function Complaints() {
     fetchReports();
   }, []);
 
-  // Reset về trang 1 khi thay đổi tìm kiếm hoặc bộ lọc
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
@@ -70,7 +68,7 @@ export default function Complaints() {
     };
   }, [activeReasonId]);
 
-  // --- LOGIC MAP STATUS (API trả về tiếng Anh: Pending, Resolved, Rejected...) ---
+  // --- LOGIC MAP STATUS ---
   const getStatusBadge = (status) => {
     const s = status?.toLowerCase() || "";
     switch (s) {
@@ -187,8 +185,6 @@ export default function Complaints() {
       (report.status &&
         report.status.toLowerCase() === statusFilter.toLowerCase());
 
-    // 3. (Tùy chọn nâng cao) Lọc theo ngày - Hiện tại mình cứ để true vì cần xử lý chuỗi ngày giờ hơi phức tạp
-    // const matchesDate = true;
 
     return matchesSearch && matchesStatus;
   });
@@ -275,18 +271,18 @@ export default function Complaints() {
                   Người Gửi
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[20%]">
-                  Đối tượng 
+                  Đối tượng
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[20%]">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[150px]">
                   Nội dung / Lý do
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[15%]">
+                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[140px]">
                   Trạng thái
                 </th>
                 {/* Thay cột Hành động thành cột Loại báo cáo */}
                 <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[18%] whitespace-nowrap">
-  Loại báo cáo
-</th>
+                  Loại báo cáo
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e7eb]">
@@ -360,12 +356,11 @@ export default function Complaints() {
                     </td>
 
                     {/* Nội dung */}
-                    <td className="px-6 py-4 w-[25%] relative">
+                    <td className="px-6 py-4 max-w-[200px] relative">
                       <div className="flex items-start gap-2">
-                        {/* Nút bấm để mở/đóng ô nội dung */}
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             setActiveReasonId(
                               activeReasonId === item.reportId
                                 ? null
@@ -374,7 +369,7 @@ export default function Complaints() {
                           }}
                           className={`shrink-0 mt-0.5 transition-colors ${activeReasonId === item.reportId ? "text-emerald-500" : "text-gray-400 hover:text-emerald-500"}`}
                         >
-                          <MessageSquare size={18} />
+                          <MessageSquare size={16} />
                         </button>
 
                         {/* Nội dung thu gọn (line-clamp) */}
@@ -403,10 +398,10 @@ export default function Complaints() {
                     {/* Trạng thái */}
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${getStatusBadge(item.status)}`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${getStatusDot(item.status)}`}
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDot(item.status)}`}
                         ></span>
                         {getStatusText(item.status)}
                       </span>

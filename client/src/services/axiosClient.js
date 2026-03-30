@@ -3,94 +3,106 @@ import axios from "axios";
 /**
  * ===== AXIOS INSTANCE SETUP =====
  */
+const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
+
+/**
+ */
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+/**
+ * ===== AXIOS INSTANCE SETUP =====
+ */
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://localhost:7161",
+  baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 seconds
+  timeout: 10000,
+  withCredentials: true,
 });
+
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
+
   console.log("Token đang gửi đi:", token);
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Bắt buộc phải return config để Axios tiếp tục gửi request đi
   return config;
 });
+
 /**
  * ===== RESPONSE INTERCEPTOR =====
- * Xử lý lỗi, token expiry, etc.
  */
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const apiBaseUrl = import.meta.env.VITE_API_URL || "https://localhost:7161";
 
-    // Chỉ xử lý nếu lỗi 401 và chưa retry
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return axiosClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const storedRefreshToken = localStorage.getItem("refreshToken");
-        if (!storedRefreshToken) throw new Error("No refresh token");
+        console.log(" Access Token hết hạn. Đang Renew...");
 
-        console.log("🔄 Đang gửi yêu cầu làm mới token...");
-
-        // GỌI API RENEW
         const response = await axios.post(
           `${apiBaseUrl}/api/Auth/renew-token`,
-          {
-            refreshToken: storedRefreshToken,
-          },
+          {},
+          { withCredentials: true },
         );
 
-        // Kiểm tra logic thành công dựa trên cấu trúc API của bạn
-        // Giả sử thành công trả về dữ liệu trong response.data
-        if (
-          response.data &&
-          (response.data.token || response.data.accessToken)
-        ) {
-          const newAccessToken =
-            response.data.token || response.data.accessToken;
-          const newRefreshToken = response.data.refreshToken;
+        const newAccessToken =
+          response.data?.token || response.data?.accessToken;
 
-          // 1. Cập nhật lại kho lưu trữ
+        if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
-          }
+          console.log(" Renew thành công!");
 
-          console.log("✅ Token đã được cập nhật tự động.");
+          processQueue(null, newAccessToken);
 
-          // 2. Thực hiện lại request bị lỗi với token mới
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosClient(originalRequest);
+        } else {
+          throw new Error("BE không trả về Access Token mới");
         }
       } catch (refreshError) {
-        // Nếu API renew trả về success: false hoặc lỗi 400/500
-        console.error("🚨 Phiên đăng nhập hết hạn hoàn toàn.");
+        console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
+        processQueue(refreshError, null);
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("role");
-        localStorage.removeItem("user");
-
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
     return Promise.reject(error);
   },
 );
-
 const getCart = async () => {
   const response = await axiosClient.get(`/api/Cart`);
   return response.data;
@@ -376,6 +388,57 @@ const getWithdrawals = async () => {
   }
 };
 
+//  Balance seller
+const getWalletFinance = async () => {
+  const response = await axiosClient.get(`/api/SellerWallet/finance`);
+  return response.data;
+};
+
+const withdrawMoney = async (payload) => {
+  try {
+    const response = await axiosClient.post(
+      `/api/SellerWallet/withdrawal`,
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "withdrawMoney failed:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+const getWalletBalance = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerWallet/balance`);
+    return response.data;
+  } catch (error) {
+    console.error("getWalletBalance failed:", error.message);
+    throw error;
+  }
+};
+
+const getMe = async () => {
+  const response = await axiosClient.get(`/api/Auth/me`);
+  return response.data;
+};
+
+const uploadAvatar = async (formData) => {
+  const response = await axiosClient.post("/api/Auth/upload-avatar", formData, {
+    headers: {
+      "Content-Type": undefined,
+    },
+  });
+  return response.data;
+};
+
+const changePassword = async (data) => {
+  const response = await axiosClient.post(`/api/Auth/change-password`, data);
+  return response.data;
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -406,6 +469,12 @@ export {
   getReviewSummary,
   getSellerReports,
   getWithdrawals,
+  getWalletFinance,
+  withdrawMoney,
+  getWalletBalance,
+  getMe,
+  uploadAvatar,
+  changePassword,
 };
 
 export default axiosClient;

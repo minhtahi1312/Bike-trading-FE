@@ -35,6 +35,7 @@ import Transactions from "./pages/Admin/Transactions";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
+import SellerProfile from "./pages/Seller/Profile";
 
 import Wallet from "./pages/Seller/Wallet";
 import Withdraw from "./pages/Seller/Withdraw";
@@ -101,14 +102,14 @@ function App() {
           <Route path="edit-listing/:id" element={<CreateListing />} />
           <Route path="reviews" element={<SellerReview />} />
           <Route path="reports" element={<SellerReport />} />
+          <Route path="profile" element={<SellerProfile />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="transactions" element={<TransactionsPage />} />
         </Route>
       </Routes>
-
-      {/* --- 2. THÊM CÁI KHUNG HIỂN THỊ NÀY VÀO CUỐI --- */}
+      <Toaster position="top-right" />
       <ToastContainer
         position="top-right"
         autoClose={3000}

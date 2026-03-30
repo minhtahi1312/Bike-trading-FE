@@ -93,7 +93,7 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
         processQueue(refreshError, null);
-        
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -420,6 +420,25 @@ const getWalletBalance = async () => {
   }
 };
 
+const getMe = async () => {
+  const response = await axiosClient.get(`/api/Auth/me`);
+  return response.data;
+};
+
+const uploadAvatar = async (formData) => {
+  const response = await axiosClient.post("/api/Auth/upload-avatar", formData, {
+    headers: {
+      "Content-Type": undefined,
+    },
+  });
+  return response.data;
+};
+
+const changePassword = async (data) => {
+  const response = await axiosClient.post(`/api/Auth/change-password`, data);
+  return response.data;
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -453,6 +472,9 @@ export {
   getWalletFinance,
   withdrawMoney,
   getWalletBalance,
+  getMe,
+  uploadAvatar,
+  changePassword,
 };
 
 export default axiosClient;

@@ -178,7 +178,6 @@ const BikeMarketDetail = () => {
     console.log("🚀 ~ file: DetailsBuyer.jsx:262 ~ BikeMarketDetail ~ reviews:", averageRating);
     const totalReviews = bike?.sellerReviewSummary?.totalReviews || 0;
     console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews, sellerName, joinDate);
-    const rating = Number(averageRating) || 0;
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -335,7 +334,7 @@ const BikeMarketDetail = () => {
 
 
 
-                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                            {/* <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Thời gian tham gia
                                                 </p>
@@ -345,7 +344,7 @@ const BikeMarketDetail = () => {
                                                         {joinDate}
                                                     </span>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                         </div>
                                     </div>

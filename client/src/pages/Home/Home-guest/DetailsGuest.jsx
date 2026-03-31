@@ -65,6 +65,7 @@ const DetailsGuest = () => {
 
     /* --------- API WISHLIST--------- */
     const handleWishlistToggle = async (bikeId) => {
+        
         try {
             if (wishlistIds.has(bikeId)) {
                 await removeFromWishlist(bikeId);
@@ -174,9 +175,10 @@ const DetailsGuest = () => {
 
     const reviews = bike?.sellerReviewSummary?.latestReviews || [];
     const sellerName = bike?.sellerReviewSummary?.sellerName;
-    const joinDate = bike?.sellerReviewSummary?.joinDate;
-    const averageRating = bike?.sellerReviewSummary?.averageRating;
-    const totalReviews = bike?.sellerReviewSummary?.totalReviews;
+     const joinDate = bike?.sellerReviewSummary?.joinDate;
+    const averageRating = Number(bike?.sellerReviewSummary?.averageRating) || 0;
+    console.log("🚀 ~ file: DetailsBuyer.jsx:262 ~ BikeMarketDetail ~ reviews:", averageRating);
+    const totalReviews = bike?.sellerReviewSummary?.totalReviews || 0;
     console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews, sellerName, joinDate);
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
@@ -293,45 +295,46 @@ const DetailsGuest = () => {
 
                                                 {/* Rating & Total Reviews */}
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex items-center text-[#ffc107]">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <span key={i} className="material-symbols-outlined text-[18px] [font-variation-settings:'FILL'_1]">star</span>
-                                                        ))}
+                                                    <div className="flex items-center">
+                                                        {[...Array(5)].map((_, i) => {
+
+                                                            const isFilled = i < Math.floor(averageRating);
+
+                                                            return (
+                                                                <span
+                                                                    key={i}
+                                                                    className="material-symbols-outlined text-[18px]"
+                                                                    style={{
+
+                                                                        fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0",
+
+                                                                        color: isFilled ? "#ffc107" : "#d1d5db",
+                                                                    }}
+                                                                >
+                                                                    star
+                                                                </span>
+                                                            );
+                                                        })}
                                                     </div>
+
                                                     <span className="font-bold text-[#111813] dark:text-white text-base">
-                                                        {averageRating}
+                                                        {averageRating.toFixed(1)}
                                                     </span>
+
                                                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                                         ({totalReviews} đánh giá)
                                                     </span>
                                                 </div>
 
                                                 {/* Tags (Uy tín & Kiểm định) */}
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[11px] font-bold text-[#059669] bg-[#d1fae5] dark:bg-[#064e3b]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                                                        Người bán uy tín
-                                                    </span>
-                                                    <span className="text-[11px] font-bold text-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                                                        Đã kiểm định
-                                                    </span>
-                                                </div>
+
                                             </div>
                                         </div>
 
                                         {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
                                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
 
-                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
-                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
-                                                    Tỷ lệ phản hồi
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[#10b981] text-[20px] [font-variation-settings:'FILL'_1]">bolt</span>
-                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
-                                                        98% <span className="font-normal">(trong 1h)</span>
-                                                    </span>
-                                                </div>
-                                            </div>
+                                         
                                             <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Thời gian tham gia

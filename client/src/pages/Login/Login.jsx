@@ -50,7 +50,7 @@ const LoginForm = ({ role, tab, setTab }) => {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false); // Thêm state Loading
+  const [loading, setLoading] = useState(false); 
 
   // State riêng cho form Đăng Ký
   const [fullName, setFullName] = useState("");
@@ -88,7 +88,7 @@ const LoginForm = ({ role, tab, setTab }) => {
       setLoading(false);
     }
   };
-  // --- 1. XỬ LÝ ĐĂNG NHẬP (CÓ CHỖ CHỜ SẴN CHO SELLER & INSPECTOR) ---
+  // --- 1. XỬ LÝ ĐĂNG NHẬP  ---
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
@@ -103,9 +103,6 @@ const LoginForm = ({ role, tab, setTab }) => {
         email: email,
         password: password,
       });
-
-      console.log("LOGIN RESPONSE:", response.data);
-      console.log("UI ROLE:", role);
 
       if (response.data && response.data.success === true) {
         // --- BƯỚC 1: CHUẨN HÓA ROLE  ---
@@ -132,7 +129,6 @@ const LoginForm = ({ role, tab, setTab }) => {
           serverRoleStr = rawRole.toUpperCase();
         }
 
-        console.log("Role chuẩn hóa:", serverRoleStr);
 
         if (serverRoleStr === "ADMIN" || serverRoleStr === "INSPECTOR") {
           toast.error("Tài khoản quản trị vui lòng đăng nhập tại trang nội bộ!");
@@ -166,7 +162,7 @@ const LoginForm = ({ role, tab, setTab }) => {
             navigate("/seller");
           }
         } else {
-          // Báo lỗi nếu chọn sai tab (Ví dụ: Tài khoản Buyer nhưng bấm tab Seller)
+          // Báo lỗi nếu chọn sai tab 
           let roleNameTV = serverRoleStr === "BUYER" ? "Người mua" : "Người bán";
           toast.error(
             `Tài khoản này là ${roleNameTV}. Vui lòng chọn đúng vai trò phía trên!`,
@@ -192,7 +188,7 @@ const LoginForm = ({ role, tab, setTab }) => {
         // 2. Thông báo cho người dùng
         toast.info("Tài khoản chưa xác thực. Hệ thống đang gửi lại mã OTP...");
 
-        // 3. Tự động chạy API gửi lại mã (Gọi sau cùng)
+        // 3. Tự động chạy API gửi lại mã 
         handleResendOtp();
       } else {
         toast.error(serverMsg || "Sai tài khoản hoặc mật khẩu!");
@@ -338,7 +334,6 @@ const LoginForm = ({ role, tab, setTab }) => {
         role: roleId,
       });
 
-      console.log("GOOGLE LOGIN RESPONSE:", response.data);
 
       if (response.data && response.data.success === true) {
         toast.success("Đăng nhập bằng Google thành công!");
@@ -349,12 +344,10 @@ const LoginForm = ({ role, tab, setTab }) => {
           localStorage.setItem("accessToken", token);
         }
 
-        // Lấy Role từ backend trả về (nếu có) hoặc dùng role người dùng đang chọn
         const rawRole = response.data.role || response.data.Role;
-        let finalRole = role.toUpperCase(); // Mặc định theo UI
+        let finalRole = role.toUpperCase(); 
         
         if (rawRole) {
-           // Nếu BE trả về role cụ thể (1,2,3,4) thì map lại giống hàm login thường
            if (Number(rawRole) === 2) finalRole = "BUYER";
            if (Number(rawRole) === 3) finalRole = "SELLER";
         }
@@ -376,7 +369,6 @@ const LoginForm = ({ role, tab, setTab }) => {
       }
     } catch (error) {
       console.error("Google Login Error:", error);
-      // Bắt lỗi khi người dùng tắt popup giữa chừng
       if (error.code === 'auth/popup-closed-by-user') {
         toast.info("Đã hủy đăng nhập Google.");
       } else {
@@ -402,8 +394,6 @@ const LoginForm = ({ role, tab, setTab }) => {
 
       if (response.data && response.data.success === true) {
         toast.success("Đã gửi liên kết khôi phục! Vui lòng kiểm tra email của bạn.");
-        // Gửi thành công thì cho người dùng nán lại hoặc tự chuyển về tab login
-        // setTab("login"); 
       } else {
         toast.error(response.data.message || "Không thể gửi yêu cầu. Vui lòng thử lại!");
       }
@@ -787,7 +777,7 @@ const LoginForm = ({ role, tab, setTab }) => {
       )}
 
 
-      {/* 3. POPUP OTP (ĐỂ RA NGOÀI CÙNG ĐỂ NÓ HIỆN ĐƯỢC Ở CẢ 2 TAB) */}
+      {/* 3. POPUP OTP  */}
       {showOtpModal && (
         <div className="otp-overlay">
           <div className="otp-box">

@@ -19,7 +19,6 @@ import InspectorLayout from "./layouts/InspectorLayout";
 import InspectionPage from "./pages/Inspector/InspectionPage";
 import HistoryInspector from "./pages/Inspector/HistoryInspector";
 import InspectionHistoryDetail from "./pages/Inspector/InspectionHistoryDetail";
-import InspectorProfile from "./pages/Inspector/InspectorProfile";
 import SellerLayout from "./layouts/SellerLayout";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerReview from "./pages/Seller/Review";
@@ -75,7 +74,6 @@ function App() {
           <Route path="inspect/:id" element={<InspectionPage />} />
           <Route path="history" element={<HistoryInspector />} />
           <Route path="history/:id" element={<InspectionHistoryDetail />} />
-          <Route path="profile" element={<InspectorProfile />} />
         </Route>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />

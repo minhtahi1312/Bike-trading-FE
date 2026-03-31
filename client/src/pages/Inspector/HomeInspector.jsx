@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosClient from "../../services/axiosClient";
-import { Bell, Filter, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 export default function HomeInspector() {
   const navigate = useNavigate();
@@ -77,12 +77,6 @@ export default function HomeInspector() {
             Quản lý và xử lý các yêu cầu kiểm định xe mới nhất.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[#e5e7eb] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm text-[#637588]">
-            <Bell size={18} /> Thông báo
-            <span className="flex h-2 w-2 rounded-full bg-red-500 -ml-1"></span>
-          </button>
-        </div>
       </div>
 
      
@@ -91,9 +85,6 @@ export default function HomeInspector() {
       <div className="bg-white rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-[#e5e7eb] flex justify-between items-center">
           <h3 className="text-[#111813] text-lg font-bold">Danh sách xe</h3>
-          <button className="flex items-center gap-1 text-sm font-semibold text-[#637588] hover:text-emerald-600">
-            <Filter size={16} /> Bộ lọc
-          </button>
         </div>
 
         <div className="overflow-x-auto">

@@ -66,7 +66,6 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log(" Access Token hết hạn. Đang Renew...");
 
         const response = await axios.post(
           `${apiBaseUrl}/api/Auth/renew-token`,
@@ -79,8 +78,6 @@ axiosClient.interceptors.response.use(
 
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
-          console.log(" Renew thành công!");
-
           processQueue(null, newAccessToken);
 
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

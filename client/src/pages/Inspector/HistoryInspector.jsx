@@ -156,8 +156,8 @@ export default function HistoryInspector() {
                             className={`w-1.5 h-1.5 rounded-full 
       ${item.score >= 50 ? getResultDot("passed") : getResultDot("failed")}`}
                           ></span>
-                          {item.score >= 50 ? "Đạt" : " Không đạt"} (
-                          {item.score})
+                          {item.score >= 50 ? "Đạt" : " Không đạt"} 
+                    
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">

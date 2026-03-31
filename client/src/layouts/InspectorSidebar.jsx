@@ -56,9 +56,8 @@ const InspectorSidebar = () => {
 
       setShowLogoutModal(false);
 
-      // Thông báo và chuyển hướng
       toast.success("Đã đăng xuất khỏi tài khoản Kiểm định viên!");
-      navigate("/login");
+      navigate("/system");
     }
   };
 

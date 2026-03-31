@@ -190,7 +190,8 @@ export default function OrderDetail() {
           </div>
 
           <p className="text-sm text-gray-500 mt-1">
-            Đặt lúc: {new Date(order.createdAt + "Z").toLocaleString("vi-VN")}
+            Đặt ngày:{" "}
+            {new Date(order.createdAt + "Z").toLocaleDateString("vi-VN")}
           </p>
         </div>
 

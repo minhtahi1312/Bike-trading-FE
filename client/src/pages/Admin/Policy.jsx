@@ -16,7 +16,9 @@ import {
   Edit,
   Trash2,
   Clock,
+  AlertCircle,
 } from "lucide-react";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const Policy = () => {
   const navigate = useNavigate();
@@ -25,6 +27,18 @@ const Policy = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState(null);
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [policyToDelete, setPolicyToDelete] = useState(null);
+
+  const showToast = (message, type = "info") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 3000);
+  };
   const [formData, setFormData] = useState({
     description: "",
     percentOfSystem: 5.0,
@@ -160,23 +174,24 @@ const Policy = () => {
 
   const handleSubmitPolicy = async () => {
     if (!formData.description.trim()) {
-      alert("Vui lòng nhập mô tả chính sách!");
+      showToast("Vui lòng nhập mô tả chính sách!", "error");
       return;
     }
     if (!formData.appliedDate) {
-      alert("Vui lòng chọn ngày giờ áp dụng!");
+      showToast("Vui lòng chọn ngày giờ áp dụng!", "error");
+
       return;
     }
 
     const percentSystem = parseFloat(formData.percentOfSystem);
     if (isNaN(percentSystem) || percentSystem < 0 || percentSystem > 100) {
-      alert("Vui lòng nhập mức phí hợp lệ (từ 0 đến 100)!");
+      showToast("Vui lòng nhập mức phí hợp lệ (từ 0 đến 100)!", "error");
       return;
     }
 
     const selectedDate = new Date(formData.appliedDate);
     if (selectedDate <= new Date()) {
-      alert("Lỗi: Ngày áp dụng phải ở thì tương lai!");
+      showToast("Lỗi: Ngày áp dụng phải ở thì tương lai!", "error");
       return;
     }
 
@@ -196,10 +211,11 @@ const Policy = () => {
       const data = response.data;
 
       if (data.success) {
-        alert(
+        showToast(
           editingPolicyId
             ? "Cập nhật Policy thành công!"
             : "Tạo Policy thành công!",
+          "success",
         );
         setIsModalOpen(false);
         setEditingPolicyId(null);
@@ -208,43 +224,45 @@ const Policy = () => {
         fetchAllPolicies();
         fetchCurrentPolicy();
       } else {
-        alert("Có lỗi xảy ra: " + (data.message || "Không thể thực hiện"));
+        showToast("Có lỗi xảy ra: " + (data.message || "Không thể thực hiện"), "error");
       }
     } catch (error) {
       console.error("Lỗi khi kết nối API:", error);
       const errorMsg =
         error.response?.data?.message || "Lỗi kết nối đến máy chủ.";
-      alert(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
   };
-  const handleViewDetail = (id) => {
-    navigate(`/admin/transactions/${encodeURIComponent(id)}`);
+
+  const handleDeletePolicy = (policy) => {
+    setPolicyToDelete(policy);
+    setIsDeleteModalOpen(true);
   };
 
-  const handleDeletePolicy = async (id) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xóa chính sách này không?",
-    );
-    if (!confirmDelete) return;
-
+  const handleConfirmDelete = async () => {
+    if (!policyToDelete) return;
+    setIsLoading(true);
     try {
-      // Chỉ cần truyền ID, axiosClient tự thêm baseURL và Token
-      const response = await axiosClient.delete(`/api/Policy/${id}`);
-
+      const response = await axiosClient.delete(
+        `/api/Policy/${policyToDelete.id}`,
+      );
       if (response.data.success) {
-        alert("Xóa Policy thành công!");
+        showToast("Xóa chính sách thành công!", "success");
         fetchAllPolicies();
         fetchCurrentPolicy();
+        setIsDeleteModalOpen(false);
       } else {
-        alert(
-          "Có lỗi xảy ra: " + (response.data.message || "Không thể xóa Policy"),
-        );
+        showToast(response.data.message || "Không thể xóa chính sách", "error");
       }
     } catch (error) {
-      console.error("Lỗi khi xóa:", error);
-      alert(error.response?.data?.message || "Lỗi kết nối đến máy chủ.");
+      showToast(
+        error.response?.data?.message || "Lỗi kết nối máy chủ",
+        "error",
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -271,6 +289,30 @@ const Policy = () => {
   }, [searchTerm]);
 
   return (
+    <>
+    {/* 1. TOAST THÔNG BÁO */}
+    {toast.show && (
+      <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[10001] animate-in slide-in-from-top duration-300">
+        <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-2xl border ${
+          toast.type === "error" ? "bg-red-50 border-red-200 text-red-700" : "bg-emerald-50 border-emerald-200 text-emerald-700"
+        }`}>
+          {toast.type === "error" ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+          <span className="text-sm font-bold">{toast.message}</span>
+        </div>
+      </div>
+    )}
+
+    {/* 2. MODAL XÁC NHẬN XÓA */}
+    <ConfirmModal
+      isOpen={isDeleteModalOpen}
+      onClose={() => !isLoading && setIsDeleteModalOpen(false)}
+      onConfirm={handleConfirmDelete}
+      title="Xác nhận xóa chính sách"
+      description={`Bạn có chắc chắn muốn xóa chính sách "${policyToDelete?.description}"? Hành động này không thể hoàn tác.`}
+      type="danger"
+      confirmText="Xác nhận xóa"
+      isLoading={isLoading}
+    />
     <div className="flex flex-col gap-8 font-display text-[#111813] bg-gray-50/50 min-h-screen relative">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -489,11 +531,11 @@ const Policy = () => {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEditClick(item)}
-                          disabled={item.timelineStatus !== "Chờ hiệu lực"} 
+                          disabled={item.timelineStatus !== "Chờ hiệu lực"}
                           className={`p-2 rounded-lg transition-colors ${
                             item.timelineStatus === "Chờ hiệu lực"
-                              ? "text-blue-500 hover:bg-blue-50" 
-                              : "text-gray-300 cursor-not-allowed" 
+                              ? "text-blue-500 hover:bg-blue-50"
+                              : "text-gray-300 cursor-not-allowed"
                           }`}
                           title={
                             item.timelineStatus === "Chờ hiệu lực"
@@ -504,7 +546,7 @@ const Policy = () => {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeletePolicy(item.id)} 
+                          onClick={() => handleDeletePolicy(item)}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Xóa"
                         >
@@ -690,6 +732,7 @@ const Policy = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

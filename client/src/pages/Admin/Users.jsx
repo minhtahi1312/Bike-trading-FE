@@ -17,7 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import axiosClient from "../../services/axiosClient";
-
+import ConfirmModal from "../../components/ConfirmModal";
 const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +28,19 @@ const Users = () => {
     phone: "",
   });
   const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+  
+  const [confirmStatus, setConfirmStatus] = useState({ 
+    isOpen: false, 
+    userId: null, 
+    userName: "", 
+    actionText: "" 
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 3000);
+  };
   const [totalPages, setTotalPages] = useState(1);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,10 +65,7 @@ const Users = () => {
         payload,
       );
 
-      alert(
-        response.data.message ||
-          `Tạo tài khoản Inspector thành công cho: ${formData.fullName}`,
-      );
+      showToast(response.data.message || "Tạo Inspector thành công!", "success");
       setIsModalOpen(false);
       setFormData({ fullName: "", email: "", password: "", phone: "" });
       fetchUsers();
@@ -136,35 +146,37 @@ const Users = () => {
       setIsLoadingTable(false);
     }
   };
-  const handleToggleUserStatus = async (userId, currentStatus) => {
-    const actionText = currentStatus === "Active" ? "KHÓA" : "MỞ KHÓA";
-
-    if (
-      !window.confirm(
-        `Bạn có chắc chắn muốn ${actionText} tài khoản này không?`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const response = await axiosClient.put(`/api/admin/ban-user/${userId}`);
-
-      alert(
-        response.data.message ||
-          `Đã ${actionText.toLowerCase()} tài khoản thành công!`,
-      );
-
-      fetchUsers();
-    } catch (error) {
-      console.error(`Lỗi khi ${actionText.toLowerCase()} tài khoản:`, error);
-      alert(
-        error.response?.data?.message ||
-          "Có lỗi xảy ra khi cập nhật trạng thái người dùng.",
-      );
-    }
+  const handleToggleUserStatus = (user) => {
+    const actionText = user.status === "Active" ? "KHÓA" : "MỞ KHÓA";
+    setConfirmStatus({
+      isOpen: true,
+      userId: user.id,
+      userName: user.fullName,
+      actionText: actionText
+    });
   };
 
+  const handleConfirmStatusChange = async () => {
+    setIsSubmitting(true);
+    const { userId, actionText } = confirmStatus;
+    try {
+      // Đúng theo Swagger: Method PUT, URL có ID
+      const response = await axiosClient.put(`/api/admin/ban-user/${userId}`);
+      
+      // Lấy "message" từ Response Body của Swagger để hiển thị Toast
+      showToast(response.data.message || `Đã ${actionText.toLowerCase()} thành công!`, "success");
+      
+      setConfirmStatus({ ...confirmStatus, isOpen: false }); // Đóng modal
+      fetchUsers(); // Tải lại danh sách để cập nhật UI
+    } catch (error) {
+      console.error(`Lỗi khi ${actionText.toLowerCase()} tài khoản:`, error);
+      const errorMsg = error.response?.data?.message || "Có lỗi xảy ra từ máy chủ.";
+      showToast(errorMsg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   useEffect(() => {
     fetchUsers();
   }, [debouncedSearch, roleFilter, statusFilter, currentPage]);
@@ -219,8 +231,37 @@ const Users = () => {
       </span>
     );
   };
+  
 
   return (
+    <>
+      {/* 1. THÔNG BÁO TOAST (Luôn để trên cùng) */}
+      {toast.show && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[10001] animate-in slide-in-from-top duration-300">
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-2xl border ${
+            toast.type === "error" ? "bg-red-50 border-red-200 text-red-700" : "bg-emerald-50 border-emerald-200 text-emerald-700"
+          }`}>
+            {toast.type === "error" ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+            <span className="text-sm font-bold">{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL XÁC NHẬN KHÓA/MỞ KHÓA */}
+      <ConfirmModal
+        isOpen={confirmStatus.isOpen}
+        onClose={() => !isSubmitting && setConfirmStatus({ ...confirmStatus, isOpen: false })}
+        onConfirm={handleConfirmStatusChange}
+        title={`Xác nhận ${confirmStatus.actionText.toLowerCase()}`}
+        description={`Bạn có chắc chắn muốn ${confirmStatus.actionText} tài khoản của người dùng "${confirmStatus.userName}"?`}
+        type={confirmStatus.actionText === "KHÓA" ? "danger" : "success"}
+        confirmText={confirmStatus.actionText}
+        isLoading={isSubmitting}
+      />
+    
+
+      
+
     <div className="flex flex-col gap-6 font-display text-[#111813]">
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -375,9 +416,7 @@ const Users = () => {
                       <div className="flex items-center justify-center gap-2">
                         {user.status === "Active" ? (
                           <button
-                            onClick={() =>
-                              handleToggleUserStatus(user.id, user.status)
-                            }
+                            onClick={() => handleToggleUserStatus(user)}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                             title="Khóa tài khoản"
                           >
@@ -385,9 +424,7 @@ const Users = () => {
                           </button>
                         ) : (
                           <button
-                            onClick={() =>
-                              handleToggleUserStatus(user.id, user.status)
-                            }
+                            onClick={() => handleToggleUserStatus(user)}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                             title="Mở khóa"
                           >
@@ -429,6 +466,7 @@ const Users = () => {
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       {/* --- MODAL UI --- */}
@@ -598,8 +636,8 @@ const Users = () => {
             </form>
           </div>
         </div>
-      )}
-    </div>
+     )}
+    </>
   );
 };
 

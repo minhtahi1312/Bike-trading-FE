@@ -65,10 +65,10 @@ export default function HistoryInspector() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-[#111813] text-3xl font-extrabold tracking-tight">
-            Lịch sử Kiểm định
+            Lịch sử các xe đã được kiểm định
           </h1>
           <p className="text-[#637588] text-sm mt-1">
-            Quản lý và xem lại danh sách tất cả các xe bạn đã thực hiện kiểm
+            Quản lý và xem lại danh sách tất cả các xe đã thực hiện kiểm
             định.
           </p>
         </div>

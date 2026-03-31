@@ -4,17 +4,21 @@ import {
   ArrowUpRight, MoreHorizontal, Loader2, ChevronLeft, ChevronRight
 } from "lucide-react";
 import axiosClient from "../../services/axiosClient";
+import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-hot-toast"; 
 
 export default function WithdrawalManagement() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null); 
-  
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    id: null,
+    type: null,
+    actionText: ""
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  // --- LOGIC PHÂN TRANG  ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; 
 
@@ -53,22 +57,27 @@ export default function WithdrawalManagement() {
     }
   };
 
-  const handleAction = async (id, type) => {
+  const openConfirmModal = (id, type) => {
     const actionText = type === 'approve' ? 'duyệt chi' : 'từ chối';
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} yêu cầu này không?`)) return;
+    setConfirmModal({ isOpen: true, id, type, actionText });
+  };
 
+  // Hàm 2: Gọi API khi bấm "Xác nhận" trong Modal
+  const executeAction = async () => {
+    const { id, type, actionText } = confirmModal;
     try {
       setActionLoading(id);
       await axiosClient.put(`/api/admin/withdrawals/${id}/${type}`);
       toast.success(`Đã ${actionText} thành công!`);
+      
+      setConfirmModal({ ...confirmModal, isOpen: false }); // Đóng modal
       fetchWithdrawals(); 
     } catch (error) {
       toast.error(`Có lỗi xảy ra: ${error.response?.data?.message || "Thao tác thất bại"}`);
     } finally {
       setActionLoading(null);
     }
-  };
-
+  }
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
@@ -210,8 +219,8 @@ export default function WithdrawalManagement() {
                                 <Loader2 className="animate-spin text-emerald-600" size={20} />
                               ) : (
                                 <>
-                                  <button onClick={() => handleAction(item.transactionId, 'approve')} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Duyệt chi"><CheckCircle2 size={18} /></button>
-                                  <button onClick={() => handleAction(item.transactionId, 'reject')} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Từ chối"><XCircle size={18} /></button>
+                                  <button onClick={() => openConfirmModal(item.transactionId, 'approve')} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Duyệt chi"><CheckCircle2 size={18} /></button>
+                                  <button onClick={() => openConfirmModal(item.transactionId, 'reject')} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Từ chối"><XCircle size={18} /></button>
                                 </>
                               )}
                             </>
@@ -266,6 +275,16 @@ export default function WithdrawalManagement() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => !actionLoading && setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={executeAction}
+        title={`Xác nhận ${confirmModal.actionText}`}
+        description={`Bạn có chắc chắn muốn ${confirmModal.actionText} yêu cầu rút tiền này không?`}
+        type={confirmModal.type === 'reject' ? "danger" : "success"}
+        confirmText={`Xác nhận ${confirmModal.actionText}`}
+        isLoading={actionLoading === confirmModal.id}
+      />
     </div>
   );
 }

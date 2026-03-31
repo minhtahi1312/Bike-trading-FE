@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import {
   Search,
-  Filter,
-  Calendar,
-  Eye,
+  XCircle,
   AlertTriangle,
   ShieldAlert,
   CheckCircle2,
   Clock,
   MessageSquare,
   MoreVertical,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axiosClient from "../../services/axiosClient";
+import { toast } from "react-hot-toast";
+import ConfirmModal from "../../components/ConfirmModal";
 
 export default function Complaints() {
   const navigate = useNavigate();
@@ -32,6 +33,14 @@ export default function Complaints() {
   // States Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [actionLoading, setActionLoading] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    id: null,
+    type: null,
+    actionText: "",
+    reportCode: "",
+  });
 
   // --- GỌI API ---
   useEffect(() => {
@@ -49,6 +58,50 @@ export default function Complaints() {
 
     fetchReports();
   }, []);
+
+  const openConfirmModal = (report, type) => {
+    let actionText = "";
+    const status = report.status?.toLowerCase();
+
+    if (type === "reject") {
+      actionText = "từ chối";
+    } else if (type === "progress") {
+      if (status === "pending") {
+        actionText = "đưa vào xử lý";
+      } else if (status === "processing") {
+        actionText = "đánh dấu đã giải quyết";
+      }
+    }
+
+    setConfirmModal({
+      isOpen: true,
+      id: report.reportId,
+      type: type,
+      actionText: actionText,
+      reportCode: report.reportCode,
+    });
+  };
+
+  const executeAction = async () => {
+    const { id, type, actionText, reportCode } = confirmModal;
+    try {
+      setActionLoading(id);
+      await axiosClient.put(`/api/admin/${id}/${type}`);
+      toast.success(`Đã ${actionText} khiếu nại ${reportCode}!`);
+
+      setConfirmModal({ ...confirmModal, isOpen: false });
+
+      // Tải lại bảng sau khi thành công
+      const response = await axiosClient.get("/api/admin/list-reports");
+      setReportsData(response.data);
+    } catch (error) {
+      toast.error(
+        `Lỗi: ${error.response?.data?.message || "Không thể thao tác"}`,
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -185,7 +238,6 @@ export default function Complaints() {
       (report.status &&
         report.status.toLowerCase() === statusFilter.toLowerCase());
 
-
     return matchesSearch && matchesStatus;
   });
 
@@ -195,7 +247,6 @@ export default function Complaints() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Hàm tạo mảng số trang để render ([1, 2, 3...])
   const getPageNumbers = () => {
     const pageNumbers = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -261,27 +312,30 @@ export default function Complaints() {
 
         {/* TABLE */}
         <div className="overflow-x-auto w-full flex-1">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[15%]">
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[12%]">
                   Mã KN
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[15%]">
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[15%]">
                   Người Gửi
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[20%]">
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[18%]">
                   Đối tượng
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[150px]">
+                {/* Cho cột nội dung tự do co giãn */}
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider">
                   Nội dung / Lý do
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[140px]">
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[130px]">
                   Trạng thái
                 </th>
-                {/* Thay cột Hành động thành cột Loại báo cáo */}
-                <th className="px-6 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[18%] whitespace-nowrap">
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider w-[12%]">
                   Loại báo cáo
+                </th>
+                <th className="px-4 py-4 text-xs font-bold text-[#637588] uppercase tracking-wider text-right w-[90px]">
+                  Thao tác
                 </th>
               </tr>
             </thead>
@@ -314,7 +368,7 @@ export default function Complaints() {
                     className="hover:bg-gray-50/80 transition-colors group"
                   >
                     {/* Mã & Ngày */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-bold text-[#111813]">
                           {item.reportCode}
@@ -327,7 +381,7 @@ export default function Complaints() {
                     </td>
 
                     {/* Người khiếu nại */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-sm font-bold text-[#111813]">
                           {item.reporterName}
@@ -339,7 +393,7 @@ export default function Complaints() {
                     </td>
 
                     {/* Đối tượng */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex flex-col gap-1">
                         <span
                           className="text-sm font-semibold text-emerald-600 hover:underline truncate"
@@ -356,7 +410,7 @@ export default function Complaints() {
                     </td>
 
                     {/* Nội dung */}
-                    <td className="px-6 py-4 max-w-[200px] relative">
+                    <td className="px-4 py-4 max-w-[200px] relative">
                       <div className="flex items-start gap-2">
                         <button
                           onClick={(e) => {
@@ -372,12 +426,10 @@ export default function Complaints() {
                           <MessageSquare size={16} />
                         </button>
 
-                        {/* Nội dung thu gọn (line-clamp) */}
                         <p className="text-sm text-[#111813] font-medium line-clamp-2">
                           {item.reason}
                         </p>
 
-                        {/* Ô nhỏ hiện nội dung đầy đủ (Popover) */}
                         {activeReasonId === item.reportId && (
                           <div className="absolute z-[100] top-full left-6 mt-2 w-72 p-4 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in fade-in zoom-in duration-200">
                             {/* Mũi tên trỏ lên */}
@@ -396,7 +448,7 @@ export default function Complaints() {
                       </div>
                     </td>
                     {/* Trạng thái */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <span
                         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${getStatusBadge(item.status)}`}
                       >
@@ -408,10 +460,67 @@ export default function Complaints() {
                     </td>
 
                     {/* Loại Báo Cáo */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <span className="text-xs font-bold text-[#475569] bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-md inline-block whitespace-nowrap">
                         {item.reportType}
                       </span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        {item.status?.toLowerCase() === "pending" ||
+                        item.status?.toLowerCase() === "processing" ? (
+                          <>
+                            {actionLoading === item.reportId ? (
+                              <div className="p-2">
+                                <Loader2
+                                  className="animate-spin text-emerald-600"
+                                  size={20}
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                {/* NÚT PROGRESS (Chuyển tiếp trạng thái) */}
+                                <button
+                                  onClick={() =>
+                                    openConfirmModal(item, "progress")
+                                  }
+                                  className={`p-2 rounded-lg transition-all ${
+                                    item.status?.toLowerCase() === "pending"
+                                      ? "text-blue-600 hover:bg-blue-50" // Pending -> Đưa vào xử lý (Màu xanh dương)
+                                      : "text-emerald-600 hover:bg-emerald-50" // Processing -> Giải quyết (Màu xanh lá)
+                                  }`}
+                                  title={
+                                    item.status?.toLowerCase() === "pending"
+                                      ? "Đưa vào xử lý"
+                                      : "Đánh dấu đã giải quyết"
+                                  }
+                                >
+                                  <CheckCircle2 size={18} />
+                                </button>
+
+                                {/* NÚT TỪ CHỐI (Reject) */}
+                                <button
+                                  onClick={() =>
+                                    openConfirmModal(item, "reject")
+                                  }
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                  title="Từ chối khiếu nại"
+                                >
+                                  <XCircle size={18} />
+                                </button>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <button
+                            className="p-2 text-gray-300 cursor-not-allowed"
+                            disabled
+                            title="Không thể thao tác"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -422,7 +531,7 @@ export default function Complaints() {
 
         {/* PAGINATION */}
         {!isLoading && filteredReports.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-[#e5e7eb] bg-white gap-4 shrink-0 rounded-b-xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-4 border-t border-[#e5e7eb] bg-white gap-4 shrink-0 rounded-b-xl">
             <div className="text-sm text-[#637588]">
               Hiển thị{" "}
               <span className="font-bold text-[#111813]">
@@ -474,6 +583,18 @@ export default function Complaints() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() =>
+          !actionLoading && setConfirmModal({ ...confirmModal, isOpen: false })
+        }
+        onConfirm={executeAction}
+        title={`Xác nhận ${confirmModal.actionText}`}
+        description={`Bạn có chắc chắn muốn ${confirmModal.actionText} khiếu nại mã "${confirmModal.reportCode}" không?`}
+        type={confirmModal.type === "reject" ? "danger" : "success"}
+        confirmText={`Xác nhận ${confirmModal.actionText}`}
+        isLoading={actionLoading === confirmModal.id}
+      />
     </div>
   );
 }

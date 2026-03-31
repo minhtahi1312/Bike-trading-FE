@@ -17,9 +17,10 @@ import {
   Check,
   X,
   Loader2,
-  PlayCircle
+  PlayCircle,
 } from "lucide-react";
 import axiosClient from "../../services/axiosClient";
+import ConfirmModal from "../../components/ConfirmModal";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function MergedInspectionPage() {
@@ -33,6 +34,7 @@ export default function MergedInspectionPage() {
     type: "info",
   });
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const showToast = (message, type = "error") => {
     setToast({ show: true, message, type });
@@ -58,7 +60,6 @@ export default function MergedInspectionPage() {
     const fetchBikeDetails = async () => {
       setLoading(true);
       try {
-        // Gọi API với ID truyền vào Header 'x-pendingbike-id' như Swagger yêu cầu
         const response = await axiosClient.get(
           "/api/inspector/pending-bike-details",
           {
@@ -77,7 +78,8 @@ export default function MergedInspectionPage() {
           idDisplay: data.id.substring(0, 8).toUpperCase(),
           price: data.price.toLocaleString("vi-VN") + " ₫",
           condition: `${data.overall} - ${data.operating}`,
-          description: data.listingDescription || "Không có mô tả từ người bán.",
+          description:
+            data.listingDescription || "Không có mô tả từ người bán.",
           specs: {
             frame: data.frameMaterial,
             size: data.frameSize,
@@ -122,26 +124,27 @@ export default function MergedInspectionPage() {
   const handleComplete = async () => {
     if (isSubmitting) return;
 
-    // 1. Kiểm tra điểm nhập vào có hợp lệ không 
+    // 1. Kiểm tra điểm nhập vào có hợp lệ không
     if (formData.score < 0 || formData.score > 100) {
       showToast("Điểm số phải nằm trong khoảng 0 - 100.");
       return;
     }
 
     // 2. Đếm số lượng hạng mục bị đánh giá "Lỗi" (false)
-    const failedCount = 
-      (!formData.frame ? 1 : 0) + 
-      (!formData.paintCondition ? 1 : 0) + 
-      (!formData.drivetrain ? 1 : 0) + 
+    const failedCount =
+      (!formData.frame ? 1 : 0) +
+      (!formData.paintCondition ? 1 : 0) +
+      (!formData.drivetrain ? 1 : 0) +
       (!formData.brakes ? 1 : 0);
 
-    
     if (failedCount >= 3 || formData.score < 50) {
-      showToast("Xe không đạt chuẩn . Vui lòng xem xét lại kết quả kiểm định.", "error");
+      showToast(
+        "Xe không đạt chuẩn . Vui lòng xem xét lại kết quả kiểm định.",
+        "error",
+      );
       return;
     }
 
-    
     setIsSubmitting(true);
     try {
       const response = await axiosClient.post(
@@ -161,24 +164,30 @@ export default function MergedInspectionPage() {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleReject = () => {
     // 1. Đếm số lượng hạng mục bị "Lỗi" (false)
-    const failedCount = 
-      (!formData.frame ? 1 : 0) + 
-      (!formData.paintCondition ? 1 : 0) + 
-      (!formData.drivetrain ? 1 : 0) + 
+    const failedCount =
+      (!formData.frame ? 1 : 0) +
+      (!formData.paintCondition ? 1 : 0) +
+      (!formData.drivetrain ? 1 : 0) +
       (!formData.brakes ? 1 : 0);
 
     // 2. LOGIC RÀNG BUỘC TỪ CHỐI
     // Nếu xe đang ĐẠT CHUẨN (dưới 3 lỗi VÀ điểm >= 50) thì không cho Inspector từ chối bậy bạ
     if (failedCount < 3 && formData.score >= 50) {
-      showToast("Xe đạt chuẩn để phê duyệt. Vui lòng xem xét lại kết quả cuối cùng ", "error");
+      showToast(
+        "Xe đạt chuẩn để phê duyệt. Vui lòng xem xét lại kết quả cuối cùng ",
+        "error",
+      );
       return;
     }
 
     if (!formData.comment || formData.comment.trim() === "") {
-      showToast("Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!", "error");
+      showToast(
+        "Vui lòng nhập lý do từ chối vào ô 'Comment Tổng quan' trước!",
+        "error",
+      );
       return;
     }
 
@@ -271,20 +280,20 @@ export default function MergedInspectionPage() {
 
             {/* Main Image Viewer */}
             <div className="relative w-full aspect-video bg-gray-100 rounded-xl overflow-hidden group border border-gray-200">
-  {bike.media[activeMediaIndex]?.type === 'video' ? (
-    <video
-      src={bike.media[activeMediaIndex]?.src}
-      controls
-      className="w-full h-full object-contain bg-black"
-    />
-  ) : (
-    <img
-      src={bike.media[activeMediaIndex]?.src}
-      alt="Bike"
-      onClick={() => setIsFullscreen(true)}
-      className="w-full h-full object-cover cursor-zoom-in"
-    />
-  )}
+              {bike.media[activeMediaIndex]?.type === "video" ? (
+                <video
+                  src={bike.media[activeMediaIndex]?.src}
+                  controls
+                  className="w-full h-full object-contain bg-black"
+                />
+              ) : (
+                <img
+                  src={bike.media[activeMediaIndex]?.src}
+                  alt="Bike"
+                  onClick={() => setIsFullscreen(true)}
+                  className="w-full h-full object-cover cursor-zoom-in"
+                />
+              )}
 
               <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
                 {bike.media[activeMediaIndex]?.label}
@@ -314,28 +323,33 @@ export default function MergedInspectionPage() {
             </div>
 
             {/* Thumbnails */}
-<div className="flex gap-3 mt-4">
-  {bike.media.map((item, index) => (
-    <div
-      key={item.id}
-      onClick={() => setActiveMediaIndex(index)}
-      className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-        activeMediaIndex === index ? "border-blue-600 ring-2 ring-blue-600/20" : "border-transparent hover:opacity-80"
-      }`}
-    >
-      {item.type === 'video' ? (
-        <div className="w-full h-full flex items-center justify-center bg-gray-800">
-          <PlayCircle size={24} className="text-white opacity-80" />
-        </div>
-      ) : (
-        <img src={item.src} className="w-full h-full object-cover" />
-      )}
-    </div>
-  ))}
-  <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 cursor-pointer hover:bg-gray-100 shrink-0">
-    <ImageIcon size={20} />
-  </div>
-</div>
+            <div className="flex gap-3 mt-4">
+              {bike.media.map((item, index) => (
+                <div
+                  key={item.id}
+                  onClick={() => setActiveMediaIndex(index)}
+                  className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                    activeMediaIndex === index
+                      ? "border-blue-600 ring-2 ring-blue-600/20"
+                      : "border-transparent hover:opacity-80"
+                  }`}
+                >
+                  {item.type === "video" ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                      <PlayCircle size={24} className="text-white opacity-80" />
+                    </div>
+                  ) : (
+                    <img
+                      src={item.src}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              ))}
+              <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 cursor-pointer hover:bg-gray-100 shrink-0">
+                <ImageIcon size={20} />
+              </div>
+            </div>
           </div>
 
           {/* Thông tin cơ bản & Specs */}
@@ -501,7 +515,7 @@ export default function MergedInspectionPage() {
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex flex-col gap-2.5 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
             {/* Nút Hoàn tất chính */}
             <button
-              onClick={handleComplete}
+              onClick={() => setIsApproveModalOpen(true)}
               disabled={isSubmitting}
               className={`w-full text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all 
                 ${
@@ -514,7 +528,7 @@ export default function MergedInspectionPage() {
                 <span>Đang xử lý...</span>
               ) : (
                 <>
-                  <CheckCircle2 size={18} /> Hoàn tất & Xem kết quả
+                  <CheckCircle2 size={18} /> Phê Duyệt
                 </>
               )}
             </button>
@@ -559,22 +573,22 @@ export default function MergedInspectionPage() {
           </button>
 
           {/* Ảnh được phóng to */}
-          {bike.media[activeMediaIndex]?.type === 'video' ? (
-  <video
-    src={bike.media[activeMediaIndex]?.src}
-    controls
-    autoPlay
-    className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-    onClick={(e) => e.stopPropagation()}
-  />
-) : (
-  <img
-    src={bike.media[activeMediaIndex]?.src}
-    alt="Fullscreen Bike"
-    className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
-    onClick={(e) => e.stopPropagation()}
-  />
-)}
+          {bike.media[activeMediaIndex]?.type === "video" ? (
+            <video
+              src={bike.media[activeMediaIndex]?.src}
+              controls
+              autoPlay
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <img
+              src={bike.media[activeMediaIndex]?.src}
+              alt="Fullscreen Bike"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl pointer-events-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
 
           {/* Mũi tên trái/phải trên bản phóng to */}
           <button
@@ -623,66 +637,35 @@ export default function MergedInspectionPage() {
         </div>
       )}
 
-      {/* --- MODAL XÁC NHẬN TỪ CHỐI (Hiện ở giữa màn hình) --- */}
-      {isRejectModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          {/* Lớp nền mờ */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => !isSubmitting && setIsRejectModalOpen(false)}
-          ></div>
-
-          {/* Khung nội dung Modal */}
-          <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-6">
-              <div className="flex items-center gap-3 text-red-600 mb-4">
-                <div className="p-2 bg-red-50 rounded-full">
-                  <AlertCircle size={24} />
-                </div>
-                <h3 className="text-xl font-black">Xác nhận từ chối</h3>
-              </div>
-
-              <p className="text-sm text-gray-500 mb-4">
-                Lý do từ chối xe <strong>{bike.name}</strong>:
-              </p>
-
-              <textarea
-                autoFocus
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Nhập lý do cụ thể..."
-                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] resize-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-3 p-4 bg-gray-50 border-t border-gray-100">
-              <button
-                disabled={isSubmitting}
-                onClick={() => setIsRejectModalOpen(false)}
-                className="flex-1 px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                disabled={isSubmitting || !rejectReason.trim()}
-                onClick={handleConfirmReject}
-                className={`flex-[2] px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all 
-                  ${
-                    isSubmitting || !rejectReason.trim()
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
-                  }`}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  "Xác nhận từ chối"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onConfirm={handleConfirmReject}
+        title="Xác nhận từ chối"
+        description={`Lý do từ chối xe ${bike.name}:`}
+        type="danger" // Hiện màu đỏ
+        confirmText="Xác nhận từ chối"
+        isLoading={isSubmitting}
+      >
+        {/* Phần children: Textarea nhập lý do */}
+        <textarea
+          autoFocus
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Nhập lý do cụ thể..."
+          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] resize-none"
+        />
+      </ConfirmModal>
+      <ConfirmModal
+        isOpen={isApproveModalOpen}
+        onClose={() => setIsApproveModalOpen(false)}
+        onConfirm={handleComplete} // Gọi hàm API phê duyệt ở đây
+        title="Xác nhận phê duyệt"
+        description={`Bạn có chắc chắn muốn phê duyệt chiếc ${bike.name} này không?`}
+        type="success" // Hiện màu xanh lá
+        confirmText="Đồng ý phê duyệt"
+        isLoading={isSubmitting}
+      />
     </div>
   );
 }

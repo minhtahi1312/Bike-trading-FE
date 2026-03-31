@@ -15,7 +15,7 @@ import {
   Tag,
   Bike,
 } from "lucide-react";
-
+import ConfirmModal from "../../components/ConfirmModal";
 import axiosClient from "../../services/axiosClient";
 
 const ListingDetail = () => {
@@ -24,6 +24,16 @@ const ListingDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [listingData, setListingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+
+  const showToast = (message, type = "info") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 3000);
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -46,34 +56,39 @@ const ListingDetail = () => {
 
   // --- HÀM XỬ LÝ PHÊ DUYỆT ---
   const handleApprove = async () => {
-  if (window.confirm("Bạn có chắc chắn muốn phê duyệt tin đăng này?")) {
+  setIsSubmitting(true);
     try {
       await axiosClient.patch(`/api/admin/listing/approve/${id}`, {
         isApproved: true, 
       });
-
-      alert("Phê duyệt tin đăng thành công!");
-      navigate("/admin/listings");
+      showToast("Phê duyệt tin đăng thành công!", "success");
+      setIsApproveModalOpen(false);
+      setTimeout(() => navigate("/admin/listings"), 1500);
     } catch (error) {
       console.error("Lỗi duyệt tin:", error);
-      alert("Không thể phê duyệt tin. Hãy kiểm tra console log.");
-    }
+      alert("Không thể phê duyệt tin.");
+    }finally {
+      setIsSubmitting(false);
   }
 };
 
   const handleReject = async () => {
-  if (window.confirm("Bạn có chắc chắn muốn TỪ CHỐI tin đăng này?")) {
+  setIsSubmitting(true);
     try {
       await axiosClient.patch(`/api/admin/listing/approve/${id}`, {
         isApproved: false,
       });
 
-      alert("Đã từ chối tin đăng!");
+      showToast("Đã từ chối tin đăng!", "success");
+      setIsRejectModalOpen(false);
+      setTimeout(() => {
       navigate("/admin/listings");
+    }, 1500);
     } catch (error) {
       console.error("Lỗi từ chối tin:", error);
       alert("Không thể từ chối tin.");
-    }
+    }finally {
+      setIsSubmitting(false);
   }
 };
 
@@ -407,7 +422,7 @@ const ListingDetail = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={handleReject}
+                    onClick={() => setIsRejectModalOpen(true)}
                     className="flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-bold transition-colors"
                   >
                     <XCircle size={18} /> Từ chối
@@ -415,7 +430,7 @@ const ListingDetail = () => {
 
                  
                   <button
-                    onClick={handleApprove}
+                    onClick={() => setIsApproveModalOpen(true)}
                     className="flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all"
                   >
                     <CheckCircle size={18} /> Phê duyệt
@@ -495,6 +510,46 @@ const ListingDetail = () => {
           </div>
         </div>
       </div>
+      {toast.show && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[10001] animate-in slide-in-from-top duration-300">
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-2xl border ${
+            toast.type === "error" 
+              ? "bg-red-50 border-red-200 text-red-700" 
+              : "bg-emerald-50 border-emerald-200 text-emerald-700"
+          }`}>
+            {toast.type === "error" ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+            <span className="text-sm font-bold">{toast.message}</span>
+          </div>
+        </div>
+      )}
+      <ConfirmModal
+        isOpen={isApproveModalOpen}
+        onClose={() => setIsApproveModalOpen(false)}
+        onConfirm={handleApprove}
+        title="Xác nhận phê duyệt"
+        description={`Bạn đang phê duyệt tin đăng: ${listingData.title}. Tin này sẽ được chuyển sang bước kiểm định tiếp theo.`}
+        type="success"
+        confirmText="Đồng ý duyệt"
+        isLoading={isSubmitting}
+      />
+
+      {/* Modal Từ chối */}
+      <ConfirmModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onConfirm={handleReject}
+        title="Xác nhận từ chối"
+        description={`Bạn có chắc chắn muốn từ chối tin đăng này không?`}
+        type="danger"
+        confirmText="Từ chối ngay"
+        isLoading={isSubmitting}
+      >
+        {rejectReason && (
+          <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+            <strong>Lý do gửi cho người bán:</strong> {rejectReason}
+          </div>
+        )}
+      </ConfirmModal>
     </div>
   );
 };

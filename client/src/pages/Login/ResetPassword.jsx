@@ -3,14 +3,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import axiosClient from "../../services/axiosClient";
-// Tái sử dụng CSS của trang Login nếu muốn, hoặc viết CSS inline cho nhanh
 import "../Login/Login.css";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Lấy token từ URL (ví dụ: ?token=abcxyz...)
   const token = searchParams.get("token");
 
   const [newPassword, setNewPassword] = useState("");
@@ -41,7 +39,6 @@ const ResetPassword = () => {
       return;
     }
 
-    // 3. Kiểm tra phải có ít nhất 1 ký tự đặc biệt
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
       toast.warning(
         "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (VD: @, #, $,...)!",

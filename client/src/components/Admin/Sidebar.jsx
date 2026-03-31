@@ -54,7 +54,7 @@ const Sidebar = () => {
       localStorage.removeItem('user');
 
       setShowLogoutModal(false);
-      navigate('/login');
+      navigate('/system');
     }
   };
 

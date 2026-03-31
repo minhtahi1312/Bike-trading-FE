@@ -8,43 +8,40 @@ const BikeMarketDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // 1. CÁC STATE CỦA COMPONENT
+
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeIndex, setActiveIndex] = useState(0);
-    
 
-    // Giả sử khi fetch bike detail, API trả về thông tin này, hãy set nó:
-  const [wishlistIds, setWishlistIds] = useState(new Set());
-   useEffect(() => {
-    loadWishlist();
-}, []);
 
-const loadWishlist = async () => {
-    try {
-        const response = await getWishlist();
-        const dataArray = Array.isArray(response) ? response : response?.data || [];
+    const [wishlistIds, setWishlistIds] = useState(new Set());
+    useEffect(() => {
+        loadWishlist();
+    }, []);
+    // load sản phẩm yêu thích
+    const loadWishlist = async () => {
+        try {
+            const response = await getWishlist();
+            const dataArray = Array.isArray(response) ? response : response?.data || [];
 
-        const ids = new Set();
-        dataArray.forEach(item => {
-            const bikeId = item.bikeId || item?.bike?.id;
-            if (bikeId) ids.add(bikeId);
-        });
+            const ids = new Set();
+            dataArray.forEach(item => {
+                const bikeId = item.bikeId || item?.bike?.id;
+                if (bikeId) ids.add(bikeId);
+            });
 
-        setWishlistIds(ids);
-    } catch (err) {
-        console.error("Load wishlist lỗi:", err);
-    }
-};
-const bikeId = bike?.bikes?.[0]?.id;
-const isWishlisted = wishlistIds.has(bikeId);
+            setWishlistIds(ids);
+        } catch (err) {
+            console.error("Load wishlist lỗi:", err);
+        }
+    };
+    const bikeId = bike?.bikes?.[0]?.id;
+    const isWishlisted = wishlistIds.has(bikeId);
     /*---------------------------------------*/
 
-    // Đọc ID đã chọn từ LocalStorage khi mới vào trang Giỏ Hàng
     const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
     const [selectedItems, setSelectedItems] = useState(initialSelected);
-    // 2. FETCH DỮ LIỆU
     useEffect(() => {
         const fetchListingDetail = async () => {
             if (!id) return;
@@ -66,34 +63,34 @@ const isWishlisted = wishlistIds.has(bikeId);
     }, [id]);
 
     /* --------- API WISHLIST--------- */
-   const handleWishlistToggle = async (bikeId) => {
-    try {
-        if (wishlistIds.has(bikeId)) {
-            await removeFromWishlist(bikeId);
+    const handleWishlistToggle = async (bikeId) => {
+        try {
+            if (wishlistIds.has(bikeId)) {
+                await removeFromWishlist(bikeId);
 
-            setWishlistIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(bikeId);
-                return newSet;
-            });
+                setWishlistIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(bikeId);
+                    return newSet;
+                });
 
-            toast.success("Đã xóa khỏi danh sách yêu thích");
-        } else {
-            await addToWishlist(bikeId);
+                toast.success("Đã xóa khỏi danh sách yêu thích");
+            } else {
+                await addToWishlist(bikeId);
 
-            setWishlistIds(prev => {
-                const newSet = new Set(prev);
-                newSet.add(bikeId);
-                return newSet;
-            });
+                setWishlistIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.add(bikeId);
+                    return newSet;
+                });
 
-            toast.success("Đã thêm vào danh sách yêu thích");
+                toast.success("Đã thêm vào danh sách yêu thích");
+            }
+        } catch (err) {
+            toast.error("Lỗi wishlist");
         }
-    } catch (err) {
-        toast.error("Lỗi wishlist");
-    }
-};
-/*-------- API CART --------- */
+    };
+    /*-------- API CART --------- */
     const handleAddCartItem = async () => {
         try {
             await addCartItem(bike.bikes[0].id);
@@ -177,9 +174,11 @@ const isWishlisted = wishlistIds.has(bikeId);
     const reviews = bike?.sellerReviewSummary?.latestReviews || [];
     const sellerName = bike?.sellerReviewSummary?.sellerName;
     const joinDate = bike?.sellerReviewSummary?.joinDate;
-    const averageRating = bike?.sellerReviewSummary?.averageRating;
-    const totalReviews = bike?.sellerReviewSummary?.totalReviews;
+    const averageRating = Number(bike?.sellerReviewSummary?.averageRating) || 0;
+    console.log("🚀 ~ file: DetailsBuyer.jsx:262 ~ BikeMarketDetail ~ reviews:", averageRating);
+    const totalReviews = bike?.sellerReviewSummary?.totalReviews || 0;
     console.log("🚀 ~ file: DetailsBuyer.jsx:263 ~ BikeMarketDetail ~ reviews:", reviews, sellerName, joinDate);
+    const rating = Number(averageRating) || 0;
     return (
         <div className="bg-[#f6f8f6] dark:bg-[#102216] text-[#111813] dark:text-white font-['Lexend','Noto_Sans',sans-serif] overflow-hidden w-full flex flex-col">
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -295,45 +294,47 @@ const isWishlisted = wishlistIds.has(bikeId);
 
                                                 {/* Rating & Total Reviews */}
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex items-center text-[#ffc107]">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <span key={i} className="material-symbols-outlined text-[18px] [font-variation-settings:'FILL'_1]">star</span>
-                                                        ))}
+                                                    <div className="flex items-center">
+                                                        {[...Array(5)].map((_, i) => {
+
+                                                            const isFilled = i < Math.floor(averageRating);
+
+                                                            return (
+                                                                <span
+                                                                    key={i}
+                                                                    className="material-symbols-outlined text-[18px]"
+                                                                    style={{
+
+                                                                        fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0",
+
+                                                                        color: isFilled ? "#ffc107" : "#d1d5db",
+                                                                    }}
+                                                                >
+                                                                    star
+                                                                </span>
+                                                            );
+                                                        })}
                                                     </div>
+
                                                     <span className="font-bold text-[#111813] dark:text-white text-base">
-                                                        {averageRating}
+                                                        {averageRating.toFixed(1)}
                                                     </span>
+
                                                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                                         ({totalReviews} đánh giá)
                                                     </span>
                                                 </div>
-
+                                             
                                                 {/* Tags (Uy tín & Kiểm định) */}
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[11px] font-bold text-[#059669] bg-[#d1fae5] dark:bg-[#064e3b]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                                                        Người bán uy tín
-                                                    </span>
-                                                    <span className="text-[11px] font-bold text-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/50 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                                                        Đã kiểm định
-                                                    </span>
-                                                </div>
+
                                             </div>
                                         </div>
 
                                         {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
                                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
 
-                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
-                                                <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
-                                                    Tỷ lệ phản hồi
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[#10b981] text-[20px] [font-variation-settings:'FILL'_1]">bolt</span>
-                                                    <span className="font-bold text-[#111813] dark:text-white text-[15px]">
-                                                        98% <span className="font-normal">(trong 1h)</span>
-                                                    </span>
-                                                </div>
-                                            </div>
+
+
                                             <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Thời gian tham gia

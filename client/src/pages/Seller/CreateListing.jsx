@@ -593,7 +593,7 @@ function StepTechnical({
       {/* ===== TITLE ===== */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">
-          Tạo tin - Bước 2: Thông số kỹ thuật xe
+          Bước 2: Thông số kỹ thuật xe
         </h2>
         <p className="text-gray-500 mt-1">
           Vui lòng cung cấp chính xác các thông số để tăng độ tin cậy cho bài

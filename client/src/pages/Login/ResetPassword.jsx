@@ -36,29 +36,36 @@ const ResetPassword = () => {
       toast.warning("Mật khẩu phải có ít nhất 6 ký tự!");
       return;
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.warning("Mật khẩu phải chứa ít nhất 1 chữ in hoa (A-Z)!");
+      return;
+    }
+
+    // 3. Kiểm tra phải có ít nhất 1 ký tự đặc biệt
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      toast.warning("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (VD: @, #, $,...)!");
+      return;
+    }
 
     try {
       setLoading(true);
       
-      // Gọi API reset mật khẩu của Backend
-      // Lưu ý: Cần hỏi lại anh BE xem API này cần Body gồm những field tên là gì (thường là Token và NewPassword)
-      const response = await axiosClient.post("/api/Auth/reset-password-by-link", {
-        token: token,
-        newPassword: newPassword, 
-      });
+      const response = await axiosClient.post(
+    "/api/Auth/reset-password-by-link", 
+    { newPassword, confirmPassword },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
-      if (response.data && response.data.success === true) {
-        toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.");
-        navigate("/login"); // Chuyển về trang đăng nhập
-      } else {
-        toast.error(response.data.message || "Đặt lại mật khẩu thất bại!");
-      }
-    } catch (error) {
-      console.error("Reset Password Error:", error);
-      toast.error(error.response?.data?.message || "Lỗi hệ thống khi đặt lại mật khẩu!");
-    } finally {
-      setLoading(false);
-    }
+  toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.");
+  navigate("/login"); 
+
+} catch (error) {
+  console.error("Reset Password Error:", error);
+  const serverMsg = error.response?.data?.message;
+  toast.error(serverMsg || "Lỗi hệ thống khi đặt lại mật khẩu!");
+} finally {
+  setLoading(false);
+}
   };
 
   return (

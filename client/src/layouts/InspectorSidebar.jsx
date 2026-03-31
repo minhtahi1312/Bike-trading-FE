@@ -1,52 +1,82 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, History, User, LogOut, Bike } from 'lucide-react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import axiosClient from '../services/axiosClient';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { LayoutDashboard, History, User, LogOut, Bike } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import axiosClient from "../services/axiosClient";
+import { toast } from "react-toastify";
 
 const InspectorSidebar = () => {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // 1. Thêm State để lưu thông tin user
+  const [userInfo, setUserInfo] = useState({
+    fullName: "Đang tải...",
+    avtUrl: "https://i.pravatar.cc/150?img=11", 
+    role: "Inspector",
+  });
+
+  // 2. Thêm useEffect để gọi API ngay khi Sidebar được render
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axiosClient.get("/api/Auth/me");
+        // Tuỳ vào cách bạn setup axiosClient, dữ liệu có thể nằm trong response hoặc response.data
+        const data = response.data ? response.data : response;
+
+        setUserInfo({
+          fullName: data.fullName || "Người dùng",
+          avtUrl: data.avtUrl || "https://i.pravatar.cc/150?img=11",
+          role: data.role || "Inspector",
+        });
+      } catch (error) {
+        console.error("Lỗi khi tải thông tin user:", error);
+        // Tùy chọn: Nếu lỗi 401 (hết hạn token), có thể ép đăng xuất tại đây
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   // Menu riêng cho Inspector
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/inspector/dashboard' },
-    { icon: History, label: 'Lịch sử kiểm định', path: '/inspector/history' },
-    { icon: User, label: 'Hồ sơ cá nhân', path: '/inspector/profile' },
+    { icon: LayoutDashboard, label: "Danh sách kiểm định", path: "/inspector/dashboard" },
+    { icon: History, label: "Lịch sử kiểm định", path: "/inspector/history" },
   ];
 
   const handleLogout = async () => {
     try {
-      await axiosClient.post('/api/Auth/logout');
+      await axiosClient.post("/api/Auth/logout");
     } catch (error) {
-      console.warn("Lỗi gọi API Logout, tiến hành dọn dẹp LocalStorage:", error);
+      console.warn(
+        "Lỗi gọi API Logout, tiến hành dọn dẹp LocalStorage:",
+        error,
+      );
     } finally {
       localStorage.clear();
-      
+
       setShowLogoutModal(false);
 
       // Thông báo và chuyển hướng
       toast.success("Đã đăng xuất khỏi tài khoản Kiểm định viên!");
-      navigate('/login');
+      navigate("/login");
     }
   };
 
   return (
     <>
       <aside className="w-64 flex-shrink-0 border-r border-[#e5e7eb] bg-white flex flex-col h-full hidden md:flex font-display fixed inset-y-0 left-0 z-50">
-        
-        {/*  1. LOGO SECTION (Giống hệt Admin) */}
+        {/* 1. LOGO SECTION */}
         <div className="p-6 pb-2">
           <div className="flex items-center gap-3">
-            {/* Khối xanh bao quanh icon */}
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
               <Bike size={20} />
             </div>
-            {/* Chữ BikeMarket */}
-            <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
+            <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">
+              BikeMarket
+            </h1>
           </div>
         </div>
-        
+
         {/* 2. MENU */}
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="px-3 py-2 text-xs font-bold text-[#9ca3af] uppercase tracking-wider mb-1">
@@ -55,14 +85,14 @@ const InspectorSidebar = () => {
 
           <nav className="flex flex-col gap-1.5">
             {menuItems.map((item, index) => (
-              <NavLink 
+              <NavLink
                 key={index}
                 to={item.path}
-                className={({ isActive }) => 
+                className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
-                    isActive 
-                    ? 'bg-emerald-50 text-emerald-700 font-semibold' 
-                    : 'text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium'
+                    isActive
+                      ? "bg-emerald-50 text-emerald-700 font-semibold"
+                      : "text-[#637588] hover:bg-gray-50 hover:text-emerald-600 font-medium"
                   }`
                 }
               >
@@ -77,18 +107,32 @@ const InspectorSidebar = () => {
         <div className="p-4 border-t border-[#e5e7eb]">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 border border-gray-100">
-              <img 
-                src="https://i.pravatar.cc/150?img=11" 
-                className="w-10 h-10 rounded-full border-2 border-emerald-500"
-                alt="KV"
+              {/* Cập nhật hiển thị ảnh động */}
+              <img
+                src={userInfo.avtUrl}
+                className="w-10 h-10 rounded-full border-2 border-emerald-500 object-cover"
+                alt="Avatar"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "https://i.pravatar.cc/150?img=11";
+                }}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#111813] truncate">Nguyễn Văn Kiểm</p>
-                <p className="text-xs text-[#637588] truncate">Inspector Senior</p>
+                {/* Cập nhật hiển thị tên và role động */}
+                <p
+                  className="text-sm font-bold text-[#111813] truncate"
+                  title={userInfo.fullName}
+                >
+                  {userInfo.fullName}
+                </p>
+                <p className="text-xs text-[#637588] truncate capitalize">
+                  {userInfo.role.toLowerCase()}
+                </p>
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setShowLogoutModal(true)}
               className="flex items-center gap-3 px-2 text-[#637588] hover:text-red-600 transition-colors w-full text-left"
             >
@@ -114,13 +158,13 @@ const InspectorSidebar = () => {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button 
+              <button
                 onClick={() => setShowLogoutModal(false)}
                 className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
               >
                 Hủy bỏ
               </button>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors shadow-sm shadow-red-500/30"
               >

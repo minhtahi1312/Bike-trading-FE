@@ -221,7 +221,6 @@ const LoginForm = ({ role, tab, setTab }) => {
       const roleId = role === "seller" ? 3 : 2;
 
       // --- GỌI API TẠO TÀI KHOẢN ---
-      // Hệ thống sẽ tạo User và tự gửi OTP về mail
       const response = await axiosClient.post("/api/Auth/signup", {
         fullName: fullName,
         phoneNumber: phone,
@@ -344,12 +343,36 @@ const LoginForm = ({ role, tab, setTab }) => {
           localStorage.setItem("accessToken", token);
         }
 
+        if (avatar) {
+          localStorage.setItem("user_avatar", avatar);
+          // THÊM DÒNG NÀY: Phát tín hiệu để Header cập nhật ảnh ngay lập tức
+          window.dispatchEvent(new Event('avatar_updated'));
+        }
+
+        localStorage.setItem("role", serverRoleStr);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: response.data.email || email, // Lấy email từ response nếu có
+            role: serverRoleStr,
+            avatar: avatar || null
+          }),
+        ); localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: email,
+            role: serverRoleStr,
+            avatar: avatar // Lưu thêm vào object user cho đồng bộ
+          }),
+        );
+        /* ----------------------------------------------- -------------- */
         const rawRole = response.data.role || response.data.Role;
         let finalRole = role.toUpperCase(); 
-        
+
         if (rawRole) {
-           if (Number(rawRole) === 2) finalRole = "BUYER";
-           if (Number(rawRole) === 3) finalRole = "SELLER";
+         
+          if (Number(rawRole) === 2) finalRole = "BUYER";
+          if (Number(rawRole) === 3) finalRole = "SELLER";
         }
 
         localStorage.setItem("role", finalRole);
@@ -380,30 +403,29 @@ const LoginForm = ({ role, tab, setTab }) => {
   };
 
   const handleForgotPasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.warning("Vui lòng nhập email của bạn để khôi phục mật khẩu!");
-      return;
-    }
+  e.preventDefault();
+  if (!email) {
+    toast.warning("Vui lòng nhập email của bạn!");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const response = await axiosClient.post("/api/Auth/forgot-password", {
-        email: email,
-      });
-
-      if (response.data && response.data.success === true) {
-        toast.success("Đã gửi liên kết khôi phục! Vui lòng kiểm tra email của bạn.");
-      } else {
-        toast.error(response.data.message || "Không thể gửi yêu cầu. Vui lòng thử lại!");
-      }
-    } catch (error) {
-      console.error("Forgot Password Error:", error);
-      toast.error(error.response?.data?.message || "Lỗi hệ thống khi gửi yêu cầu!");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const response = await axiosClient.post("/api/Auth/forgot-password", {
+      email: email,
+    });   
+    if (response.status === 200 || response.data?.success === true) {
+      toast.success("Đã gửi liên kết khôi phục! Vui lòng kiểm tra email.");
+    } else {
+      toast.error(response.data?.message || "Không thể gửi yêu cầu.");
     }
-  };
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    toast.error(error.response?.data?.message || "Email không tồn tại hoặc lỗi hệ thống!");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>

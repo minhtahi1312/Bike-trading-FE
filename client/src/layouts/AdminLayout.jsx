@@ -15,10 +15,6 @@ const AdminLayout = () => {
             </button>
             <div className="text-[#111813] font-bold text-emerald-700">BikeMarket</div>
           </div>
-
-          
-
-          
         </header>
 
         <div className="flex-1 overflow-y-auto bg-background-light p-6 lg:p-10">

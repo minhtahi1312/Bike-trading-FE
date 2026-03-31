@@ -77,7 +77,7 @@ export default function MergedInspectionPage() {
           idDisplay: data.id.substring(0, 8).toUpperCase(),
           price: data.price.toLocaleString("vi-VN") + " ₫",
           condition: `${data.overall} - ${data.operating}`,
-          description: "Thông tin chi tiết cấu hình xe từ hệ thống.",
+          description: data.listingDescription || "Không có mô tả từ người bán.",
           specs: {
             frame: data.frameMaterial,
             size: data.frameSize,
@@ -217,7 +217,6 @@ export default function MergedInspectionPage() {
     }
   };
 
-  // --- GIỮ NGUYÊN PHẦN LOADING VÀ CHECK BIKE ---
   if (loading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-white">
@@ -250,9 +249,9 @@ export default function MergedInspectionPage() {
         </div>
       </header>
 
-      {/* --- MAIN CONTENT (2 CỘT) --- */}
+      {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex overflow-hidden max-w-[1440px] mx-auto w-full p-6 gap-6">
-        {/* CỘT TRÁI: MEDIA & THÔNG TIN XE (Scrollable) */}
+        {/* CỘT TRÁI: MEDIA & THÔNG TIN XE */}
         <div className="w-3/5 flex flex-col gap-6 overflow-y-auto pr-2 pb-10 custom-scrollbar">
           {/* Header Title */}
           <div className="flex items-center gap-4">
@@ -268,9 +267,6 @@ export default function MergedInspectionPage() {
               <h2 className="text-sm font-bold flex items-center gap-2">
                 <ImageIcon size={18} /> Album Media từ Seller
               </h2>
-              <span className="text-xs font-medium text-gray-500">
-                8 ảnh / 2 video
-              </span>
             </div>
 
             {/* Main Image Viewer */}
@@ -327,7 +323,6 @@ export default function MergedInspectionPage() {
         activeMediaIndex === index ? "border-blue-600 ring-2 ring-blue-600/20" : "border-transparent hover:opacity-80"
       }`}
     >
-      {/* NẾU LÀ VIDEO THÌ HIỆN ICON PLAY, NẾU LÀ ẢNH THÌ HIỆN ẢNH */}
       {item.type === 'video' ? (
         <div className="w-full h-full flex items-center justify-center bg-gray-800">
           <PlayCircle size={24} className="text-white opacity-80" />

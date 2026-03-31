@@ -95,10 +95,6 @@ export default function SellerOrders() {
       label: "Hoàn thành",
       style: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
-    Cancelled: {
-      label: "Đã huỷ",
-      style: "bg-gray-100 text-gray-600 border border-gray-200",
-    },
   };
 
   // ===== FILTER =====
@@ -152,7 +148,6 @@ export default function SellerOrders() {
             { key: "Confirmed", label: "Đã xác nhận" },
             { key: "Shipping", label: "Đang giao" },
             { key: "Completed", label: "Hoàn thành" },
-            { key: "Cancelled", label: "Đã huỷ" },
           ].map((t) => (
             <button
               key={t.key}

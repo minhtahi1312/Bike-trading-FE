@@ -25,9 +25,13 @@ export default function WalletPage() {
   const totalProfit = finance?.netProfit || 0;
   const balance = finance?.availableBalance || 0;
   const totalOrders = finance?.totalOrders || 0;
-  const orders = finance?.orders || [];
+  const rawOrders = finance?.orders || [];
 
-  const filteredOrders = orders.filter((order) => {
+  const uniqueOrders = [
+    ...new Map(rawOrders.map((item) => [item.orderId, item])).values(),
+  ];
+
+  const filteredOrders = uniqueOrders.filter((order) => {
     if (!startDate && !endDate) return true;
 
     const orderDate = new Date(order.completedDate);
@@ -70,8 +74,10 @@ export default function WalletPage() {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [startDate, endDate]);
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages || 1);
+    }
+  }, [filteredOrders]);
 
   const formatCurrency = (value) => value?.toLocaleString("vi-VN") + "₫";
 
@@ -199,7 +205,10 @@ export default function WalletPage() {
 
           <tbody>
             {paginatedOrders.map((item) => (
-              <tr key={item.orderId} className="border-t">
+              <tr
+                key={`${item.orderId}-${item.orderCode}`}
+                className="border-t"
+              >
                 <td className="p-3">{item.orderCode}</td>
                 <td className="p-3">{item.productName}</td>
                 <td className="p-3">
@@ -222,22 +231,6 @@ export default function WalletPage() {
               </tr>
             ))}
           </tbody>
-
-          {/* Footer */}
-          <tfoot className="bg-gray-50 font-semibold">
-            <tr>
-              <td colSpan="3" className="p-3 text-right">
-                Tổng cộng:
-              </td>
-              <td className="p-3 text-right">{formatCurrency(totalRevenue)}</td>
-              <td className="p-3 text-right text-red-500">
-                -{formatCurrency(totalFee)}
-              </td>
-              <td className="p-3 text-right text-emerald-600">
-                {formatCurrency(totalProfit)}
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
 

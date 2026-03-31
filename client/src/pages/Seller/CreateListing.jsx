@@ -52,7 +52,14 @@ export default function CreateListing() {
     images: [],
     video: null,
   });
+  const validateStep1 = () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Vui lòng nhập đầy đủ thông tin bước 1");
+      return false;
+    }
 
+    return true;
+  };
   const [customBrand, setCustomBrand] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [customRim, setCustomRim] = useState("");
@@ -118,6 +125,11 @@ export default function CreateListing() {
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
+    if (!validateStep1()) {
+      setStep(1);
+      return;
+    }
+
     const isEdit = !!id;
     try {
       setLoading(true);
@@ -1116,7 +1128,7 @@ function StepImages({ formData, updateField }) {
       {/* ===== TITLE ===== */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">
-          HÌNH ẢNH & VIDEO TỔNG QUÁT
+          Bước 3 Hình ảnh & video tổng quát
         </h2>
         <p className="text-emerald-600 mt-1">
           Tải lên những hình ảnh đẹp nhất để thu hút người mua.

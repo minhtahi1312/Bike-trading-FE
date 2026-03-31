@@ -1,331 +1,522 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getSellerListings, addToWishlist, getWishlist, removeFromWishlist, filterBuyerListings } from "../../../services/axiosClient";
+import { toast } from "react-toastify";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Bike, ChartColumnStacked, ChevronLeft, ChevronRight, Heart, Search, ShieldCheck, SlidersHorizontal, Trello } from "lucide-react";
 
-import {
-  Bike,
-  ShieldCheck,
-  Search,
-  HandCoins,
-  ShoppingCart,
-  Tag,
-  ChevronDown,
-  HeartPlus,
-  MapPinCheckInside,
-} from "lucide-react";
-import HeroSection from "../../../components/guest/HeroSection";
+export const CATEGORY_OPTIONS = [
+  { label: "Mtb", value: "Mtb" },
+  { label: "Road", value: "Road" },
+  { label: "City-hybrid", value: "City-hybrid" },
+  { label: "E-bike", value: "E-bike" },
+  { label: "Touring", value: "Touring" },
+  { label: "Folding", value: "Folding" },
+  { label: "Gravel", value: "Gravel" },
+  { label: "Fixed-gear", value: "Fixed-gear" },
+  { label: "Kids", value: "Kids" },
+  { label: "Bmx", value: "Bmx" },
+  { label: "Fat-bike", value: "Fat-bike" },
+  { label: "Other", value: "Other" }
+];
+
+export const BRAND_OPTIONS = [
+  { label: "Giant", value: "Giant" },
+  { label: "Trek", value: "Trek" },
+  { label: "Specialized", value: "Specialized" },
+  { label: "Merida", value: "Merida" },
+  { label: "Cannondale", value: "Cannondale" },
+
+  { label: "Trinx", value: "Trinx" },
+  { label: "Galaxy", value: "Galaxy" },
+  { label: "Asama", value: "Asama" },
+  { label: "Fornix", value: "Fornix" },
+  { label: "Twitter", value: "Twitter" },
+
+  { label: "Scott", value: "Scott" },
+  { label: "Canyon", value: "Canyon" },
+  { label: "Bianchi", value: "Bianchi" },
+  { label: "Cervelo", value: "Cervelo" },
+  { label: "Pinarello", value: "Pinarello" },
+  { label: "Bmc", value: "Bmc" },
+  { label: "Santa-cruz", value: "Santa-cruz" },
+  { label: "Orbea", value: "Orbea" },
+  { label: "Cube", value: "Cube" },
+  { label: "Colnago", value: "Colnago" },
+  { label: "Brompton", value: "Brompton" },
+
+  { label: "Other", value: "Other" }
+];
 
 export default function Homeguest() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [sortBy, setSortBy] = useState("Mới nhất");
+  const [verifiedOnly, setVerifiedOnly] = useState(true);
+  const [bikes, setBikes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+  const [watchedBikes, setWatchedBikes] = useState([]);
+  /*---------------------------------------*/
+  const isLoggedIn = !!localStorage.getItem("token");
 
-  const bikes = [
-    {
-      id: 1,
-      name: 'Trek Emonda SL 6',
-      price: '45.000.000',
-      originalPrice: null,
-      location: 'Hà Nội',
-      category: 'Road Bike',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCZ3cmHcUvP4oLBORy1QIrMe4gvOqrWLZLvkWFihax_ifCxiSdVnm8q1VeToLBuC6iO_o3NPCK--vwaC6_KvgoRCwbNNw3nbGIFDS4iCCGhTsZxthOSJZouS5RkovvmOUjfx983iB2kjkd3W7zgemdFX7LZu29itqOojfSG8yu24dKjZmUyHaW63T0Qjxq--AGbBSMFYzMSEU5486y2mSXVp36T_A4lz7Si7uLIMN78qAmOKBtS99NCbMTPC6GCttSTNIKt1cbFdwtL',
-      verified: true,
-      seller: 'Minh Tuấn',
-      sellerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZmd1_9CE_qNo7K_CxWo73kVjaaY4NGoxrExj9_CA4orY4iwbDUCTwjeKKkMMAET_YrNONNgSlZGzpZBVRcwdc4RWa1_ckmfvV-eciPsCV_yRDHRrWGdD9f5I2ydf1QuRA3amUp1YV8CPecCarnXKo0igSvc8HdXa9oqSnSBTlKUhnr9vJlnEdl_gWJTYucq930QOlaAF8yMkif4BV8dQSZ9_XqWCfc_e2pqtCMOsiDK2mVVFgOcgr4SjcS9pASj_iSMTeOWMqYfNu',
-      timeAgo: '2 giờ trước',
-    },
-    {
-      id: 2,
-      name: 'Giant TCR Advanced',
-      price: '32.500.000',
-      originalPrice: null,
-      location: 'TP. Hồ Chí Minh',
-      category: 'Road Bike',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCVDFbVEQ4s_x3lhU1ulmdAxoVRZs1JF2NuUcDBg0gyWxlmpmmoUGCmUF9s3ukAn-3dNqaa5Zp8cMzBKZPY-yqm0WxJQVAvh1IurUp35LVIlPZyqMfEfGsFqEX0gBJAhBQ2K1xIkq-G2Cc9EAIdafHxPsVyhyc19asWHV-V_ldurMsok9DqQYZTRGEKQMzu3cEOX6yGlgqVDw0v3sXebtNrOMf7CCuiwWzMRaq2HbN9KGSTajTg9BZJfyTzWd-IdzPkX66OajTA87oQ',
-      verified: false,
-      seller: 'Lan Anh',
-      sellerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8U6cDYPZWWwhg7BA_SHn8U_6f7Nt138M6kuaNW1l1ZG3GOm0RmfeXOAzPbFSlPZiIHaaQf-ogT5cxUfwsfhgRjctNm9xpjtXueqkKO2-1Yu7IbRK1a7Vx1Y_fo5uk5lv6mgtRf3WqndKk0hx9Mu-GZ2cklnyqhkC208tIfPAJauNM16UAx8gfAKsmlAKXkoUwoNlMfhzwHB-RovjPjVVrXGyvxt2f3yUxN6RlKTTgAt5vDh5boqK8MlTlx0nmprUAWMvPBplWLRPT',
-      timeAgo: '5 giờ trước',
-    },
-    {
-      id: 3,
-      name: 'Specialized Rockhopper',
-      price: '12.800.000',
-      originalPrice: '15.000.000',
-      location: 'Đà Nẵng',
-      category: 'MTB',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNDl852RARv-7HnSEkSdXpnQx-9R9jAdiVaR4qT1XOyFYpDH4CajO4iOuktJNoM0PYlkj6aotDMy5cgyicJTH03UubeuK3Pa4tLREmB7yTVCtDVgSWCQjXl5RIg8kTBhsY7uDV321Nw64JCxCZMrM4Rnd8xq_S2qMKtvqeAN3ZzZPIuY1TXV_Ac4plKo_EGZpFCJgYU0zcNnrFAstKL5oAmQbxvKOxbDc_PlxrQ0EULosJCeBnavi4PF2F-0U9wm2wHtaoPJGzrW30',
-      verified: false,
-      seller: 'Hoàng Nam',
-      sellerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnW3velB_pHgycS6J9MJiNvk2it4SUlbXzqYziKsjSCSR8pSmj21gpdFeoN_LmEhGNPr_V577jEa_HuhJMrvrf9C50g4Ml1J06ihJ3zEj3pA9c5pS665zTkXZyZatSa9PvDjRtAeYd9oofFuttSDH4g7Z6YNFSFvewD-x9RuJ5hWBqy0TIpciXunWaLdlUa0QePV-4txDNjuZxLa5_tbh9ljYSKLGZyTSZgknYnaiE3cJFlbY4U9zZBZRqHqhsbAj2o4abzXtd2mER',
-      timeAgo: '1 ngày trước',
-      discount: true,
-    },
-    {
-      id: 4,
-      name: 'Raleigh Vintage 1985',
-      price: '8.500.000',
-      originalPrice: null,
-      location: 'Hà Nội',
-      category: 'Touring',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPCVAQNSGqS-dZ33_th7c_nrL-Tt3M8EYbV_THY1_L6dfpHxLGgIiAkL69EpGLhVjpiBT4DgTCc7JY2UJBDdf_KmNNqUmml3-cVg-HNi1YGm8FA79bqTje-eKHJxVfhhuh1f9PiSVbLEz5I7t3koPfWwLS_Z0xoz-gIGsRaDpxs-majKsd-1i-n4Gy9Tmdn7B1jovomF5WYhpO8_2NCB7GYmw1kBxwk6CVSpwfO7tRJ2bOPHhvKwxPM4GXG5HTCJW26W057_nmCyF4',
-      verified: false,
-      seller: 'Thu Hà',
-      sellerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC81pky6XMP_CyshqcEUyN2PYH8i2kKyBeYhyRuX_5Ef22M8oe-OLB8W61GqWkpe4yEYPNwIsaLkhgY77Ih9Nr8tWpVyxR3sV_DUyGaUkDJejhMhRHf74fcRI5juwGMh5UuU5Ta6eHDg69gDQLBRw4mW0k4M8zANg346gRocdmwlxe9JBsHezz91zqjd62N-V3tdXauGDIKonW13NY3HXJFQSM1Ph9Wa6C41tnAorvEvwxqM3iNvlzB2iZJEQguuQ7huhCnjlTwdT33',
-      timeAgo: '3 ngày trước',
-    },
-  ];
+  /*---------------------------------------*/
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 3;
 
-  const trustItems = [
-    {
-      icon: <ShieldCheck strokeWidth={3}  />,
-      title: 'Người bán đã xác thực',
-      description: 'Mọi người bán trên BikeMarket đều phải xác minh danh tính để đảm bảo an toàn cho giao dịch.',
-    },
-    {
-      icon: <Search strokeWidth={3} />,
-      title: 'Kiểm duyệt tin đăng',
-      description: 'Các tin đăng bán xe được đội ngũ kỹ thuật kiểm tra thông tin kỹ càng trước khi hiển thị.',
-    },
-    {
-      icon: <HandCoins strokeWidth={3}  />,
-      title: 'Minh bạch giá cả',
-      description: 'So sánh giá dễ dàng và không có phí ẩn. Giao dịch trực tiếp, không qua trung gian.',
-    },
-  ];
-  const handleLoginClick = () => {
-    navigate('/login');
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  /*---------------------------------------*/
+  const handleView = (listingId, likedStatus) => {
+    navigate(`/homebuyer/details/${listingId}`, {
+      // Từ khóa "state" và "isWishlisted" phải viết y hệt thế này
+      state: { isWishlisted: likedStatus }
+    });
   };
-  const handleSignupClick = () => {
-    // Chuyển sang đường dẫn /login nhưng gửi kèm dữ liệu { tab: 'register' }
-    navigate('/login', { state: { activeTab: 'register' } });
-  };
+
+  /*---------------------------------------*/
+  const [allBikes, setAllBikes] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('keyword') || '');
   const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
+    if (e.key === 'Enter') {
+      const keyword = searchTerm.trim();
+
+      if (keyword !== '') {
+        searchParams.set('keyword', keyword);
+        setSearchParams(searchParams);
+      } else {
+        searchParams.delete('keyword');
+        setSearchParams(searchParams);
+      }
+    }
   };
 
-  const handleNewsletterSignup = (e) => {
+  const [filters, setFilters] = useState({
+    category: "",
+    brand: ""
+  });
+
+  const handleSelectFilter = (e, type, value) => {
     e.preventDefault();
-    console.log('Signup email:', email);
-    setEmail('');
+    e.stopPropagation();
+
+    setFilters(prev => ({
+      ...prev,
+      [type]: prev[type] === value ? "" : value
+    }));
   };
+
+  const handleWishlistToggle = async (bikeId) => {
+    if (!isLoggedIn) {
+      toast.info("Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (wishlistIds.has(bikeId)) {
+        await removeFromWishlist(bikeId);
+        setWishlistIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(bikeId);
+          return newSet;
+        });
+        toast.info("Đã xóa khỏi danh sách yêu thích");
+      } else {
+        await addToWishlist(bikeId);
+        setWishlistIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(bikeId);
+          return newSet;
+        });
+        toast.success("Đã thêm vào danh sách yêu thích");
+      }
+      loadWishlist();
+    } catch (error) {
+      console.error("❌ Lỗi khi cập nhật wishlist:", error);
+      toast.error("Thao tác thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  useEffect(() => {
+    loadSellerListings();
+
+  }, []);
+
+  useEffect(() => { loadWishlist(); }, []);
+
+  const loadWishlist = async () => {
+    if (!isLoggedIn) return;
+    try {
+      const response = await getWishlist();
+      const dataArray = Array.isArray(response) ? response : response?.data || [];
+      const ids = new Set();
+      const wishlistBikes = [];
+
+      dataArray.forEach(item => {
+        const bikeData = item.bike || item;
+        const bikeId = item.bikeId || bikeData.id;
+        if (bikeId) {
+          ids.add(bikeId);
+          wishlistBikes.push({
+            listingId: item.listingId,
+            id: bikeId,
+            name: bikeData.title || bikeData.name || "Chưa có tên xe",
+            price: bikeData.price ? `${bikeData.price.toLocaleString("vi-VN")} đ` : "0 đ",
+            image: bikeData.thumbnail || bikeData.imageUrl || "https://via.placeholder.com/400x300"
+          });
+        }
+      });
+      setWishlistIds(ids);
+      setWatchedBikes(wishlistBikes.slice(0, 4));
+    } catch (error) {
+      console.error("❌ Failed to load wishlist:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadSellerListings();
+  }, [filters]);
+
+  useEffect(() => {
+    loadWishlist();
+  }, []);
+
+  const loadSellerListings = async () => {
+    setLoading(true);
+    try {
+      const filterList = [filters.category, filters.brand].filter(Boolean);
+
+      const responseData = await filterBuyerListings(filterList, 1, 12);
+
+      const rawBikes = Array.isArray(responseData)
+        ? responseData
+        : (responseData?.items || responseData?.data || []);
+
+      let formattedBikes = rawBikes.map((item) => ({
+        listingId: item.id || item.listingId,
+        id: item.bikeId || item.id,
+        name: item.title || item.name || "Chưa có tên xe",
+        price: item.price ? `${item.price.toLocaleString("vi-VN")} đ` : "0 đ",
+        size: item.size || "N/A",
+        location: item.location || "Chưa xác định",
+        image: item.thumbnail || item.imageUrl || "https://via.placeholder.com/400x300",
+        verified: item.isInspected || false,
+        condition: item.overall || "N/A",
+        newTag: item.isNew || false,
+        brand: item.brand || "Chưa xác định",
+        category: item.category || "Chưa xác định",
+      }));
+      setAllBikes(formattedBikes);
+
+      setTotalItems(formattedBikes.length);
+      setTotalPages(Math.ceil(formattedBikes.length / itemsPerPage));
+      console.log("🚀 ~ file: Homebuyer.jsx:172 ~ loadSellerListings ~ formattedBikes:", formattedBikes);
+      setBikes(formattedBikes);
+    } catch (error) {
+      console.error("❌ Failed to load seller listings:", error);
+      setBikes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*---------------------------------------*/
+  useEffect(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    let filteredBikes = [...allBikes];
+
+    if (keyword) {
+      filteredBikes = filteredBikes.filter(bike =>
+        bike.name.toLowerCase().includes(keyword)
+      );
+    }
+
+    setBikes(filteredBikes);
+    setTotalItems(filteredBikes.length);
+    setTotalPages(Math.ceil(filteredBikes.length / itemsPerPage) || 1);
+    setCurrentPage(1);
+  }, [searchTerm, allBikes]);
+  /*---------------------------------------*/
+
+
+
+
+  const navigate = useNavigate();
+  // const handleWishlistClick = () => navigate('/homebuyer/wishlist');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = () => setIsFilterOpen(false);
+    if (isFilterOpen) window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [isFilterOpen]);
 
   return (
-    <div className={`flex flex-col min-h-screen w-full transition-colors duration-200 ${darkMode ? 'bg-primary-dark text-white' : 'bg-background-light text-gray-900'}`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-50 w-full transition-colors duration-200 border-b ${darkMode ? 'bg-surface-dark border-gray-700' : 'bg-surface-light border-gray-200'}`}>
-        <div className="w-full flex items-center justify-between px-4 md:px-10 py-3 gap-8">
-          <div className="p-6 pb-2 pl-0">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
-                <Bike size={20} />
+
+
+    <div className="bg-background-light dark:bg-background-dark text-[#111813] overflow-x-hidden">
+      <div className="layout-container flex h-full grow flex-col">
+        <div className="w-full px-4 lg:px-10 py-6 flex flex-col gap-8">
+          {/* Header */}
+          
+          {/* Hero Section */}
+          <div className="@container">
+            <div
+              className="flex min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 pb-10 md:px-10 overflow-hidden relative shadow-lg"
+              style={{
+                backgroundImage:
+                  'linear-gradient(rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBs4rwvI8579xuy0IdSVJBqNLVUkeAPqUSXnSU_Eu4ygrUqqBZX3CPf_sK7g8l1Np0MjxjVydqutLDmsL15m-qpjKpVsVBVwbsIqBNNUAKvyUzUsBXBflA83NP6HlJk02lGknmvpSEOJHHqxl2EhzcP2p7GQbZ6L7OKpxHGhsDaU4qMrD1BGPY4c7-4ow9WW4F91EHSOtKLp3yhDf0dkylZosJRTzZchuihj-m6shJcf-Tlzax3GIehdGgAby3xgMFCtAr1LFfGDpQ1")',
+              }}
+            >
+              <div className="relative z-10 flex flex-col gap-3 text-left max-w-2xl">
+                <h1 className="text-white text-3xl font-black leading-tight tracking-[-0.033em] md:text-5xl">
+                  Mua xe bằng niềm tin, nhận xe bằng chất lượng
+                </h1>
+                <p className="text-white/90 text-sm font-normal leading-normal md:text-lg">
+                  Hành trình mới bắt đầu từ đây! Chúng tôi tìm thấy <span className="font-bold text-white">{bikes.length}</span> lựa chọn hoàn hảo dành riêng cho bạn
+                </p>
               </div>
-              <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
             </div>
           </div>
-
-          <div className="flex items-center gap-6 ml-auto">
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="#" className={`text-sm font-medium transition-colors ${darkMode ? 'text-gray-300 hover:text-primary' : 'text-gray-900 hover:text-primary'}`}>Mua xe</a>
-              <a href="#" className={`text-sm font-medium transition-colors ${darkMode ? 'text-gray-300 hover:text-primary' : 'text-gray-900 hover:text-primary'}`}>Bán xe</a>
-              <a href="#" className={`text-sm font-medium transition-colors ${darkMode ? 'text-gray-300 hover:text-primary' : 'text-gray-900 hover:text-primary'}`}>Cộng đồng</a>
-            </nav>
-
-            {/* --- PHẦN ĐƯỢC THÊM VÀO: Nút Đăng nhập & Đăng ký --- */}
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleLoginClick} 
-                className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${darkMode ? 'text-white hover:bg-gray-700' : 'text-gray-900 hover:bg-gray-100'}`}
-              >
-                Đăng nhập
-              </button>
-              <button 
-                onClick={handleSignupClick} 
-                className="px-4 py-2 text-sm font-bold bg-primary text-black rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                Đăng ký
-              </button>
-            </div>
-            {/* ---------------------------------------------------- */}
-
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex flex-1 flex-col items-center w-full">
-        {/* Hero Section */}
-        <HeroSection/>
-
-        {/* Search & Filter Bar - ĐÃ SỬA THEO YÊU CẦU STYLE MỚI */}
-        <section className="w-75 max-w-7xl mx-auto -mt-8 mb-12 px-4 md:px-10 relative z-20">
-          <div className={`rounded-xl shadow-lg border transition-colors ${darkMode ? 'bg-surface-dark border-gray-700' : 'bg-white border-gray-200'} p-6`}>
-
-            {/* Hàng 1: Ô tìm kiếm (Style xám nhạt, không viền) */}
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className={`flex-1 relative flex items-center rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <span className={`absolute left-4 text-xl ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}><Search size={20} /></span>
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm theo tên xe, thương hiệu (ví dụ: Trek, Giant...)"
-                  className="w-full h-12 pl-12 pr-4 bg-transparent border-none outline-none text-sm placeholder-gray-500 text-gray-900 rounded-lg"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+          <label className=" w-full hidden md:flex flex-col min-w-40 !h-10 w-96 mx-auto">
+            <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
+              <div className="text-[#61896f] flex border-none bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
+                  <Search strokeWidth={1.25} />
+                </span>
               </div>
-              <button type="submit" className="h-12 px-8 bg-primary hover:bg-emerald-500 text-gray-900 rounded-lg font-bold whitespace-nowrap transition-colors text-sm shadow-sm">Tìm kiếm</button>
-            </form>
-
-            {/* Hàng 2: Bộ lọc (Style viên thuốc - Pill shape) */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span className={`text-sm font-bold mr-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>Bộ lọc nhanh:</span>
-
-              <button className={`flex items-center gap-2 h-10 px-5 rounded-full text-sm font-medium transition-all ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
-                <span>Loại xe: Tất cả</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <button className={`flex items-center gap-2 h-10 px-5 rounded-full text-sm font-medium transition-all ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
-                <span>Khoảng giá</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <button className={`flex items-center gap-2 h-10 px-5 rounded-full text-sm font-medium transition-all ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
-                <span>Thương hiệu</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <button className={`flex items-center gap-2 h-10 px-5 rounded-full text-sm font-medium transition-all ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
-                <span>Địa điểm</span>
-                <ChevronDown size={14} />
-              </button>
-            </div>
-
-          </div>
-        </section>
-
-        {/* Trust Assurance Section */}
-        <section className={`w-full py-16 md:py-20 px-4 md:px-10 transition-colors ${darkMode ? 'bg-surface-dark' : 'bg-white'}`}>
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-            {trustItems.map((item, index) => (
-              <div key={index} className={`flex flex-col items-center text-center p-6 rounded-xl transition-colors ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4 ${darkMode ? 'bg-primary/30 text-primary' : 'bg-primary/20 text-primary'}`}>{item.icon}</div>
-                <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
-                <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Featured Listings */}
-        <section className="w-full  px-4 md:px-10 py-12">
-          <div className="flex items-center justify-between mb-8 px-2">
-            <h2 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Xe nổi bật hôm nay</h2>
-            <a href="#" className="text-primary font-bold flex items-center gap-1 hover:underline transition-all">
-              Xem tất cả <span>→</span>
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {bikes.map((bike) => (
-              <div key={bike.id} className={`rounded-xl overflow-hidden shadow-md border transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col ${darkMode ? 'bg-surface-dark border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className="relative aspect-video overflow-hidden bg-gray-200">
-                  {bike.verified && (
-                    <div className="absolute top-3 left-3 text-xs font-bold px-2 py-1 rounded bg-primary text-gray-900 z-10 shadow-md">Đã kiểm định</div>
-                  )}
-                  {bike.discount && (
-                    <div className="absolute top-3 left-3 text-xs font-bold px-2 py-1 rounded bg-red-500 text-white z-10 shadow-md">Giảm giá sâu</div>
-                  )}
-                  <button className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all z-11 ${darkMode ? 'bg-white/30 hover:bg-white hover:text-red-500' : 'bg-white/50 hover:bg-white hover:text-red-500'}`}><HeartPlus /></button>
-                  <img
-                    src={bike.image}
-                    alt={bike.name}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
-                <div className="p-4 flex flex-col flex-1 gap-2">
-                  <h3 className={`font-bold text-lg truncate transition-colors hover:text-primary ${darkMode ? 'text-white' : 'text-gray-900'}`}>{bike.name}</h3>
-                  <p className={`font-bold text-xl mb-3 ${darkMode ? 'text-primary' : 'text-primary'}`}>
-                    {bike.price} ₫
-                    {bike.originalPrice && (
-                      <span className="text-xs text-gray-400 line-through font-normal ml-2">{bike.originalPrice} ₫</span>
-                    )}
-                  </p>
-                  <div className={`flex items-center gap-2 text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-black'}`}>
-                    
-                    <span className="flex items-center gap-1">
-                      <MapPinCheckInside size={24} />
-                      {bike.location}
-                    </span>
-
-                    <span>•</span>
-                    <span>{bike.category}</span>
-                  </div>
-
-                  <div className={`flex items-center gap-3 pt-3 border-t mt-auto ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <img src={bike.sellerAvatar} alt={bike.seller} className="w-8 h-8 rounded-full object-cover bg-gray-300 flex-shrink-0" />
-                    <span className={`text-sm font-medium flex-1 ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>{bike.seller}</span>
-                    <span className="text-xs text-gray-400 ml-auto">{bike.timeAgo}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-center">
-            <button className={`px-8 py-3 rounded-lg font-bold transition-all border ${darkMode ? 'bg-surface-dark border-gray-600 text-white hover:bg-gray-700' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-100'}`}>Xem thêm xe khác</button>
-          </div>
-        </section>
-
-        {/* Newsletter Section */}
-        <section className={`w-full py-16 md:py-20 px-4 md:px-10 mt-8 transition-colors ${darkMode ? 'bg-surface-dark' : 'bg-background-light'}`}>
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className={`text-2xl md:text-3xl font-black mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Không tìm thấy chiếc xe ưng ý?</h2>
-            <p className={`mb-8 max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Đăng ký nhận thông báo để biết ngay khi có chiếc xe phù hợp với nhu cầu của bạn được đăng bán.
-            </p>
-            <form onSubmit={handleNewsletterSignup} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
-                type="email"
-                placeholder="Nhập email của bạn"
-                className={`flex-1 h-12 px-4 rounded-lg text-sm transition-all outline-none ${darkMode ? 'bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary' : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-primary'}`}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                // onKeyDown={handleSearch}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111813] focus:outline-0 focus:ring-0 border-none bg-[#f0f4f2] focus:border-none h-full placeholder:text-[#61896f] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal"
+                placeholder="Tìm kiếm xe đạp mơ ước..."
               />
-              <button type="submit" className={`h-12 px-6 rounded-lg font-bold transition-opacity whitespace-nowrap text-sm ${darkMode ? 'bg-primary text-gray-900 hover:opacity-90' : 'bg-gray-900 text-white hover:opacity-90'}`}>Đăng ký nhận tin</button>
-            </form>
-          </div>
-        </section>
+            </div>
+          </label>
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-      </main>
+            {/* Sidebar */}
+            <div className="lg:col-span-4 flex flex-col gap-8">
 
-      {/* Footer */}
-      <footer className={`transition-colors border-t ${darkMode ? 'bg-surface-dark border-gray-700' : 'bg-surface-light border-gray-200'} p-8 md:p-10 mt-auto`}>
-        <div className="w-full  flex flex-col md:flex-row gap-6 md:gap-0 items-center md:justify-between">
-          <div className="p-6 pb-2 pl-0">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white shadow-sm">
-                <Bike size={20} />
+
+              <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-sm flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-[#111813]">Xe đang theo dõi</h3>
+                  <button onClick={() => {
+                    navigate('/login');
+                  }} className="text-sm font-medium text-emerald-700 hover:text-emerald-500">
+                    Xem tất cả ({watchedBikes.length})
+                  </button>
+                </div>
+                {watchedBikes.map((bike) => (
+                  <div key={bike.listingId} className="flex gap-3 items-center p-2 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer group"
+                    onClick={() => navigate(`homeguest/details/${bike.listingId}`)}>
+                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0"
+                      style={{ backgroundImage: `url("${bike.image}")` }}></div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-bold text-[#111813] truncate group-hover:text-emerald-600 transition-colors">{bike.name}</h4>
+                      <p className="text-xs text-emerald-700">{bike.price}</p>
+                    </div>
+                    <button className="text-red-500 hover:text-red-700 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); handleWishlistToggle(bike.id); }}>
+                      <Heart size={18} fill="currentColor" />
+                    </button>
+                  </div>
+                ))}
               </div>
-              <h1 className="text-emerald-700 text-lg font-extrabold tracking-tight">BikeMarket</h1>
+
+              <div className="bg-emerald-500 rounded-xl p-6 text-white relative overflow-hidden shadow-sm">
+                <div className="relative z-10">
+                  <h3 className="font-bold text-xl mb-2">Mua xe an tâm</h3>
+                  <p className="text-sm text-white/90 mb-4">
+                    Chúng tôi chỉ giới thiệu những chiếc xe có chất lượng thực thụ, đã được bảo chứng bởi đội ngũ chuyên môn
+                  </p>
+                </div>
+                <div className="absolute -bottom-4 -right-4 opacity-20">
+                  <ShieldCheck size={120} />
+                </div>
+              </div>
+            </div>
+
+            {/* Main Area */}
+            <div className="lg:col-span-8 flex flex-col gap-6">
+              <div className="relative z-[50] bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => setIsFilterOpen(!isFilterOpen)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${isFilterOpen ? "bg-emerald-100 border-emerald-500 text-emerald-600" : "bg-emerald-50 border-transparent text-[#111813] hover:bg-emerald-100"
+                        }`}
+                    >
+                      <SlidersHorizontal size={18} strokeWidth={2.5} />
+                      Bộ lọc
+                      <span className={`material-symbols-outlined transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} style={{ fontSize: "16px" }}>
+                        expand_more
+                      </span>
+                    </button>
+
+                    {isFilterOpen && (
+                      <div className="absolute top-full left-0 mt-2 w-[600px] bg-white rounded-xl shadow-xl border border-gray-100 p-6 z-[9999] flex gap-6 cursor-default" onClick={(e) => e.stopPropagation()}>
+
+                        {/* CỘT 1: DANH MỤC XE */}
+                        <div className="flex-1">
+                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 border-b border-emerald-100">
+                            Danh mục xe
+                          </div>
+                          <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+
+
+                            {CATEGORY_OPTIONS?.map((cat) => (
+                              <button
+                                key={cat.value}
+                                type="button"
+                                onClick={(e) => handleSelectFilter(e, "category", cat.value)}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${filters.category === cat.value
+                                    ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-200"
+                                    : "text-[#111813] hover:bg-emerald-50 hover:text-emerald-600"
+                                  }`}
+                              >
+                                {cat.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* CỘT 2: HÃNG XE */}
+                        <div className="flex-1 border-l border-gray-100 pl-6">
+                          <div className="px-3 py-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 border-b border-emerald-100">
+                            Thương hiệu
+                          </div>
+                          <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+
+
+                            {BRAND_OPTIONS?.map((brand) => (
+                              <button
+                                key={brand.value}
+                                type="button"
+                                onClick={(e) => handleSelectFilter(e, "brand", brand.value)}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${filters.brand === brand.value
+                                    ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-200"
+                                    : "text-[#111813] hover:bg-emerald-50 hover:text-emerald-600"
+                                  }`}
+                              >
+                                {brand.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              
+              </div>
+
+              {/* Bikes Grid */}
+              {loading ? (
+                <div className="flex items-center justify-center col-span-full h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Đang tải danh sách xe...</p>
+                  </div>
+                </div>
+              ) : bikes.length === 0 ? (
+                <div className="flex items-center justify-center col-span-full h-64">
+                  <div className="text-center"><p className="text-gray-500">Không tìm thấy xe nào.</p></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {bikes.slice(indexOfFirstItem, indexOfLastItem).map((bike) => (
+                    <div key={bike.listingId} className="group bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer"
+                      onClick={() => navigate(`/details/${bike.listingId}`)}>
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        {bike.verified && (
+                          <div className="absolute top-3 left-3 z-[10] bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                            <ShieldCheck size={14} strokeWidth={3} /> ĐÃ KIỂM ĐỊNH
+                          </div>
+                        )}
+                        {bike.newTag && (
+                          <div className="absolute top-3 left-3 z-10 bg-gray-900/80 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm backdrop-blur-sm">MỚI ĐĂNG</div>
+                        )}
+                        <button type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleWishlistToggle(bike.id);
+                          }} className={`absolute top-3 right-3 z-[30] p-2 rounded-full bg-white/90 shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${wishlistIds.has(bike.id) ? "text-red-500" : "text-gray-400 hover:text-red-500"}`}>
+                          <Heart size={20} fill={wishlistIds.has(bike.id) ? "currentColor" : "none"} strokeWidth={2.5} />
+                        </button>
+                        <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                          style={{ backgroundImage: `url("${bike.image}")` }}></div>
+                      </div>
+                      <div className="p-4 flex flex-col flex-1 gap-2">
+                        <h3 className="text-base font-bold text-[#111813] line-clamp-2 min-h-[2.5rem]">{bike.name}</h3>
+                        <p className="text-lg font-bold text-emerald-600">{bike.price}</p>
+                        <div className="flex items-center gap-4 text-xs text-emerald-700 py-2">
+                          <div className="flex items-center gap-1"><Trello size={16} strokeWidth={1.25} /> Brand: {bike.brand}</div>
+                          <div className="flex items-center gap-1"><ChartColumnStacked size={16} strokeWidth={1.25} /> {bike.category}</div>
+                        </div>
+                        <button
+                          onClick={() => handleView(bike.listingId, wishlistIds.has(bike.id))}
+                          className="mt-auto w-full py-2.5 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-700 font-bold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                          Xem chi tiết <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_forward</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-center px-5 py-4 bg-white border border-[#e5e7eb] rounded-xl gap-4 mt-4 shadow-sm">
+
+
+                  <div className="flex justify-center items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (number) => (
+                        <button
+                          key={number}
+                          onClick={() => setCurrentPage(number)}
+                          className={`w-8 h-8 flex items-center justify-center text-sm font-bold border rounded-lg transition-colors ${currentPage === number
+                              ? "bg-emerald-500 text-white border-emerald-500"
+                              : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                        >
+                          {number}
+                        </button>
+                      ),
+                    )}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          <nav className="flex gap-8 flex-wrap justify-center">
-            <a href="#" className={`text-sm transition-colors ${darkMode ? 'text-gray-400 hover:text-primary' : 'text-gray-500 hover:text-primary'}`}>Về chúng tôi</a>
-            <a href="#" className={`text-sm transition-colors ${darkMode ? 'text-gray-400 hover:text-primary' : 'text-gray-500 hover:text-primary'}`}>Quy chế hoạt động</a>
-            <a href="#" className={`text-sm transition-colors ${darkMode ? 'text-gray-400 hover:text-primary' : 'text-gray-500 hover:text-primary'}`}>Chính sách bảo mật</a>
-            <a href="#" className={`text-sm transition-colors ${darkMode ? 'text-gray-400 hover:text-primary' : 'text-gray-500 hover:text-primary'}`}>Liên hệ</a>
-          </nav>
-
-          <div className={`text-sm text-center md:text-right ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            © 2026 BikeMarket. All rights reserved.
-          </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }

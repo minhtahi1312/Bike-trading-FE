@@ -1,8 +1,8 @@
-/* eslint-disable */
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCategoryLabel, getBrandLabel } from "../../utils/format";
+import Pagination from "../../components/Seller/Pagination";
 
 const PAGE_SIZE = 5;
 
@@ -95,10 +95,6 @@ export default function SellerOrders() {
       label: "Hoàn thành",
       style: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
-    Cancelled: {
-      label: "Đã huỷ",
-      style: "bg-gray-100 text-gray-600 border border-gray-200",
-    },
   };
 
   // ===== FILTER =====
@@ -123,48 +119,6 @@ export default function SellerOrders() {
   const end = start + PAGE_SIZE;
 
   const pageOrders = filteredOrders.slice(start, end);
-
-  const confirmOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/confirm",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
-
-  const shippingOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/shipping",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
-
-  const completeOrder = async (id) => {
-    await fetch(
-      "https://bikestore-b7e3gudmenczf8bn.southeastasia-01.azurewebsites.net/api/seller/orders/complete",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({ orderId: id }),
-      },
-    );
-  };
 
   // ===== LOADING =====
   if (loading) {
@@ -194,7 +148,6 @@ export default function SellerOrders() {
             { key: "Confirmed", label: "Đã xác nhận" },
             { key: "Shipping", label: "Đang giao" },
             { key: "Completed", label: "Hoàn thành" },
-            { key: "Cancelled", label: "Đã huỷ" },
           ].map((t) => (
             <button
               key={t.key}
@@ -326,42 +279,12 @@ export default function SellerOrders() {
         </table>
 
         {/* ===== PAGINATION ===== */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <p className="text-sm text-gray-500">
-            Hiển thị {start + 1} đến {Math.min(end, total)} của {total} đơn hàng
-          </p>
-
-          <div className="flex gap-1">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 border rounded-lg text-sm disabled:opacity-40"
-            >
-              Trước
-            </button>
-
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                  page === i + 1
-                    ? "bg-emerald-500 text-white"
-                    : "border hover:bg-gray-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 border rounded-lg text-sm disabled:opacity-40"
-            >
-              Tiếp
-            </button>
-          </div>
+        <div className="border-t">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>

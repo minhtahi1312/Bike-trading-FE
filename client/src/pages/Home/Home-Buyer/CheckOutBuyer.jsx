@@ -9,9 +9,7 @@ const CheckoutPage = () => {
   const [formData, setFormData] = useState({
     receiverName: 'Nguyễn Văn A',
     receiverPhone: '0901234567',
-    city: 'Hồ Chí Minh',
-    district: 'Quận 1',
-    ward: 'Phường Bến Nghé',
+   
     addressDetail: ''
   });
 
@@ -22,25 +20,26 @@ const CheckoutPage = () => {
       [name]: value
     }));
   };
-
+  // Tạo Đơn Hàng
   const handleCheckout = async () => {
     const requestBody = {
       receiverName: formData.receiverName,
       receiverPhone: formData.receiverPhone,
-      receiverAddress: `${formData.addressDetail}, ${formData.ward}, ${formData.district}, ${formData.city}`
+      receiverAddress: `${formData.addressDetail}`
     };
 
     try {
       const result = await CheckOut(requestBody);
       const orders = await getMyOrder();
       const orderId = orders[0].id;
+      // const orderId = result.id;
       navigate(`/homebuyer/payment/${orderId}`);
     } catch (error) {
       console.error("Lỗi khi thanh toán", error);
       alert("Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.");
     }
   };
-
+  // load những thông tin đã được chọn trong giỏ hàng
   const loadItems = async () => {
     try {
       const data = await getCartItems();
@@ -69,7 +68,7 @@ const CheckoutPage = () => {
             <div className="lg:col-span-8">
               <div className="bg-white p-6 lg:p-8 rounded-2xl shadow-sm border border-gray-100">
                 
-                {/* Header Section - Đảm bảo hiển thị tiêu đề */}
+                {/* Header Section */}
                 <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-50">
                   <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
                     <span
@@ -123,7 +122,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  {/* <div className="flex items-center gap-3 pt-2">
                     <input
                       className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                       id="save-address"
@@ -132,7 +131,7 @@ const CheckoutPage = () => {
                     <label className="text-sm text-[#61896f] cursor-pointer select-none" htmlFor="save-address">
                       Lưu địa chỉ này cho lần sau
                     </label>
-                  </div>
+                  </div> */}
                 </form>
               </div>
 

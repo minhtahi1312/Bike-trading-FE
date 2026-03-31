@@ -35,26 +35,31 @@ import Transactions from "./pages/Admin/Transactions";
 import SellerListingDetail from "./pages/Seller/ListingDetail";
 import SellerOrderDetail from "./pages/Seller/OrderDetail";
 import CreateListing from "./pages/Seller/CreateListing";
+import SellerProfile from "./pages/Seller/Profile";
 
 import Wallet from "./pages/Seller/Wallet";
 import Withdraw from "./pages/Seller/Withdraw";
 import TransactionsPage from "./pages/Seller/TransactionsPage";
 
+import GuestLayout from "./layouts/GuestLayout";
 import BuyerLayout from "./layouts/BuyerLayout";
 import PaymentBuyer from "./pages/Home/Home-Buyer/PaymentBuyer";
 import BikeDetailPage from "./pages/Home/Home-Buyer/DetailsBuyer";
 import OderBuyer from "./pages/Home/Home-Buyer/OderBuyer";
 import CheckoutPage from "./pages/Home/Home-Buyer/CheckOutBuyer";
 import OrderDetail from "./pages/Home/Home-Buyer/OderDetails";
-
+import DetailsGuest from "./pages/Home/Home-guest/DetailsGuest";
+import ProfileBuyer from "./pages/Home/Home-Buyer/ProfileBuyer";
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Homeguest />} />
-        <Route path="/homeguest" element={<Homeguest />} />
-
+        <Route path="/" element={<GuestLayout />}>
+          <Route index element={<Homeguest />} />
+          
+          <Route path="details/:id" element={<DetailsGuest />} />
+        </Route>
         <Route path="/homebuyer" element={<BuyerLayout />}>
           <Route index element={<Homebuyer />} />
           <Route path="wishlist" element={<Wishlistbuyer />} />
@@ -64,6 +69,7 @@ function App() {
           <Route path="order" element={<OderBuyer />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order/:id" element={<OrderDetail />} />
+          <Route path="profile" element={<ProfileBuyer />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/system" element={<StaffLogin />} />
@@ -89,6 +95,8 @@ function App() {
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
+        {/* <Route path="/" element={<Navigate to="/homeguest" replace />} />
+        <Route path="*" element={<Navigate to="/homeguest" replace />} /> */}
 
         <Route path="/seller" element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
@@ -101,14 +109,14 @@ function App() {
           <Route path="edit-listing/:id" element={<CreateListing />} />
           <Route path="reviews" element={<SellerReview />} />
           <Route path="reports" element={<SellerReport />} />
+          <Route path="profile" element={<SellerProfile />} />
 
           <Route path="wallet" element={<Wallet />} />
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="transactions" element={<TransactionsPage />} />
         </Route>
       </Routes>
-
-      {/* --- 2. THÊM CÁI KHUNG HIỂN THỊ NÀY VÀO CUỐI --- */}
+      <Toaster position="top-right" />
       <ToastContainer
         position="top-right"
         autoClose={3000}

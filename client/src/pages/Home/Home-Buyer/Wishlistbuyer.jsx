@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ListFilter, Trash, Heart, MapPin, RulerDimensionLine, Shapes, Settings, Truck } from "lucide-react";
+import { ListFilter, Trash, Heart, MapPin, RulerDimensionLine, Shapes, Settings, Truck, Trello, ChartColumnStacked } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getWishlist, removeFromWishlist } from "../../../services/axiosClient";
 import { toast } from "react-toastify";
@@ -18,7 +18,7 @@ export default function Wishlist() {
     document.title = "Danh sách yêu thích - BikeMarket";
     loadWishlist();
   }, []);
-
+  /*---------------------- Load danh sách yêu thích ----------------------*/
   const loadWishlist = async () => {
     setLoading(true);
     try {
@@ -51,13 +51,13 @@ export default function Wishlist() {
       
       setBikes(formattedData);
     } catch (e) {
-      console.error('❌ Failed to load wishlist:', e);
+      console.error(' Failed to load wishlist:', e);
       toast.error("Không thể tải danh sách yêu thích");
     } finally {
       setLoading(false);
     }
   };
-
+  /*---------------------- Xóa khỏi danh sách yêu thích ----------------------*/
   const handleDelete = async (bikeId) => {
     if (!window.confirm("Bạn có muốn xóa xe này khỏi danh sách yêu thích?")) return;
 
@@ -66,11 +66,11 @@ export default function Wishlist() {
       setBikes((prevBikes) => prevBikes.filter((b) => b.bikeId !== bikeId));
       toast.success("Đã xóa khỏi danh sách yêu thích");
     } catch (e) {
-      console.error('❌ Lỗi khi xóa:', e);
+      console.error(' Lỗi khi xóa:', e);
       toast.error("Không thể xóa sản phẩm");
     }
   };
-
+  /*---------------------- Xem chi tiết xe ----------------------*/
   const handleView = (id) => {
     navigate(`/homebuyer/details/${id}`);
   };
@@ -81,18 +81,18 @@ export default function Wishlist() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Danh sách yêu thích</h1>
-            {/* Thay thế text-emerald-600 bằng text-[#066e48] */}
+      
             <p className="text-[#066e48] text-base">Bạn đã lưu <span className="font-bold text-[#111813] dark:text-white">{bikes.length} xe đạp</span> vào danh sách.</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {/* Thay thế bg-emerald-500 bằng bg-[#066e48] */}
+          
             <button className="flex h-9 items-center rounded-full bg-[#066e48] text-white px-4 text-sm font-bold shadow-sm">Tất cả</button>
           </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            {/* Thay thế border-emerald-500 bằng border-[#066e48] */}
+           
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#066e48] mb-4"></div>
             <p className="text-gray-500">Đang tải danh sách...</p>
           </div>
@@ -164,8 +164,8 @@ export default function Wishlist() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-[#066e48] mb-2">
-                      <div className="flex items-center gap-1.5"><RulerDimensionLine size={14} /><span>Size {b.size}</span></div>
-                      <div className="flex items-center gap-1.5"><MapPin size={14} /><span className="truncate">{b.location}</span></div>
+                      <div className="flex items-center gap-1.5"><Trello size={16} strokeWidth={1.25} /><span>Brand: {b.brand}</span></div>
+                      <div className="flex items-center gap-1.5"><ChartColumnStacked size={16} strokeWidth={1.25} /><span className="truncate">Category: {b.category}</span></div>
                     </div>
                   </div>
                   

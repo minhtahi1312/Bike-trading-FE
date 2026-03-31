@@ -4,7 +4,7 @@ import { addCartItem, addToWishlist, buyNowOrder, getBikeDetail, getWishlist, re
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 
-const BikeMarketDetail = () => {
+const DetailsGuest = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const BikeMarketDetail = () => {
     useEffect(() => {
         loadWishlist();
     }, []);
-    // load sản phẩm yêu thích
+
     const loadWishlist = async () => {
         try {
             const response = await getWishlist();
@@ -42,6 +42,7 @@ const BikeMarketDetail = () => {
 
     const initialSelected = JSON.parse(localStorage.getItem('selectedCartItems')) || [];
     const [selectedItems, setSelectedItems] = useState(initialSelected);
+    // 2. FETCH DỮ LIỆU
     useEffect(() => {
         const fetchListingDetail = async () => {
             if (!id) return;
@@ -64,6 +65,7 @@ const BikeMarketDetail = () => {
 
     /* --------- API WISHLIST--------- */
     const handleWishlistToggle = async (bikeId) => {
+        
         try {
             if (wishlistIds.has(bikeId)) {
                 await removeFromWishlist(bikeId);
@@ -83,7 +85,7 @@ const BikeMarketDetail = () => {
                     newSet.add(bikeId);
                     return newSet;
                 });
-
+                
                 toast.success("Đã thêm vào danh sách yêu thích");
             }
         } catch (err) {
@@ -173,7 +175,7 @@ const BikeMarketDetail = () => {
 
     const reviews = bike?.sellerReviewSummary?.latestReviews || [];
     const sellerName = bike?.sellerReviewSummary?.sellerName;
-    const joinDate = bike?.sellerReviewSummary?.joinDate;
+     const joinDate = bike?.sellerReviewSummary?.joinDate;
     const averageRating = Number(bike?.sellerReviewSummary?.averageRating) || 0;
     console.log("🚀 ~ file: DetailsBuyer.jsx:262 ~ BikeMarketDetail ~ reviews:", averageRating);
     const totalReviews = bike?.sellerReviewSummary?.totalReviews || 0;
@@ -323,7 +325,7 @@ const BikeMarketDetail = () => {
                                                         ({totalReviews} đánh giá)
                                                     </span>
                                                 </div>
-                                             
+
                                                 {/* Tags (Uy tín & Kiểm định) */}
 
                                             </div>
@@ -332,9 +334,8 @@ const BikeMarketDetail = () => {
                                         {/* Phần Phải: Thống kê (Tỷ lệ phản hồi & Thời gian) */}
                                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
 
-
-
-                                            {/* <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
+                                         
+                                            <div className="border border-[#e5e7eb] dark:border-[#2a3c30] rounded-xl p-4 flex-1 min-w-[180px] bg-white dark:bg-[#1c2e22]">
                                                 <p className="text-[11px] font-bold text-[#6b7280] dark:text-gray-400 uppercase tracking-widest mb-1.5">
                                                     Thời gian tham gia
                                                 </p>
@@ -344,7 +345,7 @@ const BikeMarketDetail = () => {
                                                         {joinDate}
                                                     </span>
                                                 </div>
-                                            </div> */}
+                                            </div>
 
                                         </div>
                                     </div>
@@ -470,7 +471,7 @@ const BikeMarketDetail = () => {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => handleWishlistToggle(bike?.bikes?.[0]?.id)}
+                                            onClick={() => navigate(`/login`)}
                                             className="transition-all active:scale-90 p-2"
                                         >
                                             <Heart
@@ -497,11 +498,11 @@ const BikeMarketDetail = () => {
                                     </div>
 
                                     <div className="flex flex-col gap-3 pt-2">
-                                        <button onClick={handleBuyNow} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
+                                        <button  onClick={() => navigate(`/login`)} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-900/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">shopping_cart_checkout</span>
                                             Mua ngay
                                         </button>
-                                        <button onClick={handleAddCartItem} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-500/10 group">
+                                        <button  onClick={() => navigate(`/login`)} className="flex items-center justify-center gap-3 bg-[#066e48] text-white font-bold py-4 rounded-xl hover:bg-[#055a3b] transition-all shadow-lg shadow-emerald-500/10 group">
                                             <span className="material-symbols-outlined [font-variation-settings:'FILL'_1] group-hover:scale-110 transition-transform">add_shopping_cart</span>
                                             Thêm vào giỏ hàng
                                         </button>
@@ -560,4 +561,4 @@ const BikeMarketDetail = () => {
     );
 };
 
-export default BikeMarketDetail;
+export default DetailsGuest;

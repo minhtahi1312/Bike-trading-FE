@@ -6,29 +6,26 @@ export default function PaymentBuyer() {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null); 
   const { id } = useParams(); 
-
+  /* --------------------- Load thông tin chi tiết đơn hàng ---------------------*/
   const loadOrder = async () => {
     try {
       console.log("🔍 Lấy thông tin đơn hàng với ID:", id);
       const order = await getOrder(id);
-      console.log("✅ Dữ liệu đơn hàng:", order);
       setOrder(order);
     } catch (err) {
-      console.error("❌ Lỗi lấy thông tin đơn hàng:", err);
+      console.error(" Lỗi lấy thông tin đơn hàng:", err);
     }
   };
 
   useEffect(() => {
     loadOrder();
   }, [id]);
-
+  /*-------------------- Xử lý thanh toán --------------------*/
   const handlePayment = async () => {
     try {
       const orders = await getMyOrder();
       const orderId = orders[0].id;
-      console.log("Order ID để thanh toán:", orderId);
       const urlQR = await getPayos(orderId);
-      console.log("URL QR Code:", urlQR.data.checkoutUrl);
       window.location.href = urlQR.data.checkoutUrl;
     } catch (error) {
       console.error("Lỗi khi thanh toán", error);

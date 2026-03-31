@@ -7,19 +7,21 @@ const CartBuyer = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  // Tách biệt 2 nguồn dữ liệu
-  const [items, setItems] = useState([]); // Danh sách sản phẩm (có chứa isSelected)
-  const [summary, setSummary] = useState({ totalAmount: 0 }); // Tổng tiền từ server
 
+  const [items, setItems] = useState([]); 
+  
+  const [summary, setSummary] = useState({ totalAmount: 0 }); 
+  const hasInvalidItem = items.some(item => item.isSelected && item.bikeStatus !== 'Available');
+  // load sản phâm
   const loadItems = async () => {
     try {
-      const data = await getCartItems();
-      setItems(data || []);
+      const item = await getCartItems();
+      setItems(item || []);
     } catch (err) {
       console.error("Lỗi lấy danh sách:", err);
     }
   };
-
+  // load tổng số tiền
   const loadSummary = async () => {
     try {
       const data = await getCart();
@@ -32,9 +34,8 @@ const CartBuyer = () => {
   const isBuy = async () => {
     try {
       const data = await isBuying();
-      console.log("isBuying response:", data);
     } catch (err) {
-      console.error("Lỗi lấy tổng tiền:", err);
+      console.error("Lỗi không lấy được item:", err);
     }
   };
 
@@ -62,8 +63,14 @@ const CartBuyer = () => {
     };
 
     initData();
+    // Tự động làm mới sau 10s 
+    const interval = setInterval(() => {
+    loadItems();
+    loadSummary();
+  }, 1000);
+  return () => clearInterval(interval); 
   }, []);
-
+  // API tích chọn sản phẩm
   const handleToggle = async (id) => {
     try {
       await toggleCartItem(id);
@@ -72,7 +79,7 @@ const CartBuyer = () => {
       toast.error("Không thể thay đổi trạng thái chọn");
     }
   };
-
+  // APi xóa sản phẩm
   const handleDelete = async (id) => {
     if (window.confirm("Xóa sản phẩm này?")) {
       try {
@@ -91,13 +98,12 @@ const CartBuyer = () => {
     <div className="min-h-screen bg-[#f6f8f6] p-4 lg:p-10 text-[#111813]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {/* CỘT DANH SÁCH SẢN PHẨM */}
+        
         <div className="lg:col-span-8 space-y-4">
           <h1 className="text-3xl font-bold mb-6">Giỏ hàng ({items.length})</h1>
           {items.map((item) => (
             <div key={item.id} className="bg-white p-4 rounded-2xl flex gap-6 border border-gray-100 shadow-sm items-center relative">
 
-              {/* DẤU TÍCH CHỌN - Đã đổi sang accent-emerald-500 */}
               <input
                 type="checkbox"
                 checked={item.isSelected}
@@ -105,13 +111,11 @@ const CartBuyer = () => {
                 className="w-6 h-6 accent-emerald-500 cursor-pointer shrink-0"
               />
 
-              {/* HÌNH ẢNH */}
               <div
                 className="w-40 aspect-video rounded-xl bg-cover bg-center bg-gray-100 shrink-0"
                 style={{ backgroundImage: `url(${item.imageUrl})` }}
               />
 
-              {/* NỘI DUNG CHI TIẾT */}
               <div className="flex-1 flex flex-col min-h-[100px]">
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-xl text-[#111813] line-clamp-1">{item.bikeTitle}</h3>
@@ -122,12 +126,10 @@ const CartBuyer = () => {
                 </div>
 
                 <div className="mt-auto flex justify-between items-end">
-                  {/* UNIT PRICE - Đã đổi sang text-emerald-600 */}
                   <p className="text-emerald-600 text-2xl font-black">
                     {item.unitPrice?.toLocaleString('vi-VN')} đ
                   </p>
 
-                  {/* BIKE STATUS */}
                   <div className="flex items-center">
                     <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${item.bikeStatus === 'Available'
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -148,7 +150,6 @@ const CartBuyer = () => {
           ))}
         </div>
 
-        {/* CỘT TÓM TẮT THANH TOÁN */}
         <div className="lg:col-span-4">
           <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 sticky top-24">
             <h2 className="text-xl font-bold mb-6">Tóm tắt đơn hàng</h2>
@@ -161,7 +162,6 @@ const CartBuyer = () => {
               </div>
               <div className="border-t border-dashed pt-4 flex justify-between items-center font-black text-2xl">
                 <span>Tổng cộng:</span>
-                {/* TỔNG CỘNG - Đã đổi sang text-emerald-600 */}
                 <span className="text-emerald-600">
                   {(summary.totalAmount > 0 ? summary.totalAmount : 0).toLocaleString('vi-VN')} đ
                 </span>
@@ -170,10 +170,9 @@ const CartBuyer = () => {
             <button
               disabled={summary.totalAmount === 0}
               onClick={() => navigate('/homebuyer/checkout')}
-              /* NÚT XÁC NHẬN - Đã đổi sang bg-emerald-500 hover:bg-emerald-600 */
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-white disabled:bg-gray-200 disabled:text-gray-400 py-4 rounded-xl font-black text-lg shadow-lg transition-all"
             >
-              Xác Nhận
+              {hasInvalidItem ? "Có sản phẩm không khả dụng" : "Xác Nhận"}
             </button>
           </div>
         </div>

@@ -5,13 +5,56 @@ import { useRef } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosClient from "../../services/axiosClient";
+import axiosClient, { getMe } from "../../services/axiosClient";
 
 const BuyerHeader = () => {
+
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  const [headerAvatar, setHeaderAvatar] = useState(
+    localStorage.getItem('user_avatar') || 'https://via.placeholder.com/150'
+  );
+  /*----------------------------------*/
+
+useEffect(() => {
+  const updateAvatar = () => {
+    const savedAvatar = localStorage.getItem('user_avatar');
+    setHeaderAvatar(savedAvatar || 'https://via.placeholder.com/150');
+  };
+
+  const fetchProfileIfMissing = async () => {
+    const token = localStorage.getItem('accessToken');
+    const savedAvatar = localStorage.getItem('user_avatar');
+
+    if (token && !savedAvatar) {
+      try {
+        const res = await getMe(); 
+        if (res && (res.avtUrl || res.avatar)) {
+          const avatarUrl = res.avtUrl || res.avatar;
+          localStorage.setItem('user_avatar', avatarUrl);
+          updateAvatar(); 
+        }
+      } catch (error) {
+        console.error("Không thể tự động lấy avatar:", error);
+      }
+    }
+  };
+
+  window.addEventListener('avatar_updated', updateAvatar);
+  window.addEventListener('storage', updateAvatar);
+
+  updateAvatar();          
+  fetchProfileIfMissing(); 
+
+  return () => {
+    window.removeEventListener('avatar_updated', updateAvatar);
+    window.removeEventListener('storage', updateAvatar);
+  };
+}, []);
+
 
   /*----------------*/
   useEffect(() => {
@@ -95,8 +138,7 @@ const BuyerHeader = () => {
                   onClick={toggleMenu}
                   className="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all"
                   style={{
-                    backgroundImage:
-                      'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZCJXctLpVot0sNndJ_n88PWplpqfErAYBxhjyKuEFyzpVqzM0q-QEhhhKelYBZXtQuzTukcrh9QJlVsvuw5zQRjtx7FPCiFEi-M-_omZTS8NfM3F__UI4r56M2QUnEWQjujdXVGezT9q1iD_YRe3bHiyNsOnH0E7qhSFJPCry3HPr1XNXc58j68uD2qBcjga6QVTOf0LN1VY-DRe8p70sQ5-3ea3N-iDTXhbhUKHFJMl94OLjIcCuPvdoN7gsQ0lN10GhzvSyS4bo")',
+                    backgroundImage: `url("${headerAvatar}")`,
                   }}
                 ></div>
 
@@ -104,6 +146,16 @@ const BuyerHeader = () => {
                 {isOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-100 z-50 overflow-hidden">
                     <ul className="py-1 text-sm text-gray-700">
+                      <li>
+                        <button
+                          onClick={() => navigate("/homebuyer/profile")}
+                          className="w-full text-left"
+                        >
+                          <a className="block px-4 py-2 hover:bg-gray-100 transition-colors">
+                            Thông tin cá nhân
+                          </a>
+                        </button>
+                      </li>
                       <li>
                         <button
                           onClick={() => navigate("/homebuyer/order")}
@@ -127,6 +179,7 @@ const BuyerHeader = () => {
                   </div>
                 )}
               </div>
+
             </div>
           </div>
         </header>

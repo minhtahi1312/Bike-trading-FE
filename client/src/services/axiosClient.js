@@ -51,7 +51,6 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -68,19 +67,19 @@ axiosClient.interceptors.response.use(
 
       try {
 
-      
         const response = await axios.post(
-          `${apiBaseUrl}/api/Auth/renew-token`, 
-          {}, 
-          { withCredentials: true }
+          `${apiBaseUrl}/api/Auth/renew-token`,
+          {},
+          { withCredentials: true },
         );
 
-        const newAccessToken = response.data?.token || response.data?.accessToken;
+        const newAccessToken =
+          response.data?.token || response.data?.accessToken;
 
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
           processQueue(null, newAccessToken);
-          
+
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosClient(originalRequest);
         } else {
@@ -89,7 +88,7 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         console.error(" Phiên đăng nhập hết hạn hoàn toàn.");
         processQueue(refreshError, null);
-        
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -136,7 +135,7 @@ const validateCart = async (cartId) => {
 const getWishlist = async () => {
   try {
     const response = await axiosClient.get(`/api/Wishlist`);
-    console.log(" GET /api/Wishlist success", response.data);
+   
     return response.data;
   } catch (error) {
     console.error(" getWishlist failed:", error.message);
@@ -185,7 +184,7 @@ const getSellerListings = async () => {
 
 const isBuying = async () => {
   try {
-    const cart = await getCart(); // Lấy thông tin cart hiện tại
+    const cart = await getCart(); 
     const response = await axiosClient.get(`/api/CartItem/validate`);
     console.log("✅ GET /api/CartItem/validate success:", response.data);
     return response.data;
@@ -384,6 +383,58 @@ const getWithdrawals = async () => {
   }
 };
 
+//  Balance seller
+const getWalletFinance = async () => {
+  const response = await axiosClient.get(`/api/SellerWallet/finance`);
+  return response.data;
+};
+
+const withdrawMoney = async (payload) => {
+  try {
+    const response = await axiosClient.post(
+      `/api/SellerWallet/withdrawal`,
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "withdrawMoney failed:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+const getWalletBalance = async () => {
+  try {
+    const response = await axiosClient.get(`/api/SellerWallet/balance`);
+    return response.data;
+  } catch (error) {
+    console.error("getWalletBalance failed:", error.message);
+    throw error;
+  }
+};
+
+const getMe = async () => {
+  const response = await axiosClient.get(`/api/Auth/me`);
+  console.log("getMe response:", response.data);
+  return response.data;
+};
+
+const uploadAvatar = async (formData) => {
+  const response = await axiosClient.post("/api/Auth/upload-avatar", formData, {
+    headers: {
+      "Content-Type": undefined,
+    },
+  });
+  return response.data;
+};
+
+const changePassword = async (data) => {
+  const response = await axiosClient.post(`/api/Auth/change-password`, data);
+  return response.data;
+};
+
 /**
  * ===== EXPORTS =====
  */
@@ -414,6 +465,12 @@ export {
   getReviewSummary,
   getSellerReports,
   getWithdrawals,
+  getWalletFinance,
+  withdrawMoney,
+  getWalletBalance,
+  getMe,
+  uploadAvatar,
+  changePassword,
 };
 
 export default axiosClient;

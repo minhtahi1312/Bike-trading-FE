@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { Eye, Package, Wallet, ShoppingBag, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -156,7 +154,7 @@ export default function Dashboard() {
                 key={i}
                 className="flex flex-col items-center flex-1 group relative"
               >
-                {/* 🔥 TOOLTIP */}
+                {/* TOOLTIP */}
                 <div className="absolute -top-10 opacity-0 translate-y-2 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
                   <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
                     {item.value} đơn

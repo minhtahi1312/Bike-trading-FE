@@ -21,12 +21,12 @@ export default function OrderBuyer() {
     { id: "completed", name: "Hoàn tất" },
     { id: "canceled", name: "Đã hủy" },
   ];
-
+  /*----------------Hiển thị đơn hàng cua người dùng --------------------*/
   const loadMyOrder = async () => {
     setIsLoading(true);
     try {
       const data = await getMyOrder();
-      console.log("✅ Dữ liệu đơn hàng:", data);
+      console.log(" Dữ liệu đơn hàng:", data);
       setOrders(Array.isArray(data) ? data : data?.data || []);
     } catch (err) {
       console.error("❌ Lỗi lấy thông tin đơn hàng:", err);
@@ -38,7 +38,7 @@ export default function OrderBuyer() {
   useEffect(() => {
     loadMyOrder();
   }, []);
-
+  /* --------------------Hủy đơn hàng -------------------- */
   const handleCancelOrder = async (orderId) => {
     const isConfirm = window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?");
     if (!isConfirm) return;
@@ -54,7 +54,7 @@ export default function OrderBuyer() {
     }
   };
 
-  
+  /*------------------- Nút báo cáo vấn đề với đơn hàng -------------------*/
   const handleOpenReport = (orderId) => {
     setSelectedOrderId(orderId);
     setIssueType(""); 
@@ -62,7 +62,7 @@ export default function OrderBuyer() {
     setIsModalOpen(true);
   };
 
-
+  /*-------------------- submit báo cáo ------------------- */
   const handleSubmitReport = async () => {
     if (!issueType) {
       alert("Vui lòng chọn loại vấn đề!");
@@ -95,7 +95,7 @@ export default function OrderBuyer() {
       setIsSubmitting(false);
     }
   };
-
+  
   const getStatusInfo = (status) => {
     switch (String(status)) {
       case "Paid":
@@ -345,7 +345,7 @@ export default function OrderBuyer() {
               <button
                 onClick={handleSubmitReport}
                 className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                disabled={isSubmitting || !issueType} // Disable nếu đang submit hoặc chưa chọn Issue Type
+                disabled={isSubmitting || !issueType} 
               >
                 {isSubmitting ? "Đang gửi..." : "Gửi báo cáo"}
               </button>

@@ -14,15 +14,15 @@ export default function OrderDetail() {
     /* ------ API Review ------ */
     const submitMyReview = async () => {
         try {
-            // 2. Gắn dữ liệu động từ state vào payload
+           
             const payload = {
-                orderId: id, // Lấy từ props hoặc URL params
-                rating: rating,          // Lấy từ state người dùng chọn
-                comment: comment         // Lấy từ ô input người dùng nhập
+                orderId: id, 
+                rating: rating,          
+                comment: comment        
             };
 
             const result = await postReview(payload);
-            console.log("✅ Review submitted successfully:", result);
+            console.log(" Review submitted successfully:", result);
             toast.success("Cảm ơn bạn đã gửi đánh giá!");
 
         } catch (error) {
@@ -30,15 +30,15 @@ export default function OrderDetail() {
             toast.error("Đơn hàng đã được đánh giá hoặc có lỗi xảy ra!");
         }
     };
-
+    /*--------------------- Load thông tin chi tiết đơn hàng ---------------------*/
     const loadOrder = async () => {
         setIsLoading(true);
         try {
             const data = await getOrder(id);
-            console.log("✅ Dữ liệu đơn hàng:", data);
+            console.log(" Dữ liệu đơn hàng:", data);
             setOrder(data);
         } catch (err) {
-            console.error("❌ Lỗi lấy thông tin đơn hàng:", err);
+            console.error(" Lỗi lấy thông tin đơn hàng:", err);
         } finally {
             setIsLoading(false);
         }
@@ -49,7 +49,7 @@ export default function OrderDetail() {
             loadOrder();
         }
     }, [id]);
-
+    
     const formatPrice = (price) => {
         if (price === undefined || price === null) return "0đ";
         return price.toLocaleString('vi-VN') + 'đ';

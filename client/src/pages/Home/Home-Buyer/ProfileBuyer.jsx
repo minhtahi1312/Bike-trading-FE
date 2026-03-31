@@ -135,13 +135,10 @@ export default function BuyerProfile() {
             const response = await uploadAvatar(formData);
             const newUrl = response.avtUrl || response.avatarUrl || response;
 
-            // 1. Cập nhật state tại chỗ (bạn đã làm)
             setUserData(prev => ({ ...prev, avatar: newUrl }));
 
-            // 2. Lưu vào localStorage để Header có thể lấy
             localStorage.setItem('user_avatar', newUrl);
 
-            // 3. Bắn tín hiệu "avatar_updated"
             window.dispatchEvent(new Event('avatar_updated'));
 
             toast.success("Cập nhật ảnh đại diện thành công!");
@@ -328,34 +325,7 @@ export default function BuyerProfile() {
 
                                     </div>
 
-                                    {/* Địa chỉ nhận hàng */}
-                                    {/* <div className="space-y-2">
-                                        <label className="text-xs font-bold text-[#111813] uppercase tracking-wide">Địa chỉ nhận hàng</label>
-                                        <input
-                                            type="text"
-                                            value={userData?.location || "Chưa có địa chỉ"}
-                                            readOnly
-                                            className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5e7eb] rounded-xl text-sm font-medium text-gray-500 cursor-not-allowed outline-none"
-                                        />
-                                    </div> */}
-
-                                    {/* Giới thiệu ngắn */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-[#111813] uppercase tracking-wide">Giới thiệu ngắn</label>
-                                        <textarea
-                                            rows="3"
-                                            value={userData?.bio || "Thành viên của BikeMarket"}
-                                            readOnly
-                                            className="w-full px-4 py-3 bg-gray-100 border border-[#e5e7eb] rounded-xl text-sm font-medium text-gray-500 cursor-not-allowed outline-none resize-none"
-                                        ></textarea>
-                                    </div>
-
-                                    {/* Phần thông báo thay vì nút bấm */}
-                                    <div className="pt-4 border-t border-gray-100 flex justify-end">
-                                        <span className="text-xs text-gray-400 italic">
-                                            * Thông tin hồ sơ được cố định bởi hệ thống.
-                                        </span>
-                                    </div>
+                                   
                                 </form>
                             ) : (
                                 <form className="max-w-md space-y-6" onSubmit={handleUpdatePassword}>

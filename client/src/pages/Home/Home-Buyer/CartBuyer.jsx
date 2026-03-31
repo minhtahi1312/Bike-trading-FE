@@ -12,22 +12,20 @@ const CartBuyer = () => {
   
   const [summary, setSummary] = useState({ totalAmount: 0 }); 
   const hasInvalidItem = items.some(item => item.isSelected && item.bikeStatus !== 'Available');
-
+  // load sản phâm
   const loadItems = async () => {
     try {
       const item = await getCartItems();
       setItems(item || []);
-      console.log("Lấy danh sách giỏ hàng:", item);
     } catch (err) {
       console.error("Lỗi lấy danh sách:", err);
     }
   };
-
+  // load tổng số tiền
   const loadSummary = async () => {
     try {
       const data = await getCart();
       setSummary(data || { totalAmount: 0 });
-      connssole.log("Lấy thông tin giỏ hàng:", data);
     } catch (err) {
       console.error("Lỗi lấy tổng tiền:", err);
     }
@@ -36,7 +34,6 @@ const CartBuyer = () => {
   const isBuy = async () => {
     try {
       const data = await isBuying();
-      console.log("isBuying response:", data);
     } catch (err) {
       console.error("Lỗi không lấy được item:", err);
     }
@@ -73,7 +70,7 @@ const CartBuyer = () => {
   }, 1000);
   return () => clearInterval(interval); 
   }, []);
-
+  // API tích chọn sản phẩm
   const handleToggle = async (id) => {
     try {
       await toggleCartItem(id);
@@ -82,7 +79,7 @@ const CartBuyer = () => {
       toast.error("Không thể thay đổi trạng thái chọn");
     }
   };
-
+  // APi xóa sản phẩm
   const handleDelete = async (id) => {
     if (window.confirm("Xóa sản phẩm này?")) {
       try {

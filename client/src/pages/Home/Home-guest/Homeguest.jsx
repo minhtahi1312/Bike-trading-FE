@@ -415,18 +415,7 @@ export default function Homeguest() {
                   </div>
 
                 </div>
-                {/* <div className="flex items-center gap-2 ml-auto">
-                  <span className="text-sm text-emerald-700">Sắp xếp:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="form-select bg-transparent border-none text-sm font-bold text-[#111813] focus:ring-0 p-0 pr-8 cursor-pointer"
-                  >
-                    <option>Mới nhất</option>
-                    <option>Giá thấp đến cao</option>
-                    <option>Giá cao đến thấp</option>
-                  </select>
-                </div> */}
+              
               </div>
 
               {/* Bikes Grid */}

@@ -333,65 +333,44 @@ const LoginForm = ({ role, tab, setTab }) => {
         role: roleId,
       });
 
-
       if (response.data && response.data.success === true) {
         toast.success("Đăng nhập bằng Google thành công!");
 
-        // Lưu Token
+        // --- XỬ LÝ DỮ LIỆU TỪ SERVER ---
         const token = response.data.token || response.data.accessToken;
-        if (token) {
-          localStorage.setItem("accessToken", token);
-        }
-        /* ------------- Lấy avartar -------------- */
-        console.log("DATA GOOGLE:", response.data);
         const avatar = response.data.avatar ||
           response.data.avtUrl ||
           response.data.user?.avatar ||
           response.data.user?.avtUrl ||
           response.data.user?.picture;
+          
+        const rawRole = response.data.role || response.data.Role;
+        let finalRole = role.toUpperCase(); // Mặc định lấy theo role user đang chọn ở Tab
+        if (rawRole) {
+          if (Number(rawRole) === 2 || String(rawRole).toUpperCase() === "BUYER") finalRole = "BUYER";
+          if (Number(rawRole) === 3 || String(rawRole).toUpperCase() === "SELLER") finalRole = "SELLER";
+        }
+
         if (token) {
           localStorage.setItem("accessToken", token);
         }
 
         if (avatar) {
           localStorage.setItem("user_avatar", avatar);
-          // THÊM DÒNG NÀY: Phát tín hiệu để Header cập nhật ảnh ngay lập tức
           window.dispatchEvent(new Event('avatar_updated'));
-        }
-
-        localStorage.setItem("role", serverRoleStr);
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: response.data.email || email, // Lấy email từ response nếu có
-            role: serverRoleStr,
-            avatar: avatar || null
-          }),
-        ); localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: email,
-            role: serverRoleStr,
-            avatar: avatar // Lưu thêm vào object user cho đồng bộ
-          }),
-        );
-        /* ----------------------------------------------- -------------- */
-        const rawRole = response.data.role || response.data.Role;
-        let finalRole = role.toUpperCase(); 
-
-        if (rawRole) {
-         
-          if (Number(rawRole) === 2) finalRole = "BUYER";
-          if (Number(rawRole) === 3) finalRole = "SELLER";
         }
 
         localStorage.setItem("role", finalRole);
         localStorage.setItem(
           "user",
-          JSON.stringify({ email: result.user.email, role: finalRole })
+          JSON.stringify({
+            email: response.data.email || result.user.email || email, 
+            role: finalRole,
+            avatar: avatar || null
+          })
         );
 
-        // Điều hướng
+        // --- ĐIỀU HƯỚNG ---
         if (finalRole === "BUYER") {
           navigate("/homebuyer");
         } else {
